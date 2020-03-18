@@ -11,13 +11,17 @@ class PermissionStatusWidget extends StatefulWidget {
 class _PermissionStatusState extends State<PermissionStatusWidget> {
   final Location location = new Location();
 
-  PermissionStatus _permissionGranted;
+  bool _permissionGranted;
+
+  static void backgroundCallback(List<LocationData> locations) {
+    print('Location data received from background: $locations');
+  }
 
   _checkPermissions() async {
     try {
-      PermissionStatus permissionGrantedResult = await location.hasPermission();
+      bool permission = await location.hasPermission();
       setState(() {
-        _permissionGranted = permissionGrantedResult;
+        _permissionGranted = permission;
       });
     } catch (err) {
       print(err);
@@ -25,15 +29,16 @@ class _PermissionStatusState extends State<PermissionStatusWidget> {
   }
 
   _requestPermission() async {
-    if (_permissionGranted != PermissionStatus.GRANTED) {
+    if (!_permissionGranted) {
       try {
-        PermissionStatus permissionRequestedResult =
-            await location.requestPermission();
+        bool permission = await location.requestPermission();
         setState(() {
-          _permissionGranted = permissionRequestedResult;
+          _permissionGranted = permission;
         });
-        if (permissionRequestedResult != PermissionStatus.GRANTED) {
-          return;
+        if (permission) {
+          bool status =
+              await location.registerBackgroundLocation(backgroundCallback);
+          print('statusBackgroundLocation: $status');
         }
       } catch (err) {
         print(err);
@@ -61,9 +66,7 @@ class _PermissionStatusState extends State<PermissionStatusWidget> {
             ),
             RaisedButton(
               child: Text("Request"),
-              onPressed: _permissionGranted == PermissionStatus.GRANTED
-                  ? null
-                  : _requestPermission,
+              onPressed: _permissionGranted ? null : _requestPermission,
             )
           ],
         )

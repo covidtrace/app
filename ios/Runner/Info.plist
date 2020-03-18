@@ -43,7 +43,7 @@
 	<false/>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Message here about requesting location data</string>
-	<key>NSLocationAlwaysUsageDescription</key>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>Message here about always allowing access to location data</string>
 	<key>io.flutter.embedded_views_preview</key>
 	<string>YES</string>

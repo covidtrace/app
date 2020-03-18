@@ -141,10 +141,12 @@ packages:
   location:
     dependency: "direct main"
     description:
-      name: location
-      url: "https://pub.dartlang.org"
-    source: hosted
-    version: "2.5.4"
+      path: "."
+      ref: background_location
+      resolved-ref: "7c089fad38acbb7be7c46f207f601ac8e6b21caf"
+      url: "git://github.com/Lyokone/flutterlocation.git"
+    source: git
+    version: "2.3.5"
   matcher:
     dependency: transitive
     description:
