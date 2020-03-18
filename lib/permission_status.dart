@@ -66,7 +66,7 @@ class _PermissionStatusState extends State<PermissionStatusWidget> {
             ),
             RaisedButton(
               child: Text("Request"),
-              onPressed: _permissionGranted ? null : _requestPermission,
+              onPressed: _permissionGranted == true ? null : _requestPermission,
             )
           ],
         )
