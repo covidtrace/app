@@ -1,12 +1,11 @@
 import 'listen_location.dart';
 import 'package:flutter/material.dart';
-import 'package:location/location.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'app_model.dart';
 
 void main() => runApp(ChangeNotifierProvider(
-      create: (context) => model,
+      create: (context) => AppModel(),
       child: MyApp(),
     ));
 
@@ -30,8 +29,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final Location location = new Location();
-
   _showInfoDialog() {
     return showDialog<void>(
       context: context,
@@ -41,7 +38,7 @@ class _MyHomePageState extends State<MyHomePage> {
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
-                Text('Created by Wes Carr'),
+                Text('Created by Josh Gummersall, Dudley Carr, Wes Carr'),
                 InkWell(
                   child: Text(
                     'https://github.com/wescarr/covidtrace',
