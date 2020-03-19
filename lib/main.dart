@@ -1,22 +1,21 @@
+import 'listen_location.dart';
 import 'package:flutter/material.dart';
 import 'package:location/location.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'app_model.dart';
 
-import 'listen_location.dart';
-import 'permission_status.dart';
-import 'service_enabled.dart';
-
-void main() => runApp(MyApp());
+void main() => runApp(ChangeNotifierProvider(
+      create: (context) => model,
+      child: MyApp(),
+    ));
 
 class MyApp extends StatelessWidget {
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Location',
-      theme: ThemeData(
-        primarySwatch: Colors.blue,
-      ),
+      title: 'COVID-19 Trace',
+      theme: ThemeData(primarySwatch: Colors.blue),
       home: MyHomePage(title: 'Covid-19 Trace'),
     );
   }
@@ -82,17 +81,7 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       body: Container(
         child: Column(
-          children: <Widget>[
-            PermissionStatusWidget(),
-            Divider(
-              height: 32,
-            ),
-            ServiceEnabledWidget(),
-            Divider(
-              height: 32,
-            ),
-            ListenLocationWidget()
-          ],
+          children: <Widget>[ListenLocationWidget()],
         ),
       ),
     );

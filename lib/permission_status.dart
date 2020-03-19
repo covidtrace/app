@@ -11,7 +11,7 @@ class PermissionStatusWidget extends StatefulWidget {
 class _PermissionStatusState extends State<PermissionStatusWidget> {
   final Location location = new Location();
 
-  bool _permissionGranted;
+  bool _permissionGranted = false;
 
   static void backgroundCallback(List<LocationData> locations) {
     print('Location data received from background: $locations');
