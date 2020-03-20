@@ -28,7 +28,7 @@ class _ListenLocationState extends State<ListenLocationWidget> {
       latitude: 37.42796133580664,
       longitude: -122.085749655962,
       speed: 0,
-      timestamp: DateTime.now().toIso8601String());
+      timestamp: DateTime.now());
   List<LocationModel> _locations = [];
   Completer<GoogleMapController> _controller = Completer();
 
@@ -48,7 +48,7 @@ class _ListenLocationState extends State<ListenLocationWidget> {
           longitude: l.coords.longitude,
           latitude: l.coords.latitude,
           speed: l.coords.speed,
-          timestamp: l.timestamp);
+          timestamp: DateTime.parse(l.timestamp));
       setState(() {
         _recent = model;
       });
@@ -73,10 +73,10 @@ class _ListenLocationState extends State<ListenLocationWidget> {
     });
   }
 
-  String formatDate(String isoStr) {
+  String formatDate(DateTime d) {
     return new DateFormat('Md')
         .add_jm()
-        .format(DateTime.parse(isoStr).toLocal());
+        .format(d.toLocal());
   }
 
   Future<void> pollLocations() async {
@@ -93,7 +93,7 @@ class _ListenLocationState extends State<ListenLocationWidget> {
               longitude: 0,
               latitude: 0,
               speed: 0,
-              timestamp: DateTime.now().toIso8601String());
+              timestamp: DateTime.now());
     });
 
     if (locations.length == 0) {

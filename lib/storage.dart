@@ -7,7 +7,7 @@ class LocationModel {
   final double longitude;
   final double latitude;
   final double speed;
-  final String timestamp;
+  final DateTime timestamp;
   String cellID;
 
   LocationModel({this.longitude, this.latitude, this.speed, this.timestamp}) {
@@ -26,7 +26,9 @@ class LocationModel {
   }
 
   List<dynamic> toCSV() {
-    return [timestamp, cellID, 'self'];
+    var unix = timestamp.millisecondsSinceEpoch / 1000;
+    var hour = (unix / 60 / 60).ceil() * 60 * 60;
+    return [hour, cellID, 'self'];
   }
 
   static Future<void> insert(LocationModel location) async {
@@ -57,7 +59,7 @@ class LocationModel {
         longitude: rows[i]['longitude'],
         latitude: rows[i]['latitude'],
         speed: rows[i]['speed'],
-        timestamp: rows[i]['timestamp'],
+        timestamp: DateTime.parse(rows[i]['timestamp']),
       );
     });
   }
