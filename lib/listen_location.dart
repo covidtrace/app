@@ -183,16 +183,16 @@ class _ListenLocationState extends State<ListenLocationWidget> {
                     ]),
                 Container(
                   child: RaisedButton(
-                    child: Icon(Icons.delete_forever),
-                    onPressed: _resetLocations,
+                    child: Icon(Icons.refresh),
+                    onPressed: pollLocations,
                   ),
                 ),
                 Container(
                   child: RaisedButton(
-                    child: Icon(Icons.refresh),
-                    onPressed: pollLocations,
+                    child: Icon(Icons.delete_forever),
+                    onPressed: _resetLocations,
                   ),
-                )
+                ),
               ],
             )),
         Row(mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
