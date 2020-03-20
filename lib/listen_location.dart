@@ -181,6 +181,7 @@ class _ListenLocationState extends State<ListenLocationWidget> {
                         height: 300,
                         child: GoogleMap(
                           mapType: MapType.normal,
+                          myLocationEnabled: true,
                           initialCameraPosition: _camera,
                           markers: markers,
                           minMaxZoomPreference: MinMaxZoomPreference(10, 18),
