@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:path/path.dart';
+import 'package:s2geometry/s2geometry.dart';
 import 'package:sqflite/sqflite.dart';
 
 class LocationModel {
@@ -7,8 +8,13 @@ class LocationModel {
   final double latitude;
   final double speed;
   final String timestamp;
+  String cellID;
 
-  LocationModel({this.longitude, this.latitude, this.speed, this.timestamp});
+  LocationModel({this.longitude, this.latitude, this.speed, this.timestamp}) {
+    S2LatLng ll = new S2LatLng.fromDegrees(this.latitude, this.longitude);
+    S2CellId cellID = new S2CellId.fromLatLng(ll);
+    this.cellID = cellID.toToken();
+  }
 
   Map<String, dynamic> toMap() {
     return {

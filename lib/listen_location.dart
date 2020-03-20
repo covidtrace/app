@@ -168,7 +168,8 @@ class _ListenLocationState extends State<ListenLocationWidget> {
                             alpha: (1 - age),
                             position: LatLng(l.latitude, l.longitude),
                             infoWindow: InfoWindow(
-                                title: '${formatDate(l.timestamp)}')));
+                                title: formatDate(l.timestamp),
+                                snippet: '${l.cellID}')));
                   })
                   .values
                   .toSet();
