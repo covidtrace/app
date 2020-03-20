@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:math';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -7,8 +9,8 @@ import 'package:flutter_background_geolocation/flutter_background_geolocation.da
     as bg;
 import 'storage.dart';
 import 'app_model.dart';
-import 'dart:math';
 import 'package:intl/intl.dart';
+import 'package:http/http.dart' as http;
 
 class ListenLocationWidget extends StatefulWidget {
   ListenLocationWidget({Key key}) : super(key: key);
@@ -28,6 +30,8 @@ class _ListenLocationState extends State<ListenLocationWidget> {
       timestamp: DateTime.now().toIso8601String());
   List<LocationModel> _locations = [];
   Completer<GoogleMapController> _controller = Completer();
+
+  bool _loading = false;
 
   @override
   void initState() {
@@ -120,6 +124,27 @@ class _ListenLocationState extends State<ListenLocationWidget> {
     });
   }
 
+  _sendReport() async {
+    setState(() {
+      _loading = true;
+    });
+
+    try {
+      List<LocationModel> locations = await LocationModel.findAll();
+      await http.post('http://localhost:8080/report',
+          headers: <String, String>{
+            'Content-Type': 'application/json; charset=UTF-8',
+          },
+          body: jsonEncode(locations.map((l) => l.toMap()).toList()));
+    } catch (err) {
+      print(err);
+    } finally {
+      setState(() {
+        _loading = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -201,8 +226,16 @@ class _ListenLocationState extends State<ListenLocationWidget> {
               Padding(
                 padding: EdgeInsets.all(10.0),
                 child: CupertinoButton.filled(
-                  child: Text("Report Symptoms"),
-                  onPressed: pollLocations,
+                  child: _loading
+                      ? SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              value: null,
+                              valueColor: AlwaysStoppedAnimation(Colors.white)))
+                      : Text("Report Symptoms"),
+                  onPressed: _sendReport,
                 ),
               ),
               CupertinoButton.filled(
