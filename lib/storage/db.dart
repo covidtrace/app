@@ -8,10 +8,8 @@ Future<String> _dataBasePath(String path) async {
 }
 
 Future<Database> _initDatabase() async {
-  var path = await _dataBasePath('locations.db');
-  print(path);
-
-  Future<Database> database = openDatabase(path, onCreate: (db, version) async {
+  Future<Database> database = openDatabase(await _dataBasePath('locations.db'),
+      onCreate: (db, version) async {
     // Set up location table
     await db.execute(
         "CREATE TABLE location(id INTEGER PRIMARY KEY, longitude REAL, latitude REAL, speed REAL, timestamp TEXT)");
