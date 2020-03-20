@@ -8,6 +8,7 @@ import 'package:flutter_background_geolocation/flutter_background_geolocation.da
 import 'storage.dart';
 import 'app_model.dart';
 import 'dart:math';
+import 'package:intl/intl.dart';
 
 class ListenLocationWidget extends StatefulWidget {
   ListenLocationWidget({Key key}) : super(key: key);
@@ -67,15 +68,21 @@ class _ListenLocationState extends State<ListenLocationWidget> {
     });
   }
 
+  String formatDate(String isoStr) {
+    return new DateFormat('Md')
+        .add_jm()
+        .format(DateTime.parse(isoStr).toLocal());
+  }
+
   Future<void> pollLocations() async {
-    print('pollLocations');
     List<LocationModel> locations = await LocationModel.findAll();
     int count = await LocationModel.count();
 
     setState(() {
       _locations = locations;
       _numLocations = count;
-      _center = _numLocations > 0
+      _recent = locations.length > 0 ? locations.last : _recent;
+      _center = locations.length > 0
           ? locations.last
           : LocationModel(
               longitude: 0,
@@ -98,7 +105,7 @@ class _ListenLocationState extends State<ListenLocationWidget> {
         LatLngBounds(
             northeast: LatLng(maxLat, maxLon),
             southwest: LatLng(minLat, minLon)),
-        20);
+        30);
 
     final GoogleMapController controller = await _controller.future;
     controller.animateCamera(update);
@@ -125,14 +132,21 @@ class _ListenLocationState extends State<ListenLocationWidget> {
                   target: LatLng(_center.latitude, _center.longitude),
                   zoom: 16.0);
 
-              Set<Marker> markers = {};
-              _locations.forEach((l) {
-                Marker m = new Marker(
-                    markerId: new MarkerId('$markers.length'),
-                    position: LatLng(l.latitude, l.longitude),
-                    infoWindow: InfoWindow(title: '${l.timestamp.toString()}'));
-                markers.add(m);
-              });
+              Set<Marker> markers = _locations
+                  .asMap()
+                  .map((i, l) {
+                    double age = (i + 1) / _locations.length * .6;
+                    return MapEntry(
+                        i,
+                        new Marker(
+                            markerId: new MarkerId('$i'),
+                            alpha: (1 - age),
+                            position: LatLng(l.latitude, l.longitude),
+                            infoWindow: InfoWindow(
+                                title: '${formatDate(l.timestamp)}')));
+                  })
+                  .values
+                  .toSet();
 
               return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -158,13 +172,15 @@ class _ListenLocationState extends State<ListenLocationWidget> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(children: <Widget>[
-                  Text('Locations: $_numLocations',
-                      style: Theme.of(context).textTheme.body2),
-                  Text(
-                      'Most recent: ${_recent != null ? DateTime.parse(_recent.timestamp).toLocal().toString() : ''}',
-                      style: Theme.of(context).textTheme.body2),
-                ]),
+                Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text('Locations: $_numLocations',
+                          style: Theme.of(context).textTheme.body2),
+                      Text(
+                          'Latest: ${_recent != null ? formatDate(_recent.timestamp) : ''}',
+                          style: Theme.of(context).textTheme.body2),
+                    ]),
                 Container(
                   child: RaisedButton(
                     child: Icon(Icons.delete_forever),
