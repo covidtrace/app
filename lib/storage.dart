@@ -25,6 +25,10 @@ class LocationModel {
     };
   }
 
+  List<dynamic> toCSV() {
+    return [timestamp, cellID, 'self'];
+  }
+
   static Future<void> insert(LocationModel location) async {
     final Database db = await initDatabase();
     await db.insert('location', location.toMap());

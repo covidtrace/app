@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -11,6 +10,8 @@ import 'storage.dart';
 import 'app_model.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
+import 'package:csv/csv.dart';
+import 'package:uuid/uuid.dart';
 
 class ListenLocationWidget extends StatefulWidget {
   ListenLocationWidget({Key key}) : super(key: key);
@@ -131,11 +132,19 @@ class _ListenLocationState extends State<ListenLocationWidget> {
 
     try {
       List<LocationModel> locations = await LocationModel.findAll();
-      await http.post('http://localhost:8080/report',
+      List<List<dynamic>> headers = [['timestamp', 's2geo', 'status']];
+
+      // Upload to Cloud Storage
+      var object = Uuid().v4();
+      var response = await http.put(
+          'https://covidtrace-holding.storage.googleapis.com/${object}.csv',
           headers: <String, String>{
-            'Content-Type': 'application/json; charset=UTF-8',
+            'Content-Type': 'text/csv',
           },
-          body: jsonEncode(locations.map((l) => l.toMap()).toList()));
+          body: ListToCsvConverter().convert(headers + locations.map((l) => l.toCSV()).toList()));
+
+      print(response.statusCode);
+      print(response.body);
     } catch (err) {
       print(err);
     } finally {
