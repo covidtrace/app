@@ -47,12 +47,13 @@ class LocationModel {
     return count;
   }
 
-  static Future<List<LocationModel>> findAll() async {
+  static Future<List<LocationModel>> findAll(
+      {int limit, String where, String orderBy}) async {
     final Database db = await initDatabase();
 
     print('querying DB for all locations');
     final List<Map<String, dynamic>> rows =
-        await db.query('location', limit: 10, orderBy: 'timestamp DESC');
+        await db.query('location', limit: limit, orderBy: orderBy);
 
     return List.generate(rows.length, (i) {
       return LocationModel(

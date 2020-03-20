@@ -74,13 +74,12 @@ class _ListenLocationState extends State<ListenLocationWidget> {
   }
 
   String formatDate(DateTime d) {
-    return new DateFormat('Md')
-        .add_jm()
-        .format(d.toLocal());
+    return new DateFormat('Md').add_jm().format(d.toLocal());
   }
 
   Future<void> pollLocations() async {
-    List<LocationModel> locations = await LocationModel.findAll();
+    List<LocationModel> locations =
+        await LocationModel.findAll(limit: 10, orderBy: 'timestamp DESC');
     int count = await LocationModel.count();
 
     setState(() {
@@ -90,10 +89,7 @@ class _ListenLocationState extends State<ListenLocationWidget> {
       _center = locations.length > 0
           ? locations.last
           : LocationModel(
-              longitude: 0,
-              latitude: 0,
-              speed: 0,
-              timestamp: DateTime.now());
+              longitude: 0, latitude: 0, speed: 0, timestamp: DateTime.now());
     });
 
     if (locations.length == 0) {
@@ -132,7 +128,9 @@ class _ListenLocationState extends State<ListenLocationWidget> {
 
     try {
       List<LocationModel> locations = await LocationModel.findAll();
-      List<List<dynamic>> headers = [['timestamp', 's2geo', 'status']];
+      List<List<dynamic>> headers = [
+        ['timestamp', 's2geo', 'status']
+      ];
 
       // Upload to Cloud Storage
       var object = Uuid().v4();
@@ -141,7 +139,8 @@ class _ListenLocationState extends State<ListenLocationWidget> {
           headers: <String, String>{
             'Content-Type': 'text/csv',
           },
-          body: ListToCsvConverter().convert(headers + locations.map((l) => l.toCSV()).toList()));
+          body: ListToCsvConverter()
+              .convert(headers + locations.map((l) => l.toCSV()).toList()));
 
       print(response.statusCode);
       print(response.body);
