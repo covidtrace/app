@@ -15,7 +15,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>$(FLUTTER_BUILD_NAME)</string>
+	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
@@ -24,8 +24,6 @@
 	<true/>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>Message here about always allowing access to location data</string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Message here about requesting location data</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>Message here about requesting location data</string>
 	<key>NSMotionUsageDescription</key>
@@ -57,5 +55,9 @@
 	<false/>
 	<key>io.flutter.embedded_views_preview</key>
 	<string>YES</string>
+	<key>BGTaskSchedulerPermittedIdentifiers</key>
+	<array>
+		<string>com.transistorsoft.fetch</string>
+	</array>
 </dict>
 </plist>
