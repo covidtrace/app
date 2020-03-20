@@ -1,14 +1,20 @@
 import 'dart:async';
 import 'package:path/path.dart';
+import 'package:s2geometry/s2geometry.dart';
 import 'package:sqflite/sqflite.dart';
 
 class LocationModel {
   final double longitude;
   final double latitude;
   final double speed;
-  final String timestamp;
+  final DateTime timestamp;
+  String cellID;
 
-  LocationModel({this.longitude, this.latitude, this.speed, this.timestamp});
+  LocationModel({this.longitude, this.latitude, this.speed, this.timestamp}) {
+    S2LatLng ll = new S2LatLng.fromDegrees(this.latitude, this.longitude);
+    S2CellId cellID = new S2CellId.fromLatLng(ll);
+    this.cellID = cellID.toToken();
+  }
 
   Map<String, dynamic> toMap() {
     return {
@@ -17,6 +23,12 @@ class LocationModel {
       'speed': speed,
       'timestamp': timestamp,
     };
+  }
+
+  List<dynamic> toCSV() {
+    var unix = timestamp.millisecondsSinceEpoch / 1000;
+    var hour = (unix / 60 / 60).ceil() * 60 * 60;
+    return [hour, cellID, 'self'];
   }
 
   static Future<void> insert(LocationModel location) async {
@@ -47,7 +59,7 @@ class LocationModel {
         longitude: rows[i]['longitude'],
         latitude: rows[i]['latitude'],
         speed: rows[i]['speed'],
-        timestamp: rows[i]['timestamp'],
+        timestamp: DateTime.parse(rows[i]['timestamp']),
       );
     });
   }

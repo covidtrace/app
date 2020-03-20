@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -11,6 +10,8 @@ import 'storage.dart';
 import 'app_model.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
+import 'package:csv/csv.dart';
+import 'package:uuid/uuid.dart';
 
 class ListenLocationWidget extends StatefulWidget {
   ListenLocationWidget({Key key}) : super(key: key);
@@ -27,7 +28,7 @@ class _ListenLocationState extends State<ListenLocationWidget> {
       latitude: 37.42796133580664,
       longitude: -122.085749655962,
       speed: 0,
-      timestamp: DateTime.now().toIso8601String());
+      timestamp: DateTime.now());
   List<LocationModel> _locations = [];
   Completer<GoogleMapController> _controller = Completer();
 
@@ -47,7 +48,7 @@ class _ListenLocationState extends State<ListenLocationWidget> {
           longitude: l.coords.longitude,
           latitude: l.coords.latitude,
           speed: l.coords.speed,
-          timestamp: l.timestamp);
+          timestamp: DateTime.parse(l.timestamp));
       setState(() {
         _recent = model;
       });
@@ -72,10 +73,10 @@ class _ListenLocationState extends State<ListenLocationWidget> {
     });
   }
 
-  String formatDate(String isoStr) {
+  String formatDate(DateTime d) {
     return new DateFormat('Md')
         .add_jm()
-        .format(DateTime.parse(isoStr).toLocal());
+        .format(d.toLocal());
   }
 
   Future<void> pollLocations() async {
@@ -92,7 +93,7 @@ class _ListenLocationState extends State<ListenLocationWidget> {
               longitude: 0,
               latitude: 0,
               speed: 0,
-              timestamp: DateTime.now().toIso8601String());
+              timestamp: DateTime.now());
     });
 
     if (locations.length == 0) {
@@ -131,11 +132,19 @@ class _ListenLocationState extends State<ListenLocationWidget> {
 
     try {
       List<LocationModel> locations = await LocationModel.findAll();
-      await http.post('http://localhost:8080/report',
+      List<List<dynamic>> headers = [['timestamp', 's2geo', 'status']];
+
+      // Upload to Cloud Storage
+      var object = Uuid().v4();
+      var response = await http.put(
+          'https://covidtrace-holding.storage.googleapis.com/${object}.csv',
           headers: <String, String>{
-            'Content-Type': 'application/json; charset=UTF-8',
+            'Content-Type': 'text/csv',
           },
-          body: jsonEncode(locations.map((l) => l.toMap()).toList()));
+          body: ListToCsvConverter().convert(headers + locations.map((l) => l.toCSV()).toList()));
+
+      print(response.statusCode);
+      print(response.body);
     } catch (err) {
       print(err);
     } finally {
@@ -168,7 +177,8 @@ class _ListenLocationState extends State<ListenLocationWidget> {
                             alpha: (1 - age),
                             position: LatLng(l.latitude, l.longitude),
                             infoWindow: InfoWindow(
-                                title: '${formatDate(l.timestamp)}')));
+                                title: formatDate(l.timestamp),
+                                snippet: '${l.cellID}')));
                   })
                   .values
                   .toSet();
