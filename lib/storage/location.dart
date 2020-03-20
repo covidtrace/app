@@ -1,16 +1,18 @@
 import 'dart:async';
-import 'package:path/path.dart';
+import 'db.dart';
 import 'package:s2geometry/s2geometry.dart';
 import 'package:sqflite/sqflite.dart';
 
 class LocationModel {
+  final int id;
   final double longitude;
   final double latitude;
   final double speed;
   final DateTime timestamp;
   String cellID;
 
-  LocationModel({this.longitude, this.latitude, this.speed, this.timestamp}) {
+  LocationModel(
+      {this.id, this.longitude, this.latitude, this.speed, this.timestamp}) {
     S2LatLng ll = new S2LatLng.fromDegrees(this.latitude, this.longitude);
     S2CellId cellID = new S2CellId.fromLatLng(ll);
     this.cellID = cellID.toToken();
@@ -18,10 +20,11 @@ class LocationModel {
 
   Map<String, dynamic> toMap() {
     return {
+      'id': id,
       'longitude': longitude,
       'latitude': latitude,
       'speed': speed,
-      'timestamp': timestamp,
+      'timestamp': timestamp.toIso8601String(),
     };
   }
 
@@ -32,14 +35,13 @@ class LocationModel {
   }
 
   static Future<void> insert(LocationModel location) async {
-    final Database db = await initDatabase();
+    final Database db = await Storage.db;
     await db.insert('location', location.toMap());
-
     print('inserted location $location');
   }
 
   static Future<int> count() async {
-    final Database db = await initDatabase();
+    final Database db = await Storage.db;
 
     int count = Sqflite.firstIntValue(
         await db.rawQuery('SELECT COUNT(*) FROM location;'));
@@ -49,14 +51,15 @@ class LocationModel {
 
   static Future<List<LocationModel>> findAll(
       {int limit, String where, String orderBy}) async {
-    final Database db = await initDatabase();
+    final Database db = await Storage.db;
 
     print('querying DB for all locations');
-    final List<Map<String, dynamic>> rows =
-        await db.query('location', limit: limit, orderBy: orderBy);
+    final List<Map<String, dynamic>> rows = await db.query('location',
+        limit: limit, orderBy: orderBy, where: where);
 
     return List.generate(rows.length, (i) {
       return LocationModel(
+        id: rows[i]['id'],
         longitude: rows[i]['longitude'],
         latitude: rows[i]['latitude'],
         speed: rows[i]['speed'],
@@ -66,23 +69,7 @@ class LocationModel {
   }
 
   static Future<void> destroyAll() async {
-    final Database db = await initDatabase();
+    final Database db = await Storage.db;
     await db.delete('location');
   }
-}
-
-// Open the database and store the reference.
-Future<Database> initDatabase() async {
-  final Future<Database> database =
-      openDatabase(await dataBasePath(), onCreate: (db, version) async {
-    await db.execute(
-        "CREATE TABLE location(longitude REAL, latitude REAL, speed REAL, timestamp TEXT)");
-  }, version: 1);
-
-  return database;
-}
-
-Future<String> dataBasePath() async {
-  String dbPath = await getDatabasesPath();
-  return join(dbPath, 'locations.db');
 }

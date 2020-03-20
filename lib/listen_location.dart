@@ -6,12 +6,13 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_background_geolocation/flutter_background_geolocation.dart'
     as bg;
-import 'storage.dart';
 import 'app_model.dart';
+import 'storage/location.dart';
+import 'storage/user.dart';
+import 'storage/report.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 import 'package:csv/csv.dart';
-import 'package:uuid/uuid.dart';
 
 class ListenLocationWidget extends StatefulWidget {
   ListenLocationWidget({Key key}) : super(key: key);
@@ -127,23 +128,34 @@ class _ListenLocationState extends State<ListenLocationWidget> {
     });
 
     try {
-      List<LocationModel> locations = await LocationModel.findAll();
+      var user = await UserModel.find();
+      var latestReport = await ReportModel.findLatest();
+      String where =
+          latestReport != null ? 'id > ${latestReport.lastLocationId}' : null;
+
+      List<LocationModel> locations =
+          await LocationModel.findAll(orderBy: 'id ASC', where: where);
+
       List<List<dynamic>> headers = [
         ['timestamp', 's2geo', 'status']
       ];
 
       // Upload to Cloud Storage
-      var object = Uuid().v4();
       var response = await http.put(
-          'https://covidtrace-holding.storage.googleapis.com/${object}.csv',
+          'https://covidtrace-holding.storage.googleapis.com/${user.uuid}.csv',
           headers: <String, String>{
             'Content-Type': 'text/csv',
           },
           body: ListToCsvConverter()
               .convert(headers + locations.map((l) => l.toCSV()).toList()));
 
+      // TODO(Josh) report errors?
       print(response.statusCode);
       print(response.body);
+
+      var report = ReportModel(
+          lastLocationId: locations.last.id, timestamp: DateTime.now());
+      await report.create();
     } catch (err) {
       print(err);
     } finally {
