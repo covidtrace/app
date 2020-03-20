@@ -6,12 +6,12 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_background_geolocation/flutter_background_geolocation.dart'
     as bg;
-import 'storage.dart';
 import 'app_model.dart';
+import 'storage/location.dart';
+import 'storage/user.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 import 'package:csv/csv.dart';
-import 'package:uuid/uuid.dart';
 
 class ListenLocationWidget extends StatefulWidget {
   ListenLocationWidget({Key key}) : super(key: key);
@@ -127,15 +127,16 @@ class _ListenLocationState extends State<ListenLocationWidget> {
     });
 
     try {
+      var user = await UserModel.find();
+
       List<LocationModel> locations = await LocationModel.findAll();
       List<List<dynamic>> headers = [
         ['timestamp', 's2geo', 'status']
       ];
 
       // Upload to Cloud Storage
-      var object = Uuid().v4();
       var response = await http.put(
-          'https://covidtrace-holding.storage.googleapis.com/${object}.csv',
+          'https://covidtrace-holding.storage.googleapis.com/${user.uuid}.csv',
           headers: <String, String>{
             'Content-Type': 'text/csv',
           },
