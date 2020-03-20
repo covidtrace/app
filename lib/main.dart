@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'app_model.dart';
+import 'send_report.dart';
 
 void main() => runApp(ChangeNotifierProvider(
       create: (context) => AppModel(),
@@ -13,9 +14,13 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      initialRoute: '/',
       title: 'COVID-19 Trace',
       theme: ThemeData(primarySwatch: Colors.blue),
-      home: MyHomePage(title: 'Covid-19 Trace'),
+      routes: {
+        '/': (context) => MyHomePage(title: 'Covid-19 Trace'),
+        '/send_report': (context) => SendReport(),
+      },
     );
   }
 }
