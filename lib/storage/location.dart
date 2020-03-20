@@ -54,10 +54,6 @@ class LocationModel {
     final Database db = await Storage.db;
 
     print('querying DB for all locations');
-    print(where);
-    print(orderBy);
-    print(limit);
-
     final List<Map<String, dynamic>> rows = await db.query('location',
         limit: limit, orderBy: orderBy, where: where);
 
