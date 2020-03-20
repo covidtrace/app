@@ -9,6 +9,7 @@ import 'package:flutter_background_geolocation/flutter_background_geolocation.da
 import 'app_model.dart';
 import 'storage/location.dart';
 import 'storage/user.dart';
+import 'storage/report.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 import 'package:csv/csv.dart';
@@ -128,8 +129,13 @@ class _ListenLocationState extends State<ListenLocationWidget> {
 
     try {
       var user = await UserModel.find();
+      var latestReport = await ReportModel.findLatest();
+      String where =
+          latestReport != null ? 'id > ${latestReport.lastLocationId}' : null;
 
-      List<LocationModel> locations = await LocationModel.findAll();
+      List<LocationModel> locations =
+          await LocationModel.findAll(orderBy: 'id ASC', where: where);
+
       List<List<dynamic>> headers = [
         ['timestamp', 's2geo', 'status']
       ];
@@ -143,8 +149,13 @@ class _ListenLocationState extends State<ListenLocationWidget> {
           body: ListToCsvConverter()
               .convert(headers + locations.map((l) => l.toCSV()).toList()));
 
+      // TODO(Josh) report errors?
       print(response.statusCode);
       print(response.body);
+
+      var report = ReportModel(
+          lastLocationId: locations.last.id, timestamp: DateTime.now());
+      await report.create();
     } catch (err) {
       print(err);
     } finally {
