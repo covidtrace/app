@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
@@ -56,7 +57,6 @@ class _ListenLocationState extends State<ListenLocationWidget> {
 
     bg.BackgroundGeolocation.ready(bg.Config(
             desiredAccuracy: bg.Config.DESIRED_ACCURACY_HIGH,
-            distanceFilter: 1.0,
             stopOnTerminate: false,
             startOnBoot: true,
             logLevel: bg.Config.LOG_LEVEL_OFF))
@@ -120,24 +120,6 @@ class _ListenLocationState extends State<ListenLocationWidget> {
       children: <Widget>[
         Row(
           children: [
-            Container(
-              margin: EdgeInsets.all(21),
-              child: RaisedButton(
-                child: Text("Reset"),
-                onPressed: _resetLocations,
-              ),
-            ),
-            Container(
-              margin: EdgeInsets.all(21),
-              child: RaisedButton(
-                child: Text("Refresh"),
-                onPressed: pollLocations,
-              ),
-            )
-          ],
-        ),
-        Row(
-          children: [
             Consumer<AppModel>(builder: (context, locations, child) {
               CameraPosition _camera = CameraPosition(
                   target: LatLng(_center.latitude, _center.longitude),
@@ -155,11 +137,6 @@ class _ListenLocationState extends State<ListenLocationWidget> {
               return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    Text('Num of locations: $_numLocations',
-                        style: Theme.of(context).textTheme.body2),
-                    Text(
-                        'Most recent: ${_recent != null ? DateTime.parse(_recent.timestamp).toLocal().toString() : ''}',
-                        style: Theme.of(context).textTheme.body2),
                     SizedBox(
                         width: MediaQuery.of(context).size.width,
                         height: 300,
@@ -175,7 +152,50 @@ class _ListenLocationState extends State<ListenLocationWidget> {
                   ]);
             })
           ],
-        )
+        ),
+        Padding(
+            padding: EdgeInsets.all(10.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Column(children: <Widget>[
+                  Text('Locations: $_numLocations',
+                      style: Theme.of(context).textTheme.body2),
+                  Text(
+                      'Most recent: ${_recent != null ? DateTime.parse(_recent.timestamp).toLocal().toString() : ''}',
+                      style: Theme.of(context).textTheme.body2),
+                ]),
+                Container(
+                  child: RaisedButton(
+                    child: Icon(Icons.delete_forever),
+                    onPressed: _resetLocations,
+                  ),
+                ),
+                Container(
+                  child: RaisedButton(
+                    child: Icon(Icons.refresh),
+                    onPressed: pollLocations,
+                  ),
+                )
+              ],
+            )),
+        Row(mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
+          Column(
+            children: <Widget>[
+              Padding(
+                padding: EdgeInsets.all(10.0),
+                child: CupertinoButton.filled(
+                  child: Text("Report Symptoms"),
+                  onPressed: pollLocations,
+                ),
+              ),
+              CupertinoButton.filled(
+                child: Text("Show Test Code"),
+                onPressed: pollLocations,
+              ),
+            ],
+          ),
+        ])
       ],
     );
   }
