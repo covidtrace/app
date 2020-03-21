@@ -104,14 +104,20 @@ class SendReportState extends State<SendReport> {
                 Step(
                     isActive: _step == 0,
                     state: _step > 0 ? StepState.complete : StepState.indexed,
-                    title: Text('Have you tested POSITIVE for COVID-19?'),
+                    title: Text('Official COVID-19 testing'),
+                    subtitle: Text('Have you tested positive for COVID-19?'),
                     content: Container(
                       child: DropdownButton(
                           value: _tested,
                           onChanged: (value) => setState(() => _tested = value),
                           hint: Text('Select an option'),
                           isExpanded: true,
-                          items: ['Yes', 'No', 'Pending', 'Not Tested']
+                          items: [
+                            'Tested Positive',
+                            'Tested Negative',
+                            'Pending',
+                            'Not Tested'
+                          ]
                               .map((label) => DropdownMenuItem(
                                   value: label, child: Text(label)))
                               .toList()),
@@ -120,6 +126,7 @@ class SendReportState extends State<SendReport> {
                     isActive: _step == 1,
                     state: _step > 1 ? StepState.complete : StepState.indexed,
                     title: Text('Symptoms'),
+                    subtitle: Text('What symptoms are you experiencing?'),
                     content: Column(
                         mainAxisAlignment: MainAxisAlignment.start,
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -157,7 +164,9 @@ class SendReportState extends State<SendReport> {
                         ])),
                 Step(
                   isActive: _step == 2,
-                  title: Text('Optional research'),
+                  title: Text('Additional information'),
+                  subtitle:
+                      Text('Help us better understand the spread of the virus'),
                   state: _step > 2 ? StepState.complete : StepState.indexed,
                   content: Column(children: [
                     DropdownButton(
@@ -196,6 +205,7 @@ class SendReportState extends State<SendReport> {
                 Step(
                     isActive: _step == 3,
                     title: Text('Send report'),
+                    subtitle: Text('Review and submit your report'),
                     content: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
