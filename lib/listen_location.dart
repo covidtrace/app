@@ -8,11 +8,7 @@ import 'package:flutter_background_geolocation/flutter_background_geolocation.da
     as bg;
 import 'app_model.dart';
 import 'storage/location.dart';
-import 'storage/user.dart';
-import 'storage/report.dart';
 import 'package:intl/intl.dart';
-import 'package:http/http.dart' as http;
-import 'package:csv/csv.dart';
 
 class ListenLocationWidget extends StatefulWidget {
   ListenLocationWidget({Key key}) : super(key: key);
@@ -32,8 +28,6 @@ class _ListenLocationState extends State<ListenLocationWidget> {
       timestamp: DateTime.now());
   List<LocationModel> _locations = [];
   Completer<GoogleMapController> _controller = Completer();
-
-  bool _loading = false;
 
   @override
   void initState() {
@@ -122,49 +116,6 @@ class _ListenLocationState extends State<ListenLocationWidget> {
     });
   }
 
-  _sendReport() async {
-    setState(() {
-      _loading = true;
-    });
-
-    try {
-      var user = await UserModel.find();
-      var latestReport = await ReportModel.findLatest();
-      String where =
-          latestReport != null ? 'id > ${latestReport.lastLocationId}' : null;
-
-      List<LocationModel> locations =
-          await LocationModel.findAll(orderBy: 'id ASC', where: where);
-
-      List<List<dynamic>> headers = [
-        ['timestamp', 's2geo', 'status']
-      ];
-
-      // Upload to Cloud Storage
-      var response = await http.put(
-          'https://covidtrace-holding.storage.googleapis.com/${user.uuid}.csv',
-          headers: <String, String>{
-            'Content-Type': 'text/csv',
-          },
-          body: ListToCsvConverter()
-              .convert(headers + locations.map((l) => l.toCSV()).toList()));
-
-      // TODO(Josh) report errors?
-      print(response.statusCode);
-      print(response.body);
-
-      var report = ReportModel(
-          lastLocationId: locations.last.id, timestamp: DateTime.now());
-      await report.create();
-    } catch (err) {
-      print(err);
-    } finally {
-      setState(() {
-        _loading = false;
-      });
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -229,14 +180,14 @@ class _ListenLocationState extends State<ListenLocationWidget> {
                           style: Theme.of(context).textTheme.body2),
                     ]),
                 Container(
-                  child: RaisedButton(
-                    child: Icon(Icons.refresh),
+                  child: IconButton(
+                    icon: Icon(Icons.refresh),
                     onPressed: pollLocations,
                   ),
                 ),
                 Container(
-                  child: RaisedButton(
-                    child: Icon(Icons.delete_forever),
+                  child: IconButton(
+                    icon: Icon(Icons.delete_forever),
                     onPressed: _resetLocations,
                   ),
                 ),
@@ -248,16 +199,10 @@ class _ListenLocationState extends State<ListenLocationWidget> {
               Padding(
                 padding: EdgeInsets.all(10.0),
                 child: CupertinoButton.filled(
-                  child: _loading
-                      ? SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              value: null,
-                              valueColor: AlwaysStoppedAnimation(Colors.white)))
-                      : Text("Report Symptoms"),
-                  onPressed: _sendReport,
+                  child: Text("Report Symptoms"),
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/send_report');
+                  },
                 ),
               ),
               CupertinoButton.filled(
