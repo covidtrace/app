@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:math';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
@@ -198,16 +197,14 @@ class _ListenLocationState extends State<ListenLocationWidget> {
             children: <Widget>[
               Padding(
                 padding: EdgeInsets.all(10.0),
-                child: CupertinoButton.filled(
+                child: RaisedButton(
+                  color: ButtonTheme.of(context).colorScheme.primary,
+                  textColor: Colors.white,
                   child: Text("Report Symptoms"),
                   onPressed: () {
                     Navigator.pushNamed(context, '/send_report');
                   },
                 ),
-              ),
-              CupertinoButton.filled(
-                child: Text("Show Test Code"),
-                onPressed: pollLocations,
               ),
             ],
           ),
