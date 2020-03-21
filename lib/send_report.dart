@@ -20,11 +20,12 @@ class SendReportState extends State<SendReport> {
   var _tested = false;
   var _loading = false;
 
-  void _sendReport() async {
+  Future<bool> _sendReport(BuildContext context) async {
     setState(() {
       _loading = true;
     });
 
+    var success = false;
     try {
       var user = await UserModel.find();
       var latestReport = await ReportModel.findLatest();
@@ -54,77 +55,95 @@ class SendReportState extends State<SendReport> {
       var report = ReportModel(
           lastLocationId: locations.last.id, timestamp: DateTime.now());
       await report.create();
+      success = true;
     } catch (err) {
       print(err);
+      success = false;
     } finally {
       setState(() {
         _loading = false;
       });
     }
+
+    return success;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(title: Text('Report Symptoms')),
-        body: Padding(
-            padding: EdgeInsets.only(top: 20),
-            child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: <Widget>[
-                  Text('Symptoms', style: Theme.of(context).textTheme.title),
-                  CheckboxListTile(
-                    controlAffinity: ListTileControlAffinity.leading,
-                    value: _fever,
-                    onChanged: (selected) => setState(() {
-                      _fever = selected;
-                    }),
-                    title: Text('Fever'),
-                  ),
-                  CheckboxListTile(
-                    controlAffinity: ListTileControlAffinity.leading,
-                    value: _cough,
-                    onChanged: (selected) => setState(() {
-                      _cough = selected;
-                    }),
-                    title: Text('Coughing'),
-                  ),
-                  CheckboxListTile(
-                    controlAffinity: ListTileControlAffinity.leading,
-                    value: _breathing,
-                    onChanged: (selected) => setState(() {
-                      _breathing = selected;
-                    }),
-                    title: Text('Shortness of breath'),
-                  ),
-                  SwitchListTile(
-                    value: _tested,
-                    onChanged: (selected) => setState(() {
-                      _tested = selected;
-                    }),
-                    title: Text('I have been tested for COVID-19'),
-                  ),
-                  ButtonBar(alignment: MainAxisAlignment.center, children: [
-                    RaisedButton(
-                      padding: EdgeInsets.symmetric(horizontal: 40),
-                      color: Colors.blue,
-                      child: _loading
-                          ? SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  value: null,
-                                  valueColor:
-                                      AlwaysStoppedAnimation(Colors.white)))
-                          : Text("Submit"),
-                      onPressed: _sendReport,
+        body: Builder(builder: (BuildContext context) {
+          return Padding(
+              padding: EdgeInsets.only(top: 20),
+              child: Column(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: <Widget>[
+                    Text('Symptoms', style: Theme.of(context).textTheme.title),
+                    CheckboxListTile(
+                      controlAffinity: ListTileControlAffinity.leading,
+                      value: _fever,
+                      onChanged: (selected) => setState(() {
+                        _fever = selected;
+                      }),
+                      title: Text('Fever'),
                     ),
-                    CupertinoButton(
-                      child: Text('Cancel'),
-                      onPressed: () => {Navigator.pop(context)},
-                    )
-                  ]),
-                ])));
+                    CheckboxListTile(
+                      controlAffinity: ListTileControlAffinity.leading,
+                      value: _cough,
+                      onChanged: (selected) => setState(() {
+                        _cough = selected;
+                      }),
+                      title: Text('Coughing'),
+                    ),
+                    CheckboxListTile(
+                      controlAffinity: ListTileControlAffinity.leading,
+                      value: _breathing,
+                      onChanged: (selected) => setState(() {
+                        _breathing = selected;
+                      }),
+                      title: Text('Shortness of breath'),
+                    ),
+                    SwitchListTile(
+                      value: _tested,
+                      onChanged: (selected) => setState(() {
+                        _tested = selected;
+                      }),
+                      title: Text('I have been tested for COVID-19'),
+                    ),
+                    ButtonBar(alignment: MainAxisAlignment.center, children: [
+                      RaisedButton(
+                          padding: EdgeInsets.symmetric(horizontal: 40),
+                          color: Colors.blue,
+                          child: _loading
+                              ? SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      value: null,
+                                      valueColor:
+                                          AlwaysStoppedAnimation(Colors.white)))
+                              : Text("Submit"),
+                          onPressed: () async {
+                            SnackBar snackbar;
+                            if (await _sendReport(context)) {
+                              snackbar = SnackBar(
+                                  content: Text(
+                                      'You\'re report was submitted successfully'));
+                            } else {
+                              snackbar = SnackBar(
+                                  backgroundColor: Colors.red,
+                                  content: Text(
+                                      'There was an error submitting your report'));
+                            }
+                            Scaffold.of(context).showSnackBar(snackbar);
+                          }),
+                      FlatButton(
+                        child: Text('Cancel'),
+                        onPressed: () => {Navigator.pop(context)},
+                      )
+                    ]),
+                  ]));
+        }));
   }
 }
