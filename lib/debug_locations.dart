@@ -63,7 +63,7 @@ class DebugLocationsState extends State {
         ),
         body: Column(children: [
           Flexible(
-              flex: 2,
+              flex: 1,
               child: GoogleMap(
                 mapType: MapType.normal,
                 myLocationEnabled: true,
@@ -75,7 +75,7 @@ class DebugLocationsState extends State {
                 },
               )),
           Flexible(
-              flex: 4,
+              flex: 2,
               child: RefreshIndicator(
                   onRefresh: loadLocations,
                   child: ListView.builder(
