@@ -39,14 +39,15 @@ class _MyHomePageState extends State<MyHomePage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('CovidTrace App'),
+          title: Text('CovidTrace'),
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
                 Text('Created by Josh Gummersall, Dudley Carr, Wes Carr'),
+                SizedBox(height: 10),
                 InkWell(
                   child: Text(
-                    'https://covidtrace.com',
+                    'covidtrace.com',
                     style: TextStyle(
                       decoration: TextDecoration.underline,
                     ),
