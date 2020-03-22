@@ -19,6 +19,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/': (context) => MyHomePage(title: 'Covid Trace'),
         '/send_report': (context) => SendReport(),
+        '/debug': (context) => DebugLocations(),
       },
     );
   }
@@ -80,6 +81,10 @@ class _MyHomePageState extends State<MyHomePage> {
             IconButton(
               icon: Icon(Icons.info_outline),
               onPressed: _showInfoDialog,
+            ),
+            IconButton(
+              icon: Icon(Icons.bug_report),
+              onPressed: () => Navigator.pushNamed(context, '/debug'),
             )
           ],
         ),
