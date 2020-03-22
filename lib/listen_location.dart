@@ -179,23 +179,6 @@ class _ListenLocationState extends State<ListenLocationWidget> {
               ],
             )),
         Container(height: 200, child: LocationHistory()),
-        Row(mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
-          Column(
-            children: <Widget>[
-              Padding(
-                padding: EdgeInsets.all(10.0),
-                child: RaisedButton(
-                  color: ButtonTheme.of(context).colorScheme.primary,
-                  textColor: Colors.white,
-                  child: Text("Report Symptoms"),
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/send_report');
-                  },
-                ),
-              ),
-            ],
-          ),
-        ])
       ],
     );
   }

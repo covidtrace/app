@@ -15,7 +15,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       initialRoute: '/',
       title: 'Covid Trace',
-      theme: ThemeData(primarySwatch: Colors.blue),
+      theme: ThemeData(primarySwatch: Colors.deepPurple),
       routes: {
         '/': (context) => MyHomePage(title: 'Covid Trace'),
         '/send_report': (context) => SendReport(),
@@ -81,6 +81,14 @@ class _MyHomePageState extends State<MyHomePage> {
             )
           ],
         ),
+        floatingActionButton: FloatingActionButton.extended(
+          icon: Icon(Icons.add),
+          label: Text('REPORT SYMPTOMS',
+              style:
+                  TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          onPressed: () => Navigator.pushNamed(context, '/send_report'),
+        ),
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
         drawer: Drawer(
             child: ListView(children: [
           ListTile(
