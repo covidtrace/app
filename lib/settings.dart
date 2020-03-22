@@ -18,38 +18,46 @@ class SettingsState extends State<Settings> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(children: [
-      DropdownButton(
-          value: _age,
-          onChanged: (value) => setState(() => _age = value),
-          hint: Text('Age'),
-          isExpanded: true,
-          items: [
-            '< 2 years',
-            '2 - 4',
-            '5 - 9',
-            '10 - 18',
-            '19 - 29',
-            '30 - 39',
-            '40 - 49',
-            '50 - 59',
-            '60 - 69',
-            '70 - 79',
-            '80+'
-          ]
-              .map(
-                  (label) => DropdownMenuItem(value: label, child: Text(label)))
-              .toList()),
-      SizedBox(height: 10),
-      DropdownButton(
-          value: _gender,
-          onChanged: (value) => setState(() => _gender = value),
-          hint: Text('Gender'),
-          isExpanded: true,
-          items: ['Female', 'Male', 'Other']
-              .map(
-                  (label) => DropdownMenuItem(value: label, child: Text(label)))
-              .toList()),
-    ]);
+    return Scaffold(
+        appBar: AppBar(
+            title: Text('Settings'),
+            leading: IconButton(
+                icon: Icon(Icons.close),
+                onPressed: () {
+                  Navigator.pop(context);
+                })),
+        body: Column(children: [
+          DropdownButton(
+              value: _age,
+              onChanged: (value) => setState(() => _age = value),
+              hint: Text('Age'),
+              isExpanded: true,
+              items: [
+                '< 2 years',
+                '2 - 4',
+                '5 - 9',
+                '10 - 18',
+                '19 - 29',
+                '30 - 39',
+                '40 - 49',
+                '50 - 59',
+                '60 - 69',
+                '70 - 79',
+                '80+'
+              ]
+                  .map((label) =>
+                      DropdownMenuItem(value: label, child: Text(label)))
+                  .toList()),
+          SizedBox(height: 10),
+          DropdownButton(
+              value: _gender,
+              onChanged: (value) => setState(() => _gender = value),
+              hint: Text('Gender'),
+              isExpanded: true,
+              items: ['Female', 'Male', 'Other']
+                  .map((label) =>
+                      DropdownMenuItem(value: label, child: Text(label)))
+                  .toList()),
+        ]));
   }
 }

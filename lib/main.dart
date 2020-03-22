@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'state.dart';
 import 'send_report.dart';
+import 'settings.dart';
 
 void main() => runApp(
     ChangeNotifierProvider(create: (context) => ReportState(), child: MyApp()));
@@ -13,11 +14,12 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       initialRoute: '/',
-      title: 'COVID-19 Trace',
+      title: 'Covid Trace',
       theme: ThemeData(primarySwatch: Colors.blue),
       routes: {
-        '/': (context) => MyHomePage(title: 'Covid-19 Trace'),
-        '/send_report': (context) => SendReport()
+        '/': (context) => MyHomePage(title: 'Covid Trace'),
+        '/send_report': (context) => SendReport(),
+        '/settings': (context) => Settings()
       },
     );
   }
@@ -44,12 +46,12 @@ class _MyHomePageState extends State<MyHomePage> {
                 Text('Created by Josh Gummersall, Dudley Carr, Wes Carr'),
                 InkWell(
                   child: Text(
-                    'https://github.com/wescarr/covidtrace',
+                    'https://covidtrace.com',
                     style: TextStyle(
                       decoration: TextDecoration.underline,
                     ),
                   ),
-                  onTap: () => launch("https://github.com/wescarr/covidtrace"),
+                  onTap: () => launch("https://covidtrace.com"),
                 ),
               ],
             ),
@@ -79,6 +81,27 @@ class _MyHomePageState extends State<MyHomePage> {
             )
           ],
         ),
+        drawer: Drawer(
+            child: ListView(children: [
+          ListTile(
+              title: Text('CovidTrace',
+                  style: Theme.of(context).textTheme.headline)),
+          Divider(),
+          ListTile(
+            leading: Icon(Icons.settings),
+            title: Text('Settings'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.pushNamed(context, '/settings');
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.assignment),
+            title: Text('Reports'),
+          ),
+          Divider(),
+          ListTile(title: Text('Privacy Policy'))
+        ])),
         body: ListenLocationWidget());
   }
 }
