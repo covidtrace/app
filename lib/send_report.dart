@@ -127,6 +127,27 @@ class SendReportState extends State<SendReport> {
                   Step(
                       isActive: _step == 0,
                       state: _step > 0 ? StepState.complete : StepState.indexed,
+                      title: Text('Official Testing'),
+                      subtitle: Text('Have you tested positive for COVID-19?'),
+                      content: Column(
+                          children: [
+                        'Tested Positive',
+                        'Tested Negative',
+                        'Pending',
+                        'Not Tested'
+                      ]
+                              .map((value) => RadioListTile(
+                                  controlAffinity:
+                                      ListTileControlAffinity.trailing,
+                                  groupValue: state.get('tested'),
+                                  value: value,
+                                  title: Text(value),
+                                  onChanged: (value) =>
+                                      state.set({'tested': value})))
+                              .toList())),
+                  Step(
+                      isActive: _step == 1,
+                      state: _step > 1 ? StepState.complete : StepState.indexed,
                       title: Text('Symptoms'),
                       subtitle: Text('What symptoms are you experiencing?'),
                       content: Column(
@@ -165,27 +186,6 @@ class SendReportState extends State<SendReport> {
                                     setState(() => _days = value)),
                           ])),
                   Step(
-                      isActive: _step == 1,
-                      state: _step > 1 ? StepState.complete : StepState.indexed,
-                      title: Text('Official Testing'),
-                      subtitle: Text('Have you tested positive for COVID-19?'),
-                      content: Column(
-                          children: [
-                        'Tested Positive',
-                        'Tested Negative',
-                        'Pending',
-                        'Not Tested'
-                      ]
-                              .map((value) => RadioListTile(
-                                  controlAffinity:
-                                      ListTileControlAffinity.trailing,
-                                  groupValue: state.get('tested'),
-                                  value: value,
-                                  title: Text(value),
-                                  onChanged: (value) =>
-                                      state.set({'tested': value})))
-                              .toList())),
-                  Step(
                       isActive: _step == 2,
                       title: Text('Send Report'),
                       subtitle: Text('Review and submit your report'),
@@ -212,7 +212,10 @@ class SendReportState extends State<SendReport> {
                                   RaisedButton(
                                       padding:
                                           EdgeInsets.symmetric(horizontal: 40),
-                                      color: Colors.blue,
+                                      color: Theme.of(context)
+                                          .buttonTheme
+                                          .colorScheme
+                                          .primary,
                                       child: _loading
                                           ? SizedBox(
                                               height: 20,
