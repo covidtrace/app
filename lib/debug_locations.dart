@@ -51,12 +51,19 @@ class DebugLocationsState extends State {
           actions: [
             Padding(
                 padding: EdgeInsets.only(right: 10),
-                child: Chip(label: Text(_locations.length.toString())))
+                child: Chip(
+                  label: Text(_locations.length.toString(),
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.primary)),
+                  backgroundColor: Colors.white,
+                  elevation: 0,
+                ))
           ],
         ),
         body: Column(children: [
           Flexible(
-              flex: 1,
+              flex: 2,
               child: GoogleMap(
                 mapType: MapType.normal,
                 myLocationEnabled: true,
@@ -68,20 +75,20 @@ class DebugLocationsState extends State {
                 },
               )),
           Flexible(
-              flex: 3,
+              flex: 4,
               child: RefreshIndicator(
                   onRefresh: loadLocations,
                   child: ListView.builder(
                     itemCount: _locations.length,
                     itemBuilder: (context, i) {
                       var item = _locations[i];
+                      var timestamp = item.timestamp.toLocal();
                       return Column(children: [
                         ListTile(
                           selected: i == _selected,
                           onTap: () => setLocation(i),
-                          title: Text(DateFormat.Md().format(item.timestamp)),
-                          subtitle:
-                              Text(DateFormat.jms().format(item.timestamp)),
+                          title: Text(DateFormat.Md().format(timestamp)),
+                          subtitle: Text(DateFormat.jms().format(timestamp)),
                           trailing: Text('${item.cellID}'),
                         ),
                         Divider(height: 0)
