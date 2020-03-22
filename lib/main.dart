@@ -19,7 +19,6 @@ class MyApp extends StatelessWidget {
       routes: {
         '/': (context) => MyHomePage(title: 'Covid Trace'),
         '/send_report': (context) => SendReport(),
-        '/settings': (context) => Settings()
       },
     );
   }
@@ -34,6 +33,8 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  int navBarIndex = 0;
+
   _showInfoDialog() {
     return showDialog<void>(
       context: context,
@@ -90,27 +91,17 @@ class _MyHomePageState extends State<MyHomePage> {
           onPressed: () => Navigator.pushNamed(context, '/send_report'),
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-        drawer: Drawer(
-            child: ListView(children: [
-          ListTile(
-              title: Text('CovidTrace',
-                  style: Theme.of(context).textTheme.headline)),
-          Divider(),
-          ListTile(
-            leading: Icon(Icons.settings),
-            title: Text('Settings'),
-            onTap: () {
-              Navigator.pop(context);
-              Navigator.pushNamed(context, '/settings');
-            },
-          ),
-          ListTile(
-            leading: Icon(Icons.assignment),
-            title: Text('Reports'),
-          ),
-          Divider(),
-          ListTile(title: Text('Privacy Policy'))
-        ])),
-        body: ListenLocationWidget());
+        bottomNavigationBar: BottomNavigationBar(
+            currentIndex: navBarIndex,
+            onTap: (index) => setState(() => navBarIndex = index),
+            items: [
+              BottomNavigationBarItem(
+                  icon: Icon(Icons.home), title: Text('Home')),
+              BottomNavigationBarItem(
+                  icon: Icon(Icons.assignment), title: Text('Reports')),
+              BottomNavigationBarItem(
+                  icon: Icon(Icons.settings), title: Text('Settings')),
+            ]),
+        body: {0: ListenLocationWidget(), 2: Settings()}[navBarIndex]);
   }
 }

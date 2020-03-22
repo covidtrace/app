@@ -28,6 +28,12 @@ class _ListenLocationState extends State<ListenLocationWidget> {
   Completer<GoogleMapController> _controller = Completer();
 
   @override
+  void dispose() {
+    timer.cancel();
+    super.dispose();
+  }
+
+  @override
   void initState() {
     super.initState();
 
