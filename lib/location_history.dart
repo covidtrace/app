@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:path/path.dart';
 import 'storage/location.dart';
 
 class LocationHistory extends StatefulWidget {

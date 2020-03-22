@@ -20,8 +20,7 @@ class SendReportState extends State<SendReport> {
   var _cough;
   var _breathing;
   var _days;
-  var _gender;
-  var _age;
+  var _confirm = false;
 
   var _loading = false;
   var _step = 0;
@@ -32,8 +31,6 @@ class SendReportState extends State<SendReport> {
     _cough = state['cough'];
     _breathing = state['breathing'];
     _days = state['days'];
-    _gender = state['gender'];
-    _age = state['age'];
 
     super.initState();
   }
@@ -109,7 +106,7 @@ class SendReportState extends State<SendReport> {
                     ? Navigator.pop(context)
                     : setState(() => _step--),
                 controlsBuilder: (context, {onStepContinue, onStepCancel}) {
-                  return _step < 3
+                  return _step < 2
                       ? ButtonBar(
                           alignment: MainAxisAlignment.start,
                           children: [
@@ -130,27 +127,6 @@ class SendReportState extends State<SendReport> {
                   Step(
                       isActive: _step == 0,
                       state: _step > 0 ? StepState.complete : StepState.indexed,
-                      title: Text('Official COVID-19 testing'),
-                      subtitle: Text('Have you tested positive for COVID-19?'),
-                      content: Container(
-                        child: DropdownButton(
-                            value: state.get('tested'),
-                            onChanged: (value) => state.set({'tested': value}),
-                            hint: Text('Select an option'),
-                            isExpanded: true,
-                            items: [
-                              'Tested Positive',
-                              'Tested Negative',
-                              'Pending',
-                              'Not Tested'
-                            ]
-                                .map((label) => DropdownMenuItem(
-                                    value: label, child: Text(label)))
-                                .toList()),
-                      )),
-                  Step(
-                      isActive: _step == 1,
-                      state: _step > 1 ? StepState.complete : StepState.indexed,
                       title: Text('Symptoms'),
                       subtitle: Text('What symptoms are you experiencing?'),
                       content: Column(
@@ -189,69 +165,47 @@ class SendReportState extends State<SendReport> {
                                     setState(() => _days = value)),
                           ])),
                   Step(
-                    isActive: _step == 2,
-                    title: Text('Additional information'),
-                    subtitle: Text(
-                        'Help us better understand the spread of the virus'),
-                    state: _step > 2 ? StepState.complete : StepState.indexed,
-                    content: Column(children: [
-                      DropdownButton(
-                          value: _age,
-                          onChanged: (value) => setState(() => _age = value),
-                          hint: Text('Age'),
-                          isExpanded: true,
-                          items: [
-                            '< 2 years',
-                            '2 - 4',
-                            '5 - 9',
-                            '10 - 18',
-                            '19 - 29',
-                            '30 - 39',
-                            '40 - 49',
-                            '50 - 59',
-                            '60 - 69',
-                            '70 - 79',
-                            '80+'
-                          ]
-                              .map((label) => DropdownMenuItem(
-                                  value: label, child: Text(label)))
-                              .toList()),
-                      SizedBox(height: 10),
-                      DropdownButton(
-                          value: _gender,
-                          onChanged: (value) => setState(() => _gender = value),
-                          hint: Text('Gender'),
-                          isExpanded: true,
-                          items: ['Female', 'Male', 'Other']
-                              .map((label) => DropdownMenuItem(
-                                  value: label, child: Text(label)))
-                              .toList()),
-                    ]),
-                  ),
+                      isActive: _step == 1,
+                      state: _step > 1 ? StepState.complete : StepState.indexed,
+                      title: Text('Official Testing'),
+                      subtitle: Text('Have you tested positive for COVID-19?'),
+                      content: Column(
+                          children: [
+                        'Tested Positive',
+                        'Tested Negative',
+                        'Pending',
+                        'Not Tested'
+                      ]
+                              .map((value) => RadioListTile(
+                                  controlAffinity:
+                                      ListTileControlAffinity.trailing,
+                                  groupValue: state.get('tested'),
+                                  value: value,
+                                  title: Text(value),
+                                  onChanged: (value) =>
+                                      state.set({'tested': value})))
+                              .toList())),
                   Step(
-                      isActive: _step == 3,
-                      title: Text('Send report'),
+                      isActive: _step == 2,
+                      title: Text('Send Report'),
                       subtitle: Text('Review and submit your report'),
                       content: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Container(
-                                decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(5),
-                                    color: Colors.orange),
-                                padding: EdgeInsets.all(10),
-                                child: Row(children: [
-                                  Icon(Icons.warning, color: Colors.white),
-                                  SizedBox(width: 10),
-                                  Text('Be Responsible',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .subhead
-                                          .apply(color: Colors.white)),
-                                ])),
-                            SizedBox(height: 10),
                             Text(
                                 'I acknowlege that by submitting my report, I am making other people aware of a potential infection in the areas covered by my location history.'),
+                            Row(
+                              children: [
+                                Text('I strongly beflieve I have COVID-19',
+                                    style:
+                                        Theme.of(context).textTheme.subtitle),
+                                Checkbox(
+                                  value: _confirm,
+                                  onChanged: (selected) =>
+                                      setState(() => _confirm = selected),
+                                )
+                              ],
+                            ),
                             ButtonBar(
                                 alignment: MainAxisAlignment.start,
                                 children: [
