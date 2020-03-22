@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'state.dart';
 import 'send_report.dart';
 import 'settings.dart';
+import 'debug_locations.dart';
 
 void main() => runApp(
     ChangeNotifierProvider(create: (context) => ReportState(), child: MyApp()));
@@ -13,6 +14,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       initialRoute: '/',
       title: 'Covid Trace',
       theme: ThemeData(primarySwatch: Colors.deepPurple),
