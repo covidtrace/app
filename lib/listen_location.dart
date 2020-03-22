@@ -2,12 +2,11 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:provider/provider.dart';
 import 'package:flutter_background_geolocation/flutter_background_geolocation.dart'
     as bg;
-import 'app_model.dart';
 import 'storage/location.dart';
 import 'package:intl/intl.dart';
+import 'location_history.dart';
 
 class ListenLocationWidget extends StatefulWidget {
   ListenLocationWidget({Key key}) : super(key: key);
@@ -33,7 +32,7 @@ class _ListenLocationState extends State<ListenLocationWidget> {
     super.initState();
 
     timer = new Timer.periodic(
-        new Duration(seconds: 15), (timer) async => await pollLocations());
+        new Duration(seconds: 30), (timer) async => await pollLocations());
     pollLocations();
 
     bg.BackgroundGeolocation.onLocation((bg.Location l) {
@@ -117,53 +116,40 @@ class _ListenLocationState extends State<ListenLocationWidget> {
 
   @override
   Widget build(BuildContext context) {
+    CameraPosition _camera = CameraPosition(
+        target: LatLng(_center.latitude, _center.longitude), zoom: 16.0);
+
+    Set<Marker> markers = _locations
+        .asMap()
+        .map((i, l) {
+          double age = (i + 1) / _locations.length * .6;
+          return MapEntry(
+              i,
+              new Marker(
+                  markerId: new MarkerId('$i'),
+                  alpha: (1 - age),
+                  position: LatLng(l.latitude, l.longitude),
+                  infoWindow: InfoWindow(
+                      title: formatDate(l.timestamp), snippet: '${l.cellID}')));
+        })
+        .values
+        .toSet();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        Row(
-          children: [
-            Consumer<AppModel>(builder: (context, locations, child) {
-              CameraPosition _camera = CameraPosition(
-                  target: LatLng(_center.latitude, _center.longitude),
-                  zoom: 16.0);
-
-              Set<Marker> markers = _locations
-                  .asMap()
-                  .map((i, l) {
-                    double age = (i + 1) / _locations.length * .6;
-                    return MapEntry(
-                        i,
-                        new Marker(
-                            markerId: new MarkerId('$i'),
-                            alpha: (1 - age),
-                            position: LatLng(l.latitude, l.longitude),
-                            infoWindow: InfoWindow(
-                                title: formatDate(l.timestamp),
-                                snippet: '${l.cellID}')));
-                  })
-                  .values
-                  .toSet();
-
-              return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    SizedBox(
-                        width: MediaQuery.of(context).size.width,
-                        height: 300,
-                        child: GoogleMap(
-                          mapType: MapType.normal,
-                          myLocationEnabled: true,
-                          initialCameraPosition: _camera,
-                          markers: markers,
-                          minMaxZoomPreference: MinMaxZoomPreference(10, 18),
-                          onMapCreated: (GoogleMapController controller) {
-                            _controller.complete(controller);
-                          },
-                        ))
-                  ]);
-            })
-          ],
-        ),
+        SizedBox(
+            height: 300,
+            child: GoogleMap(
+              mapType: MapType.normal,
+              myLocationEnabled: true,
+              initialCameraPosition: _camera,
+              markers: markers,
+              minMaxZoomPreference: MinMaxZoomPreference(10, 18),
+              onMapCreated: (GoogleMapController controller) {
+                _controller.complete(controller);
+              },
+            )),
         Padding(
             padding: EdgeInsets.all(10.0),
             child: Row(
@@ -192,6 +178,7 @@ class _ListenLocationState extends State<ListenLocationWidget> {
                 ),
               ],
             )),
+        Container(height: 200, child: LocationHistory()),
         Row(mainAxisAlignment: MainAxisAlignment.center, children: <Widget>[
           Column(
             children: <Widget>[

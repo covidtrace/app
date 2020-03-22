@@ -2,13 +2,11 @@ import 'listen_location.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'app_model.dart';
+import 'state.dart';
 import 'send_report.dart';
 
-void main() => runApp(ChangeNotifierProvider(
-      create: (context) => AppModel(),
-      child: MyApp(),
-    ));
+void main() => runApp(
+    ChangeNotifierProvider(create: (context) => ReportState(), child: MyApp()));
 
 class MyApp extends StatelessWidget {
   @override
@@ -19,7 +17,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(primarySwatch: Colors.blue),
       routes: {
         '/': (context) => MyHomePage(title: 'Covid-19 Trace'),
-        '/send_report': (context) => SendReport(),
+        '/send_report': (context) => SendReport()
       },
     );
   }
@@ -72,20 +70,15 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-        actions: <Widget>[
-          IconButton(
-            icon: Icon(Icons.info_outline),
-            onPressed: _showInfoDialog,
-          )
-        ],
-      ),
-      body: Container(
-        child: Column(
-          children: <Widget>[ListenLocationWidget()],
+        appBar: AppBar(
+          title: Text(widget.title),
+          actions: <Widget>[
+            IconButton(
+              icon: Icon(Icons.info_outline),
+              onPressed: _showInfoDialog,
+            )
+          ],
         ),
-      ),
-    );
+        body: ListenLocationWidget());
   }
 }
