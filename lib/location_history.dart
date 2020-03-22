@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'storage/location.dart';
 
 class LocationHistory extends StatefulWidget {
@@ -37,9 +38,14 @@ class LocationHistoryState extends State<LocationHistory> {
         child: ListView(
             children: ListTile.divideTiles(
                 context: context,
-                tiles: _counts.map<Widget>((item) => ListTile(
+                tiles: _counts.map<Widget>((item) {
+                  var date = DateTime.parse(item['timestamp']);
+                  return ListTile(
                     trailing: Text('${item['count']}',
                         style: Theme.of(context).textTheme.title),
-                    title: Text('${item['timestamp']}')))).toList()));
+                    subtitle: Text('${DateFormat.MMMd().format(date)}'),
+                    title: Text('${DateFormat.E().format(date)}'),
+                  );
+                })).toList()));
   }
 }
