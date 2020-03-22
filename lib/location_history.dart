@@ -21,8 +21,11 @@ class LocationHistoryState extends State<LocationHistory> {
   Future<void> update() async {
     var results = await LocationModel.findAllRaw(
         orderBy: 'timestamp DESC',
-        groupBy: 'DATE(timestamp)',
-        columns: ['COUNT(id) as count', 'DATE(timestamp) as timestamp']);
+        groupBy: 'DATE(timestamp, \'localtime\')',
+        columns: [
+          'COUNT(id) as count',
+          'DATE(timestamp, \'localtime\') as timestamp'
+        ]);
     print(results);
 
     setState(() => _counts = results);
