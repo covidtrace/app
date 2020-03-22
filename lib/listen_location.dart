@@ -178,7 +178,7 @@ class _ListenLocationState extends State<ListenLocationWidget> {
                 ),
               ],
             )),
-        Container(height: 200, child: LocationHistory()),
+        Expanded(child: LocationHistory()),
       ],
     );
   }
