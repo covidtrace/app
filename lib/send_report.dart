@@ -194,18 +194,24 @@ class SendReportState extends State<SendReport> {
                           children: [
                             Text(
                                 'I acknowlege that by submitting my report, I am making other people aware of a potential infection in the areas covered by my location history.'),
-                            Row(
-                              children: [
-                                Text('I strongly beflieve I have COVID-19',
-                                    style:
-                                        Theme.of(context).textTheme.subtitle),
-                                Checkbox(
-                                  value: _confirm,
-                                  onChanged: (selected) =>
-                                      setState(() => _confirm = selected),
-                                )
-                              ],
-                            ),
+                            InkWell(
+                                onTap: () =>
+                                    setState(() => _confirm = !_confirm),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                        child: Text(
+                                            'I strongly believe I have COVID-19',
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .subtitle)),
+                                    Checkbox(
+                                      value: _confirm,
+                                      onChanged: (selected) =>
+                                          setState(() => _confirm = selected),
+                                    )
+                                  ],
+                                )),
                             ButtonBar(
                                 alignment: MainAxisAlignment.start,
                                 children: [

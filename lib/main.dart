@@ -85,9 +85,7 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
         floatingActionButton: FloatingActionButton.extended(
           icon: Icon(Icons.add),
-          label: Text('REPORT SYMPTOMS',
-              style:
-                  TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          label: Text('REPORT SYMPTOMS'),
           onPressed: () => Navigator.pushNamed(context, '/send_report'),
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,

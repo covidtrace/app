@@ -27,7 +27,7 @@ class SettingsState extends State<Settings> {
               Expanded(
                   child: Text('Location Sharing',
                       style: Theme.of(context).textTheme.title)),
-              Switch(
+              Switch.adaptive(
                 value: _sharing,
                 onChanged: (value) => setState(() => _sharing = value),
               )

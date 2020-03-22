@@ -6,7 +6,7 @@ class ReportState extends ChangeNotifier {
   static final Map<String, dynamic> defaults = {
     'fever': false,
     'cough': false,
-    'breathing': true,
+    'breathing': false,
     'days': 1.0,
     'gender': null,
     'age': null,
