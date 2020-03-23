@@ -100,6 +100,10 @@ class _MyHomePageState extends State<MyHomePage> {
               BottomNavigationBarItem(
                   icon: Icon(Icons.settings), title: Text('Settings')),
             ]),
-        body: {0: ListenLocationWidget(), 2: Settings()}[navBarIndex]);
+        body: {
+          0: ListenLocationWidget(),
+          2: ChangeNotifierProvider(
+              create: (context) => SettingsState(), child: Settings())
+        }[navBarIndex]);
   }
 }

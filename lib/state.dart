@@ -1,6 +1,28 @@
 import 'package:flutter/foundation.dart';
+import 'storage/user.dart';
 
 class AppState extends ChangeNotifier {}
+
+class SettingsState with ChangeNotifier {
+  static UserModel _user = UserModel(trackLocation: false);
+
+  SettingsState() {
+    UserModel.find().then((user) {
+      _user = user;
+      notifyListeners();
+    });
+  }
+
+  UserModel getUser() {
+    return _user;
+  }
+
+  Future<void> setUser(user) async {
+    _user = user;
+    _user.save();
+    notifyListeners();
+  }
+}
 
 class ReportState extends ChangeNotifier {
   static final Map<String, dynamic> defaults = {
