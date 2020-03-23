@@ -50,12 +50,9 @@ class LocationModel {
   }
 
   static Future<List<LocationModel>> findAll(
-      {int limit, String where, String orderBy}) async {
-    final Database db = await Storage.db;
-
-    print('querying DB for all locations');
-    final List<Map<String, dynamic>> rows = await db.query('location',
-        limit: limit, orderBy: orderBy, where: where);
+      {int limit, String where, String orderBy, String groupBy}) async {
+    var rows = await findAllRaw(
+        limit: limit, orderBy: orderBy, where: where, groupBy: groupBy);
 
     return List.generate(rows.length, (i) {
       return LocationModel(
@@ -66,6 +63,22 @@ class LocationModel {
         timestamp: DateTime.parse(rows[i]['timestamp']),
       );
     });
+  }
+
+  static Future<List<Map<String, dynamic>>> findAllRaw(
+      {List<String> columns,
+      int limit,
+      String where,
+      String orderBy,
+      String groupBy}) async {
+    final Database db = await Storage.db;
+
+    return await db.query('location',
+        columns: columns,
+        limit: limit,
+        orderBy: orderBy,
+        where: where,
+        groupBy: groupBy);
   }
 
   static Future<void> destroyAll() async {
