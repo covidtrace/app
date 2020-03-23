@@ -1,10 +1,11 @@
 import 'dart:async';
 import 'dart:math';
+import 'helper/check_exposures.dart';
+import 'location_history.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'storage/location.dart';
 import 'package:intl/intl.dart';
-import 'location_history.dart';
+import 'storage/location.dart';
 
 class ListenLocationWidget extends StatefulWidget {
   ListenLocationWidget({Key key}) : super(key: key);
@@ -16,6 +17,7 @@ class ListenLocationWidget extends StatefulWidget {
 class _ListenLocationState extends State<ListenLocationWidget> {
   Timer timer;
   int _numLocations = 0;
+  int _numExposures = 0;
   LocationModel _recent;
   LocationModel _center = LocationModel(
       latitude: 37.42796133580664,
@@ -47,11 +49,12 @@ class _ListenLocationState extends State<ListenLocationWidget> {
   Future<void> pollLocations() async {
     List<LocationModel> locations =
         await LocationModel.findAll(limit: 10, orderBy: 'timestamp DESC');
-    int count = await LocationModel.count();
+    Map<String, int> counts = await LocationModel.count();
 
     setState(() {
       _locations = locations;
-      _numLocations = count;
+      _numLocations = counts['count'];
+      _numExposures = counts['exposures'];
       _recent = locations.length > 0 ? locations.last : _recent;
       _center = locations.length > 0
           ? locations.last
@@ -84,6 +87,7 @@ class _ListenLocationState extends State<ListenLocationWidget> {
     setState(() {
       _recent = null;
       _numLocations = 0;
+      _numExposures = 0;
       _locations = [];
     });
   }
@@ -104,7 +108,8 @@ class _ListenLocationState extends State<ListenLocationWidget> {
                   alpha: (1 - age),
                   position: LatLng(l.latitude, l.longitude),
                   infoWindow: InfoWindow(
-                      title: formatDate(l.timestamp), snippet: '${l.cellID}')));
+                      title: formatDate(l.timestamp),
+                      snippet: '${l.cellID.toToken()}')));
         })
         .values
         .toSet();
@@ -135,6 +140,8 @@ class _ListenLocationState extends State<ListenLocationWidget> {
                     children: <Widget>[
                       Text('Locations: $_numLocations',
                           style: Theme.of(context).textTheme.body2),
+                      Text('Exposures: $_numExposures',
+                          style: Theme.of(context).textTheme.body2),
                       Text(
                           'Latest: ${_recent != null ? formatDate(_recent.timestamp) : ''}',
                           style: Theme.of(context).textTheme.body2),
@@ -142,7 +149,9 @@ class _ListenLocationState extends State<ListenLocationWidget> {
                 Container(
                   child: IconButton(
                     icon: Icon(Icons.refresh),
-                    onPressed: pollLocations,
+                    onPressed: () async {
+                      Future.wait([pollLocations(), checkExposures()]);
+                    },
                   ),
                 ),
                 Container(

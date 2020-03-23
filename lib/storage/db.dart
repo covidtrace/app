@@ -8,11 +8,14 @@ Future<String> _dataBasePath(String path) async {
 }
 
 Future<Database> _initDatabase() async {
-  Future<Database> database = openDatabase(await _dataBasePath('locations.db'),
-      onCreate: (db, version) async {
+  var dbPath = await _dataBasePath('locations.db');
+  print(dbPath);
+
+  Future<Database> database =
+      openDatabase(dbPath, onCreate: (db, version) async {
     // Set up location table
     await db.execute(
-        "CREATE TABLE location(id INTEGER PRIMARY KEY, longitude REAL, latitude REAL, speed REAL, activity TEXT, sample INTEGER, timestamp TEXT)");
+        "CREATE TABLE location(id INTEGER PRIMARY KEY, longitude REAL, latitude REAL, cell_id TEXT, speed REAL, activity TEXT, sample INTEGER, timestamp TEXT, exposure INTEGER DEFAULT 0)");
 
     // Set up user table
     await db.execute(
@@ -21,7 +24,7 @@ Future<Database> _initDatabase() async {
 
     // Set up reports table
     await db.execute(
-        "CREATE TABLE report(id INTEGER PRIMARY KEY, timestamp TEXT, last_location_id INTEGER, FOREIGN KEY (last_location_id) REFERENCES location (id))");
+        "CREATE TABLE report(id INTEGER PRIMARY KEY, timestamp TEXT, last_location_id INTEGER, FOREIGN KEY (last_location_id) REFERENCES location (id) ON DELETE CASCADE)");
   }, version: 1);
 
   return database;
