@@ -15,7 +15,8 @@ Future<Database> _initDatabase() async {
         "CREATE TABLE location(id INTEGER PRIMARY KEY, longitude REAL, latitude REAL, speed REAL, activity TEXT, sample INTEGER, timestamp TEXT)");
 
     // Set up user table
-    await db.execute("CREATE TABLE user(id INTEGER PRIMARY KEY, uuid STRING)");
+    await db.execute(
+        "CREATE TABLE user(id INTEGER PRIMARY KEY, uuid STRING, track_location INTEGER, gender STRING, age INTEGER)");
     await db.insert('user', {'uuid': Uuid().v4()});
 
     // Set up reports table

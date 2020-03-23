@@ -91,7 +91,7 @@ class _MyHomePageState extends State<MyHomePage> {
           ],
         ),
         floatingActionButton: FloatingActionButton.extended(
-          icon: Icon(Icons.add),
+          icon: Icon(Icons.add_circle),
           label: Text('REPORT SYMPTOMS'),
           onPressed: () => Navigator.pushNamed(context, '/send_report'),
         ),
@@ -107,6 +107,10 @@ class _MyHomePageState extends State<MyHomePage> {
               BottomNavigationBarItem(
                   icon: Icon(Icons.settings), title: Text('Settings')),
             ]),
-        body: {0: ListenLocationWidget(), 2: Settings()}[navBarIndex]);
+        body: {
+          0: ListenLocationWidget(),
+          2: ChangeNotifierProvider(
+              create: (context) => SettingsState(), child: Settings())
+        }[navBarIndex]);
   }
 }
