@@ -84,6 +84,15 @@ class SendReportState extends State<SendReport> {
   @override
   Widget build(BuildContext context) {
     return Consumer<ReportState>(builder: (context, state, child) {
+      var enableContinue = false;
+      switch (_step) {
+        case 0:
+          enableContinue = state.get('tested') != null;
+          break;
+        case 1:
+          enableContinue = _fever || _cough || _breathing;
+      }
+
       return Scaffold(
           appBar: AppBar(
               title: Text('Report Symptoms'),
@@ -110,12 +119,14 @@ class SendReportState extends State<SendReport> {
                       ? ButtonBar(
                           alignment: MainAxisAlignment.start,
                           children: [
-                              FlatButton(
-                                  color: ButtonTheme.of(context)
+                              RaisedButton(
+                                  elevation: 0,
+                                  color: Theme.of(context)
+                                      .buttonTheme
                                       .colorScheme
                                       .primary,
-                                  textColor: Colors.white,
-                                  onPressed: onStepContinue,
+                                  onPressed:
+                                      enableContinue ? onStepContinue : null,
                                   child: Text('Continue')),
                               FlatButton(
                                   onPressed: onStepCancel,
@@ -142,8 +153,12 @@ class SendReportState extends State<SendReport> {
                                   groupValue: state.get('tested'),
                                   value: value,
                                   title: Text(value),
-                                  onChanged: (value) =>
-                                      state.set({'tested': value})))
+                                  onChanged: (value) {
+                                    state.set({'tested': value});
+                                    if (value == 'Tested Positive') {
+                                      setState(() => _confirm = true);
+                                    }
+                                  }))
                               .toList())),
                   Step(
                       isActive: _step == 1,
