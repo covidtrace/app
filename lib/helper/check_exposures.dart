@@ -29,8 +29,12 @@ Future<bool> checkExposures() async {
     }
 
     var listJson = jsonDecode(listResp.body);
+    List<dynamic> listItems = listJson['items'];
+    if (listItems == null) {
+      return;
+    }
 
-    await Future.forEach(listJson['items'] as List<dynamic>, (item) async {
+    await Future.forEach(listItems, (item) async {
       String object = item['name'];
       print('Syncing $object...');
 
@@ -59,21 +63,19 @@ Future<bool> checkExposures() async {
       var fileCsv = await fileHandle.readAsString();
       var parsedRows = CsvToListConverter(eol: '\n').convert(fileCsv);
 
-      // Iterate through rows and search DB for matching locations
+      // Iterate through rows and search for matching locations
       await Future.forEach(parsedRows, (parsedRow) async {
+        var timestamp =
+            DateTime.fromMillisecondsSinceEpoch(parsedRow[0] * 1000);
         String cellID = parsedRow[1];
 
-        var timestamp =
-            DateTime.fromMillisecondsSinceEpoch(parsedRow[0] * 1000).toUtc();
-        var hourAgo = timestamp.subtract(Duration(hours: 1)).toUtc();
-
-        var exposures = await LocationModel.findAll(
-            where: 'cell_id = ? AND timestamp <= ? AND timestamp >= ?',
-            whereArgs: [
-              cellID,
-              timestamp.toIso8601String(),
-              hourAgo.toIso8601String()
-            ]);
+        var exposures = locations
+            .where((location) =>
+                location.cellID.toToken() == cellID &&
+                timestamp.millisecondsSinceEpoch -
+                        location.timestamp.millisecondsSinceEpoch <
+                    1000 * 60 * 60)
+            .toList();
 
         await Future.forEach(exposures, (location) async {
           exposed = true;

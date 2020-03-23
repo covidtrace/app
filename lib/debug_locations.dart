@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
 import 'storage/location.dart';
+import 'helper/check_exposures.dart';
 
 final Map<String, Icon> activities = {
   'unknown': Icon(Icons.not_listed_location),
@@ -76,7 +77,7 @@ class DebugLocationsState extends State {
         ),
         body: Column(children: [
           Flexible(
-              flex: 1,
+              flex: 2,
               child: GoogleMap(
                 mapType: MapType.normal,
                 myLocationEnabled: true,
@@ -88,7 +89,14 @@ class DebugLocationsState extends State {
                 },
               )),
           Flexible(
-              flex: 2,
+            flex: 1,
+            child: FlatButton(
+              child: Text('Check Exposure'),
+              onPressed: checkExposures,
+            ),
+          ),
+          Flexible(
+              flex: 4,
               child: RefreshIndicator(
                   onRefresh: loadLocations,
                   child: ListView.builder(
@@ -100,8 +108,11 @@ class DebugLocationsState extends State {
                         ListTile(
                           selected: i == _selected,
                           onTap: () => setLocation(i),
-                          title: Text(DateFormat.Md().format(timestamp)),
-                          subtitle: Text(DateFormat.jms().format(timestamp)),
+                          title: Text(
+                              '${DateFormat.Md().format(timestamp)} @ ${DateFormat.jms().format(timestamp)}'),
+                          subtitle: Text(item.exposure == true
+                              ? 'Possible Exposure'
+                              : 'No Exposure Found'),
                           trailing: SizedBox(
                               width: 100,
                               child: Row(
@@ -111,7 +122,7 @@ class DebugLocationsState extends State {
                                     activities[item.activity]
                                   ])),
                         ),
-                        Divider(height: 0)
+                        Divider(height: 0),
                       ]);
                     },
                   )))

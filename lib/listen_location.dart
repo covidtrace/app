@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:math';
-import 'helper/check_exposures.dart';
 import 'location_history.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
@@ -149,9 +148,7 @@ class _ListenLocationState extends State<ListenLocationWidget> {
                 Container(
                   child: IconButton(
                     icon: Icon(Icons.refresh),
-                    onPressed: () async {
-                      Future.wait([pollLocations(), checkExposures()]);
-                    },
+                    onPressed: pollLocations,
                   ),
                 ),
                 Container(

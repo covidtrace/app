@@ -42,7 +42,7 @@ class LocationModel {
       'sample': sample,
       'speed': speed,
       'timestamp': timestamp.toIso8601String(),
-      'exposure': exposure,
+      'exposure': exposure == true ? 1 : 0,
     };
   }
 
