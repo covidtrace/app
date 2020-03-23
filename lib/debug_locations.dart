@@ -4,6 +4,16 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
 import 'storage/location.dart';
 
+final Map<String, Icon> activities = {
+  'unknown': Icon(Icons.not_listed_location),
+  'still': Icon(Icons.location_on),
+  'on_foot': Icon(Icons.directions_walk),
+  'walking': Icon(Icons.directions_walk),
+  'running': Icon(Icons.directions_run),
+  'on_bicycle': Icon(Icons.directions_bike),
+  'in_vehicle': Icon(Icons.directions_car),
+};
+
 class DebugLocations extends StatefulWidget {
   @override
   DebugLocationsState createState() => DebugLocationsState();
@@ -25,7 +35,10 @@ class DebugLocationsState extends State {
   Future<void> loadLocations() async {
     var locations = await LocationModel.findAll(orderBy: 'timestamp DESC');
     setState(() => _locations = locations);
-    setLocation(0);
+
+    if (locations.length > 0) {
+      setLocation(0);
+    }
   }
 
   setLocation(int index) async {
@@ -89,7 +102,14 @@ class DebugLocationsState extends State {
                           onTap: () => setLocation(i),
                           title: Text(DateFormat.Md().format(timestamp)),
                           subtitle: Text(DateFormat.jms().format(timestamp)),
-                          trailing: Text('${item.cellID}'),
+                          trailing: SizedBox(
+                              width: 100,
+                              child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    Text('${item.speed} m/s'),
+                                    activities[item.activity]
+                                  ])),
                         ),
                         Divider(height: 0)
                       ]);

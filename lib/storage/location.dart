@@ -8,11 +8,19 @@ class LocationModel {
   final double longitude;
   final double latitude;
   final double speed;
+  final int sample;
+  final String activity;
   final DateTime timestamp;
   String cellID;
 
   LocationModel(
-      {this.id, this.longitude, this.latitude, this.speed, this.timestamp}) {
+      {this.id,
+      this.longitude,
+      this.latitude,
+      this.speed,
+      this.activity,
+      this.sample,
+      this.timestamp}) {
     S2LatLng ll = new S2LatLng.fromDegrees(this.latitude, this.longitude);
     S2CellId cellID = new S2CellId.fromLatLng(ll);
     this.cellID = cellID.toToken();
@@ -23,6 +31,8 @@ class LocationModel {
       'id': id,
       'longitude': longitude,
       'latitude': latitude,
+      'activity': activity,
+      'sample': sample,
       'speed': speed,
       'timestamp': timestamp.toIso8601String(),
     };
@@ -59,6 +69,8 @@ class LocationModel {
         id: rows[i]['id'],
         longitude: rows[i]['longitude'],
         latitude: rows[i]['latitude'],
+        activity: rows[i]['activity'],
+        sample: rows[i]['sample'],
         speed: rows[i]['speed'],
         timestamp: DateTime.parse(rows[i]['timestamp']),
       );
