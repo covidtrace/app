@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'state.dart';
 import 'send_report.dart';
 import 'settings.dart';
+import 'debug_locations.dart';
 
 void main() => runApp(
     ChangeNotifierProvider(create: (context) => ReportState(), child: MyApp()));
@@ -13,12 +14,14 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       initialRoute: '/',
       title: 'Covid Trace',
       theme: ThemeData(primarySwatch: Colors.deepPurple),
       routes: {
         '/': (context) => MyHomePage(title: 'Covid Trace'),
         '/send_report': (context) => SendReport(),
+        '/debug': (context) => DebugLocations(),
       },
     );
   }
@@ -80,6 +83,10 @@ class _MyHomePageState extends State<MyHomePage> {
             IconButton(
               icon: Icon(Icons.info_outline),
               onPressed: _showInfoDialog,
+            ),
+            IconButton(
+              icon: Icon(Icons.bug_report),
+              onPressed: () => Navigator.pushNamed(context, '/debug'),
             )
           ],
         ),

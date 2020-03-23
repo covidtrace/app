@@ -46,6 +46,8 @@ class _ListenLocationState extends State<ListenLocationWidget> {
       LocationModel model = LocationModel(
           longitude: l.coords.longitude,
           latitude: l.coords.latitude,
+          activity: l.activity.type,
+          sample: l.sample ? 1 : 0,
           speed: l.coords.speed,
           timestamp: DateTime.parse(l.timestamp));
       setState(() {

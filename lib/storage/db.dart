@@ -12,7 +12,7 @@ Future<Database> _initDatabase() async {
       onCreate: (db, version) async {
     // Set up location table
     await db.execute(
-        "CREATE TABLE location(id INTEGER PRIMARY KEY, longitude REAL, latitude REAL, speed REAL, timestamp TEXT)");
+        "CREATE TABLE location(id INTEGER PRIMARY KEY, longitude REAL, latitude REAL, speed REAL, activity TEXT, sample INTEGER, timestamp TEXT)");
 
     // Set up user table
     await db.execute("CREATE TABLE user(id INTEGER PRIMARY KEY, uuid STRING)");
