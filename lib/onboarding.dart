@@ -144,10 +144,20 @@ class OnboardingState extends State {
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                        Text(
-                          'Flatten The Curve',
-                          style: Theme.of(context).textTheme.headline,
-                        ),
+                        Row(children: [
+                          Expanded(
+                              child: Text(
+                            'Flatten The Curve',
+                            style: Theme.of(context).textTheme.headline,
+                          )),
+                          ClipRRect(
+                              borderRadius: BorderRadius.circular(50),
+                              child: Container(
+                                color: Colors.black,
+                                child: Image.asset('assets/app_icon.png',
+                                    height: 40, fit: BoxFit.contain),
+                              )),
+                        ]),
                         SizedBox(height: 10),
                         Text(
                           "CovidTrace is an early warning app to let people know if they've recently been potentially exposed to COVID-19. CovidTrace is an online way to do instant contact tracing. Contact tracing is one of the most effective ways to combat the spread of the disease. By participating, you help save lives by flattening the curve.",
@@ -161,9 +171,12 @@ class OnboardingState extends State {
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                        Icon(Icons.near_me, size: 40),
-                        Text('Sharing Your Location',
-                            style: Theme.of(context).textTheme.headline),
+                        Row(children: [
+                          Expanded(
+                              child: Text('Sharing Your Location',
+                                  style: Theme.of(context).textTheme.headline)),
+                          Icon(Icons.near_me, size: 40, color: Colors.black38)
+                        ]),
                         SizedBox(height: 10),
                         RichText(
                           text: TextSpan(style: bodyText, children: [
@@ -200,11 +213,14 @@ class OnboardingState extends State {
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                        Icon(Icons.home, size: 40),
-                        Text(
-                          'Mark Your Home',
-                          style: Theme.of(context).textTheme.headline,
-                        ),
+                        Row(children: [
+                          Expanded(
+                              child: Text(
+                            'Mark Your Home',
+                            style: Theme.of(context).textTheme.headline,
+                          )),
+                          Icon(Icons.home, size: 40, color: Colors.black38)
+                        ]),
                         SizedBox(height: 10),
                         Text(
                             'CovidTrace does not record any data when it determines you’re near your home. We do not want your home to be part of any of the recorded time and place data.',
