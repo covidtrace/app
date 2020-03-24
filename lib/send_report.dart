@@ -1,3 +1,4 @@
+import 'config.dart';
 import 'dart:convert';
 import 'package:covidtrace/state.dart';
 import 'package:csv/csv.dart';
@@ -43,6 +44,8 @@ class SendReportState extends State<SendReport> {
 
     var success = false;
     try {
+      var config = await getConfig();
+
       var user = await UserModel.find();
       var latestReport = await ReportModel.findLatest();
       String where =
@@ -58,9 +61,7 @@ class SendReportState extends State<SendReport> {
       var object = '${user.uuid}.csv';
       var contentType = 'text/csv; charset=utf-8';
 
-      var signUri =
-          Uri.parse('https://us-central1-covidtrace.cloudfunctions.net/Proxy')
-              .replace(queryParameters: {
+      var signUri = Uri.parse(config['notaryUrl']).replace(queryParameters: {
         'contentType': contentType,
         'object': object,
       });
