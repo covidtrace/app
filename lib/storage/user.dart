@@ -49,7 +49,7 @@ class UserModel {
           'track_location': trackLocation ? 1 : 0,
           'latitude': latitude,
           'longitude': longitude,
-          'onboarding': onboarding,
+          'onboarding': onboarding ? 1 : 0,
         },
         where: 'id = ?',
         whereArgs: [id]);
