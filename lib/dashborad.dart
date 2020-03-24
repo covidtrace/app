@@ -46,7 +46,8 @@ class DashboardState extends State {
                 )),
             ListTile(
               isThreeLine: true,
-              leading: Icon(Icons.warning, color: Colors.amber, size: 40),
+              leading:
+                  Icon(Icons.warning, color: Colors.orangeAccent, size: 40),
               title: Text('Possible Exposure'),
               subtitle: Text(
                   '3/22 3pm - 4pm. Your location overlap with someone who reported as having COVID-19.'),
