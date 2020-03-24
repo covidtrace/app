@@ -93,6 +93,10 @@ class SendReportState extends State<SendReport> {
           enableContinue = _fever || _cough || _breathing;
       }
 
+      var textTheme = Theme.of(context).textTheme;
+      var stepTextTheme =
+          textTheme.subhead.merge(TextStyle(color: Colors.black54));
+
       return Scaffold(
           appBar: AppBar(
               title: Text('Report Symptoms'),
@@ -103,50 +107,58 @@ class SendReportState extends State<SendReport> {
                     Navigator.pop(context);
                   })),
           body: Builder(builder: (context) {
-            return Stepper(
-                currentStep: _step,
-                onStepContinue: () => setState(() => _step++),
-                onStepTapped: (index) {
-                  if (index < _step) {
-                    setState(() => _step = index);
-                  }
-                },
-                onStepCancel: () => _step == 0
-                    ? Navigator.pop(context)
-                    : setState(() => _step--),
-                controlsBuilder: (context, {onStepContinue, onStepCancel}) {
-                  return _step < 2
-                      ? ButtonBar(
-                          alignment: MainAxisAlignment.start,
-                          children: [
-                              RaisedButton(
-                                  elevation: 0,
-                                  color: Theme.of(context)
-                                      .buttonTheme
-                                      .colorScheme
-                                      .primary,
-                                  onPressed:
-                                      enableContinue ? onStepContinue : null,
-                                  child: Text('Continue')),
-                              FlatButton(
-                                  onPressed: onStepCancel,
-                                  child: Text('Cancel')),
-                            ])
-                      : SizedBox.shrink();
-                },
-                steps: [
-                  Step(
-                      isActive: _step == 0,
-                      state: _step > 0 ? StepState.complete : StepState.indexed,
-                      title: Text('Official Testing'),
-                      subtitle: Text('Have you tested positive for COVID-19?'),
-                      content: Column(
-                          children: [
-                        'Tested Positive',
-                        'Tested Negative',
-                        'Pending',
-                        'Not Tested'
-                      ]
+            return Column(children: [
+              Padding(
+                  padding: EdgeInsets.only(top: 20, left: 30, right: 30),
+                  child: Text(
+                      'When you report, you help others, save lives, and end the COVID-19 crisis sooner.',
+                      style: textTheme.subhead)),
+              Stepper(
+                  currentStep: _step,
+                  onStepContinue: () => setState(() => _step++),
+                  onStepTapped: (index) {
+                    if (index < _step) {
+                      setState(() => _step = index);
+                    }
+                  },
+                  onStepCancel: () => _step == 0
+                      ? Navigator.pop(context)
+                      : setState(() => _step--),
+                  controlsBuilder: (context, {onStepContinue, onStepCancel}) {
+                    return _step < 2
+                        ? ButtonBar(
+                            alignment: MainAxisAlignment.start,
+                            children: [
+                                RaisedButton(
+                                    elevation: 0,
+                                    color: Theme.of(context)
+                                        .buttonTheme
+                                        .colorScheme
+                                        .primary,
+                                    onPressed:
+                                        enableContinue ? onStepContinue : null,
+                                    child: Text('Continue')),
+                                FlatButton(
+                                    onPressed: onStepCancel,
+                                    child: Text('Cancel')),
+                              ])
+                        : SizedBox.shrink();
+                  },
+                  steps: [
+                    Step(
+                        isActive: _step == 0,
+                        state:
+                            _step > 0 ? StepState.complete : StepState.indexed,
+                        title: Text('Official Testing', style: textTheme.title),
+                        content: Column(children: [
+                          Text('Have you tested positive for COVID-19?',
+                              style: stepTextTheme),
+                          ...[
+                            'Tested Positive',
+                            'Tested Negative',
+                            'Pending',
+                            'Not Tested'
+                          ]
                               .map((value) => RadioListTile(
                                   controlAffinity:
                                       ListTileControlAffinity.trailing,
@@ -159,56 +171,58 @@ class SendReportState extends State<SendReport> {
                                       setState(() => _confirm = true);
                                     }
                                   }))
-                              .toList())),
-                  Step(
-                      isActive: _step == 1,
-                      state: _step > 1 ? StepState.complete : StepState.indexed,
-                      title: Text('Symptoms'),
-                      subtitle: Text('What symptoms are you experiencing?'),
-                      content: Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            CheckboxListTile(
-                              value: _fever,
-                              onChanged: (selected) =>
-                                  setState(() => _fever = selected),
-                              title: Text('Fever'),
-                            ),
-                            CheckboxListTile(
-                              value: _cough,
-                              onChanged: (selected) =>
-                                  setState(() => _cough = selected),
-                              title: Text('Coughing'),
-                            ),
-                            CheckboxListTile(
-                              value: _breathing,
-                              onChanged: (selected) =>
-                                  setState(() => _breathing = selected),
-                              title: Text('Difficulty breating'),
-                            ),
-                            ListTile(
-                              title: Text('Days with symptoms'),
-                              trailing: Text(
-                                  '${_days.round() == 10 ? '10+' : _days.round()}',
-                                  style: Theme.of(context).textTheme.title),
-                            ),
-                            Slider(
-                                min: 1,
-                                max: 10,
-                                value: _days,
-                                onChanged: (value) =>
-                                    setState(() => _days = value)),
-                          ])),
-                  Step(
+                              .toList()
+                        ])),
+                    Step(
+                        isActive: _step == 1,
+                        state:
+                            _step > 1 ? StepState.complete : StepState.indexed,
+                        title: Text('Symptoms', style: textTheme.title),
+                        content: Column(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('What symptoms are you experiencing?',
+                                  style: stepTextTheme),
+                              CheckboxListTile(
+                                value: _fever,
+                                onChanged: (selected) =>
+                                    setState(() => _fever = selected),
+                                title: Text('Fever (101°F or above)'),
+                              ),
+                              CheckboxListTile(
+                                value: _cough,
+                                onChanged: (selected) =>
+                                    setState(() => _cough = selected),
+                                title: Text('Dry cough'),
+                              ),
+                              CheckboxListTile(
+                                value: _breathing,
+                                onChanged: (selected) =>
+                                    setState(() => _breathing = selected),
+                                title: Text('Difficulty breathing'),
+                              ),
+                              ListTile(
+                                title: Text('Days with symptoms'),
+                                trailing: Text(
+                                    '${_days.round() == 10 ? '10+' : _days.round()}',
+                                    style: textTheme.title),
+                              ),
+                              Slider(
+                                  min: 1,
+                                  max: 10,
+                                  value: _days,
+                                  onChanged: (value) =>
+                                      setState(() => _days = value)),
+                            ])),
+                    Step(
                       isActive: _step == 2,
-                      title: Text('Send Report'),
-                      subtitle: Text('Review and submit your report'),
+                      title: Text('Send Report', style: textTheme.title),
                       content: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                                'I acknowlege that by submitting my report, I am making other people aware of a potential infection in the areas covered by my location history.'),
+                                'I understand that my anonymized location history outside my home will alert others who were nearby at the time of a possible infection.'),
                             InkWell(
                                 onTap: () =>
                                     setState(() => _confirm = !_confirm),
@@ -217,9 +231,7 @@ class SendReportState extends State<SendReport> {
                                     Expanded(
                                         child: Text(
                                             'I strongly believe I have COVID-19',
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .subtitle)),
+                                            style: textTheme.subtitle)),
                                     Checkbox(
                                       value: _confirm,
                                       onChanged: (selected) =>
@@ -228,48 +240,53 @@ class SendReportState extends State<SendReport> {
                                   ],
                                 )),
                             ButtonBar(
-                                alignment: MainAxisAlignment.start,
-                                children: [
-                                  RaisedButton(
-                                      padding:
-                                          EdgeInsets.symmetric(horizontal: 40),
-                                      color: Theme.of(context)
-                                          .buttonTheme
-                                          .colorScheme
-                                          .primary,
-                                      child: _loading
-                                          ? SizedBox(
-                                              height: 20,
-                                              width: 20,
-                                              child: CircularProgressIndicator(
-                                                  strokeWidth: 2,
-                                                  value: null,
-                                                  valueColor:
-                                                      AlwaysStoppedAnimation(
-                                                          Colors.white)))
-                                          : Text("Submit"),
-                                      onPressed: () async {
-                                        SnackBar snackbar;
-                                        if (await _sendReport(context)) {
-                                          snackbar = SnackBar(
-                                              content: Text(
-                                                  'You\'re report was submitted successfully'));
-                                        } else {
-                                          snackbar = SnackBar(
-                                              backgroundColor: Colors.red,
-                                              content: Text(
-                                                  'There was an error submitting your report'));
-                                        }
-                                        Scaffold.of(context)
-                                            .showSnackBar(snackbar);
-                                      }),
-                                  FlatButton(
-                                    child: Text('Cancel'),
-                                    onPressed: () => {Navigator.pop(context)},
-                                  )
-                                ]),
-                          ])),
-                ]);
+                              alignment: MainAxisAlignment.start,
+                              children: [
+                                RaisedButton(
+                                    padding:
+                                        EdgeInsets.symmetric(horizontal: 40),
+                                    color: Theme.of(context)
+                                        .buttonTheme
+                                        .colorScheme
+                                        .primary,
+                                    child: _loading
+                                        ? SizedBox(
+                                            height: 20,
+                                            width: 20,
+                                            child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                                value: null,
+                                                valueColor:
+                                                    AlwaysStoppedAnimation(
+                                                        Colors.white)))
+                                        : Text("Submit"),
+                                    onPressed: _confirm
+                                        ? () async {
+                                            SnackBar snackbar;
+                                            if (await _sendReport(context)) {
+                                              snackbar = SnackBar(
+                                                  content: Text(
+                                                      'You\'re report was submitted successfully'));
+                                            } else {
+                                              snackbar = SnackBar(
+                                                  backgroundColor: Colors.red,
+                                                  content: Text(
+                                                      'There was an error submitting your report'));
+                                            }
+                                            Scaffold.of(context)
+                                                .showSnackBar(snackbar);
+                                          }
+                                        : null),
+                                FlatButton(
+                                  child: Text('Cancel'),
+                                  onPressed: () => Navigator.pop(context),
+                                )
+                              ],
+                            )
+                          ]),
+                    )
+                  ]),
+            ]);
           }));
     });
   }
