@@ -98,7 +98,7 @@ class CovidTraceAppState extends State {
               theme: ThemeData(primarySwatch: primaryColor),
               routes: {
                 '/onboarding': (context) => Onboarding(),
-                '/home': (context) => MainPage(title: 'CovidTrace'),
+                '/home': (context) => MainPage(),
                 '/send_report': (context) => SendReport(),
                 '/debug': (context) => DebugLocations(),
               },
@@ -111,9 +111,6 @@ class CovidTraceAppState extends State {
 }
 
 class MainPage extends StatefulWidget {
-  MainPage({Key key, this.title}) : super(key: key);
-  final String title;
-
   @override
   MainPageState createState() => MainPageState();
 }
@@ -161,7 +158,10 @@ class MainPageState extends State<MainPage> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: Text(widget.title),
+          title: Row(mainAxisAlignment: MainAxisAlignment.start, children: [
+            Image.asset('assets/app_icon.png', fit: BoxFit.contain, height: 40),
+            Text('CovidTrace')
+          ]),
           actions: <Widget>[
             IconButton(
               icon: Icon(Icons.info_outline),
