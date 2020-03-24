@@ -14,15 +14,8 @@ import 'package:flutter_background_geolocation/flutter_background_geolocation.da
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 void main() async {
-  // TODO(wes): Use FutureBuilder in CovidTraceApp to show blank container while loading user data
-  WidgetsFlutterBinding.ensureInitialized();
-  var user = await UserModel.find();
-
   runApp(ChangeNotifierProvider(
-      create: (context) => ReportState(),
-      child: CovidTraceApp(
-        initialRoute: user.onboarding ? '/onboarding' : '/home',
-      )));
+      create: (context) => ReportState(), child: CovidTraceApp()));
 
   var notificationPlugin = FlutterLocalNotificationsPlugin();
   notificationPlugin.initialize(
@@ -60,25 +53,42 @@ void main() async {
       logLevel: bg.Config.LOG_LEVEL_OFF));
 }
 
-class CovidTraceApp extends StatelessWidget {
-  final String initialRoute;
+class CovidTraceApp extends StatefulWidget {
+  @override
+  State<StatefulWidget> createState() => CovidTraceAppState();
+}
 
-  CovidTraceApp({Key key, @required this.initialRoute}) : super(key: key);
+class CovidTraceAppState extends State {
+  Future<UserModel> _user;
+
+  @override
+  void initState() {
+    _user = UserModel.find();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      initialRoute: initialRoute,
-      title: 'CovidTrace',
-      theme: ThemeData(primarySwatch: Colors.deepPurple),
-      routes: {
-        '/onboarding': (context) => Onboarding(),
-        '/home': (context) => MainPage(title: 'CovidTrace'),
-        '/send_report': (context) => SendReport(),
-        '/debug': (context) => DebugLocations(),
-      },
-    );
+    return FutureBuilder(
+        future: _user,
+        builder: (context, AsyncSnapshot<UserModel> snapshot) {
+          if (snapshot.hasData) {
+            return MaterialApp(
+              debugShowCheckedModeBanner: false,
+              initialRoute: snapshot.data.onboarding ? '/onboarding' : '/home',
+              title: 'CovidTrace',
+              theme: ThemeData(primarySwatch: Colors.deepPurple),
+              routes: {
+                '/onboarding': (context) => Onboarding(),
+                '/home': (context) => MainPage(title: 'CovidTrace'),
+                '/send_report': (context) => SendReport(),
+                '/debug': (context) => DebugLocations(),
+              },
+            );
+          } else {
+            return Container(color: Colors.white);
+          }
+        });
   }
 }
 
