@@ -285,7 +285,7 @@ class OnboardingState extends State {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                         Text(
-                          'Thank You!',
+                          'Thank You',
                           style: Theme.of(context).textTheme.headline,
                         ),
                         SizedBox(height: 10),
@@ -301,13 +301,43 @@ class OnboardingState extends State {
                         SizedBox(height: 20),
                         Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('HANDS Wash them often', style: bodyText),
-                              Text('ELBOW Cough into it', style: bodyText),
-                              Text('FACE Don\'t touch it', style: bodyText),
-                              Text('SPACE Keep safe distance', style: bodyText),
-                              Text('HOME Stay if you can', style: bodyText),
-                            ]),
+                            children: {
+                              1: 'HANDS Wash them often',
+                              2: 'ELBOW Cough into it',
+                              3: 'FACE Don\'t touch it',
+                              4: 'SPACE Keep safe distance',
+                              5: 'HOME Stay if you can',
+                            }
+                                .map((step, text) {
+                                  return MapEntry(
+                                      step,
+                                      Padding(
+                                          padding: EdgeInsets.only(bottom: 10),
+                                          child: Row(children: [
+                                            Container(
+                                                width: 25,
+                                                height: 25,
+                                                decoration: BoxDecoration(
+                                                    shape: BoxShape.circle,
+                                                    color: Theme.of(context)
+                                                        .primaryColor),
+                                                child: Center(
+                                                    child: Text('$step',
+                                                        style: TextStyle(
+                                                            color: Colors.white,
+                                                            decoration:
+                                                                TextDecoration
+                                                                    .none,
+                                                            fontSize: 14,
+                                                            fontWeight:
+                                                                FontWeight
+                                                                    .bold)))),
+                                            SizedBox(width: 10),
+                                            Text(text, style: bodyText)
+                                          ])));
+                                })
+                                .values
+                                .toList()),
                         SizedBox(height: 30),
                         BlockButton(
                             onPressed: () => Navigator.of(context)
