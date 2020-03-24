@@ -59,6 +59,24 @@ class CovidTraceApp extends StatefulWidget {
 }
 
 class CovidTraceAppState extends State {
+  static final primaryValue = 0xFFFC4349;
+  // Created by: https://www.colorbox.io/#steps=11#hue_start=348#hue_end=334#hue_curve=easeInQuad#sat_start=4#sat_end=90#sat_curve=easeOutQuad#sat_rate=130#lum_start=100#lum_end=53#lum_curve=easeOutQuad#lock_hex=#FC4349#minor_steps_map=none
+  static final primaryColor = MaterialColor(
+    primaryValue,
+    <int, Color>{
+      50: Color(0xFFFFF2F4),
+      100: Color(0xFFFFC8D1),
+      200: Color(0xFFFF9EAA),
+      300: Color(0xFFFF7884),
+      400: Color(0xFFFF5A63),
+      500: Color(primaryValue),
+      600: Color(0xFFEA2237),
+      700: Color(0xFFD5173A),
+      800: Color(0xFFBD0E3D),
+      900: Color(0xFFA2063D),
+    },
+  );
+
   Future<UserModel> _user;
 
   @override
@@ -77,10 +95,10 @@ class CovidTraceAppState extends State {
               debugShowCheckedModeBanner: false,
               initialRoute: snapshot.data.onboarding ? '/onboarding' : '/home',
               title: 'CovidTrace',
-              theme: ThemeData(primarySwatch: Colors.deepPurple),
+              theme: ThemeData(primarySwatch: primaryColor),
               routes: {
                 '/onboarding': (context) => Onboarding(),
-                '/home': (context) => MainPage(title: 'CovidTrace'),
+                '/home': (context) => MainPage(),
                 '/send_report': (context) => SendReport(),
                 '/debug': (context) => DebugLocations(),
               },
@@ -93,9 +111,6 @@ class CovidTraceAppState extends State {
 }
 
 class MainPage extends StatefulWidget {
-  MainPage({Key key, this.title}) : super(key: key);
-  final String title;
-
   @override
   MainPageState createState() => MainPageState();
 }
@@ -143,7 +158,10 @@ class MainPageState extends State<MainPage> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: Text(widget.title),
+          title: Row(mainAxisAlignment: MainAxisAlignment.start, children: [
+            Image.asset('assets/app_icon.png', fit: BoxFit.contain, height: 40),
+            Text('CovidTrace')
+          ]),
           actions: <Widget>[
             IconButton(
               icon: Icon(Icons.info_outline),
