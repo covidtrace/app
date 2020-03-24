@@ -1,3 +1,5 @@
+import '../config.dart';
+import '../storage/location.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -6,10 +8,14 @@ import 'package:csv/csv.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
-import '../storage/location.dart';
 
 Future<bool> checkExposures() async {
   print('Checking exposures...');
+
+  var config = await getConfig();
+  int aggLevel = config['aggS2Level'];
+  int compareLevel = config['compareS2Level'];
+  String publishedBucket = config['publishedBucket'];
 
   var exposed = false;
   var dir = await getApplicationSupportDirectory();
@@ -17,12 +23,12 @@ Future<bool> checkExposures() async {
   // Collection set of truncated geos for google cloud rsync
   var locations = await LocationModel.findAll();
   var geos = Set.from(
-      locations.map((location) => location.cellID.parent(5).toToken()));
+      locations.map((location) => location.cellID.parent(aggLevel).toToken()));
 
   // for each truncated geo, download aggregated data
   await Future.forEach(geos, (geo) async {
     var listResp = await http.get(
-        'https://storage.googleapis.com/storage/v1/b/covidtrace-published/o?prefix=$geo'); // TODO(Josh): paging?
+        'https://storage.googleapis.com/storage/v1/b/$publishedBucket/o?prefix=$geo'); // TODO(Josh): paging?
 
     if (listResp.statusCode != 200) {
       throw ('Google Cloud Storage returned ${listResp.statusCode}!');
@@ -38,7 +44,7 @@ Future<bool> checkExposures() async {
       String object = item['name'];
       print('Syncing $object...');
 
-      var fileHandle = new File('${dir.path}/covidtrace-published/$object');
+      var fileHandle = new File('${dir.path}/$publishedBucket/$object');
 
       if (!await fileHandle.exists()) {
         await fileHandle.create(recursive: true);
@@ -50,7 +56,7 @@ Future<bool> checkExposures() async {
 
       if (!listEquals(checksum, fileChecksum)) {
         var fileResp = await http
-            .get('https://covidtrace-published.storage.googleapis.com/$object');
+            .get('https://$publishedBucket.storage.googleapis.com/$object');
 
         if (fileResp.statusCode != 200) {
           throw ('Unable to download Google Cloud Storage object $object!');
@@ -71,7 +77,7 @@ Future<bool> checkExposures() async {
 
         var exposures = locations
             .where((location) =>
-                location.cellID.toToken() == cellID &&
+                location.cellID.parent(compareLevel).toToken() == cellID &&
                 timestamp.millisecondsSinceEpoch -
                         location.timestamp.millisecondsSinceEpoch <
                     1000 * 60 * 60)
