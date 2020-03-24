@@ -150,7 +150,7 @@ class OnboardingState extends State {
                         ),
                         SizedBox(height: 10),
                         Text(
-                          "CovidTrace is an early warning app to let people know if they've recently been potentially exposed to Covid-19. CovidTrace is an online way to do instant contact tracing. Contact tracing is one of the most effective ways to combat the spread of the disease. By participating, you help save lives by flattening the curve.",
+                          "CovidTrace is an early warning app to let people know if they've recently been potentially exposed to COVID-19. CovidTrace is an online way to do instant contact tracing. Contact tracing is one of the most effective ways to combat the spread of the disease. By participating, you help save lives by flattening the curve.",
                           style: bodyText,
                         ),
                         SizedBox(height: 30),
@@ -248,11 +248,11 @@ class OnboardingState extends State {
                         ),
                         SizedBox(height: 10),
                         Text(
-                          "CovidTrace is now monitoring your location. You will get a notification if you were potentially exposed to Covid-19.",
+                          "CovidTrace is now monitoring your location. You will get a notification if you were potentially exposed to COVID-19.",
                           style: bodyText,
                         ),
                         SizedBox(height: 20),
-                        Image(image: AssetImage('assets/ios_notification.png')),
+                        Image.asset('assets/ios_notification.png'),
                         Row(children: [
                           Expanded(
                               child: Text('Enable notifications',
@@ -276,6 +276,26 @@ class OnboardingState extends State {
                               text:
                                   ' CovidTrace to have access to your location data.')
                         ])),
+                        SizedBox(height: 30),
+                        BlockButton(onPressed: nextPage, label: 'Continue'),
+                      ])),
+                  Center(
+                      child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                        Text(
+                          'Thank You!',
+                          style: Theme.of(context).textTheme.headline,
+                        ),
+                        SizedBox(height: 10),
+                        Text(
+                          "CovidTrace will now alert you when you're potentially exposed to COVID-19. If you do get sick, let us know so that we can help others.\n\nCovidTrace cannot prevent you from getting exposed. It can only help us react faster when exposures happen.",
+                          style: bodyText,
+                        ),
+                        SizedBox(height: 20),
+                        Text('Do the Five to help stop COVID-19',
+                            style: Theme.of(context).textTheme.title),
                         SizedBox(height: 30),
                         BlockButton(
                             onPressed: () => Navigator.of(context)
