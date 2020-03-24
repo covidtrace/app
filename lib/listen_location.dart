@@ -2,8 +2,6 @@ import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:flutter_background_geolocation/flutter_background_geolocation.dart'
-    as bg;
 import 'storage/location.dart';
 import 'package:intl/intl.dart';
 import 'location_history.dart';
@@ -40,38 +38,6 @@ class _ListenLocationState extends State<ListenLocationWidget> {
     timer = new Timer.periodic(
         new Duration(seconds: 30), (timer) async => await pollLocations());
     pollLocations();
-
-    bg.BackgroundGeolocation.onLocation((bg.Location l) {
-      print('[location] - $l');
-      LocationModel model = LocationModel(
-          longitude: l.coords.longitude,
-          latitude: l.coords.latitude,
-          activity: l.activity.type,
-          sample: l.sample ? 1 : 0,
-          speed: l.coords.speed,
-          timestamp: DateTime.parse(l.timestamp));
-      setState(() {
-        _recent = model;
-      });
-      LocationModel.insert(model);
-    }, (bg.LocationError error) {
-      print('[location_error] - $error');
-    });
-
-    bg.BackgroundGeolocation.onProviderChange((bg.ProviderChangeEvent event) {
-      print('[providerchange] - $event');
-    });
-
-    bg.BackgroundGeolocation.ready(bg.Config(
-            desiredAccuracy: bg.Config.DESIRED_ACCURACY_HIGH,
-            stopOnTerminate: false,
-            startOnBoot: true,
-            logLevel: bg.Config.LOG_LEVEL_OFF))
-        .then((bg.State state) {
-      if (!state.enabled) {
-        bg.BackgroundGeolocation.start();
-      }
-    });
   }
 
   String formatDate(DateTime d) {
@@ -150,7 +116,8 @@ class _ListenLocationState extends State<ListenLocationWidget> {
             height: 300,
             child: GoogleMap(
               mapType: MapType.normal,
-              myLocationEnabled: true,
+              myLocationEnabled: false,
+              myLocationButtonEnabled: false,
               initialCameraPosition: _camera,
               markers: markers,
               minMaxZoomPreference: MinMaxZoomPreference(10, 18),
