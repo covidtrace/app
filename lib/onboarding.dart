@@ -294,8 +294,10 @@ class OnboardingState extends State {
                           style: bodyText,
                         ),
                         SizedBox(height: 20),
-                        Text('Do the Five to help stop COVID-19',
-                            style: Theme.of(context).textTheme.title),
+                        Center(
+                            child: FractionallySizedBox(
+                                widthFactor: .5,
+                                child: Image.asset('assets/do_the_five.gif'))),
                         SizedBox(height: 30),
                         BlockButton(
                             onPressed: () => Navigator.of(context)
