@@ -1,3 +1,5 @@
+import 'config.dart';
+import 'dart:convert';
 import 'package:covidtrace/state.dart';
 import 'package:csv/csv.dart';
 import 'package:flutter/cupertino.dart';
@@ -42,6 +44,8 @@ class SendReportState extends State<SendReport> {
 
     var success = false;
     try {
+      var config = await getConfig();
+
       var user = await UserModel.find();
       var latestReport = await ReportModel.findLatest();
       String where =
@@ -54,18 +58,36 @@ class SendReportState extends State<SendReport> {
         ['timestamp', 's2geo', 'status']
       ];
 
+      var object = '${user.uuid}.csv';
+      var contentType = 'text/csv; charset=utf-8';
+
+      var signUri = Uri.parse(config['notaryUrl']).replace(queryParameters: {
+        'contentType': contentType,
+        'object': object,
+      });
+
+      var signResp = await http.post(signUri, body: {});
+      if (signResp.statusCode != 200) {
+        return false;
+      }
+
+      var signJson = jsonDecode(signResp.body);
+      var signedUrl = signJson['signed_url'];
+      if (signedUrl == null) {
+        return false;
+      }
+
       // Upload to Cloud Storage
-      var response = await http.put(
-          'https://covidtrace-holding.storage.googleapis.com/${user.uuid}.csv',
+      var uploadResp = await http.put(signedUrl,
           headers: <String, String>{
-            'Content-Type': 'text/csv',
+            'Content-Type': contentType,
           },
           body: ListToCsvConverter()
               .convert(headers + locations.map((l) => l.toCSV()).toList()));
 
-      // TODO(Josh) report errors?
-      print(response.statusCode);
-      print(response.body);
+      if (uploadResp.statusCode != 200) {
+        return false;
+      }
 
       var report = ReportModel(
           lastLocationId: locations.last.id, timestamp: DateTime.now());
@@ -253,7 +275,7 @@ class SendReportState extends State<SendReport> {
                                         if (await _sendReport(context)) {
                                           snackbar = SnackBar(
                                               content: Text(
-                                                  'You\'re report was submitted successfully'));
+                                                  'Your report was submitted successfully'));
                                         } else {
                                           snackbar = SnackBar(
                                               backgroundColor: Colors.red,
