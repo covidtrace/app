@@ -1,25 +1,80 @@
+import 'package:covidtrace/storage/location.dart';
+import 'debug_locations.dart';
 import 'listen_location.dart';
+import 'package:covidtrace/onboarding.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'state.dart';
 import 'send_report.dart';
 import 'settings.dart';
-import 'debug_locations.dart';
+import 'state.dart';
+import 'storage/user.dart';
+import 'package:flutter_background_geolocation/flutter_background_geolocation.dart'
+    as bg;
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-void main() => runApp(
-    ChangeNotifierProvider(create: (context) => ReportState(), child: MyApp()));
+void main() async {
+  // TODO(wes): Use FutureBuilder in CovidTraceApp to show blank container while loading user data
+  WidgetsFlutterBinding.ensureInitialized();
+  var user = await UserModel.find();
 
-class MyApp extends StatelessWidget {
+  runApp(ChangeNotifierProvider(
+      create: (context) => ReportState(),
+      child: CovidTraceApp(
+        initialRoute: user.onboarding ? '/onboarding' : '/home',
+      )));
+
+  var notificationPlugin = FlutterLocalNotificationsPlugin();
+  notificationPlugin.initialize(
+      InitializationSettings(
+          AndroidInitializationSettings(
+              'app_icon'), // TODO(wes): Configure this
+          IOSInitializationSettings(
+              requestAlertPermission: false,
+              requestBadgePermission: false,
+              requestSoundPermission: false)),
+      onSelectNotification: (notice) async {});
+
+  bg.BackgroundGeolocation.onLocation((bg.Location l) {
+    print('[location] - $l');
+    LocationModel model = LocationModel(
+        longitude: l.coords.longitude,
+        latitude: l.coords.latitude,
+        activity: l.activity.type,
+        sample: l.sample ? 1 : 0,
+        speed: l.coords.speed,
+        timestamp: DateTime.parse(l.timestamp));
+    LocationModel.insert(model);
+  }, (bg.LocationError error) {
+    print('[location_error] - $error');
+  });
+
+  bg.BackgroundGeolocation.onProviderChange((bg.ProviderChangeEvent event) {
+    print('[providerchange] - $event');
+  });
+
+  bg.BackgroundGeolocation.ready(bg.Config(
+      desiredAccuracy: bg.Config.DESIRED_ACCURACY_HIGH,
+      stopOnTerminate: false,
+      startOnBoot: true,
+      logLevel: bg.Config.LOG_LEVEL_OFF));
+}
+
+class CovidTraceApp extends StatelessWidget {
+  final String initialRoute;
+
+  CovidTraceApp({Key key, @required this.initialRoute}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      initialRoute: '/',
-      title: 'Covid Trace',
+      initialRoute: initialRoute,
+      title: 'CovidTrace',
       theme: ThemeData(primarySwatch: Colors.deepPurple),
       routes: {
-        '/': (context) => MyHomePage(title: 'Covid Trace'),
+        '/onboarding': (context) => Onboarding(),
+        '/home': (context) => MainPage(title: 'CovidTrace'),
         '/send_report': (context) => SendReport(),
         '/debug': (context) => DebugLocations(),
       },
@@ -27,15 +82,15 @@ class MyApp extends StatelessWidget {
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
+class MainPage extends StatefulWidget {
+  MainPage({Key key, this.title}) : super(key: key);
   final String title;
 
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  MainPageState createState() => MainPageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class MainPageState extends State<MainPage> {
   int navBarIndex = 0;
 
   _showInfoDialog() {
