@@ -298,6 +298,16 @@ class OnboardingState extends State {
                             child: FractionallySizedBox(
                                 widthFactor: .5,
                                 child: Image.asset('assets/do_the_five.gif'))),
+                        SizedBox(height: 20),
+                        Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('HANDS Wash them often', style: bodyText),
+                              Text('ELBOW Cough into it', style: bodyText),
+                              Text('FACE Don\'t touch it', style: bodyText),
+                              Text('SPACE Keep safe distance', style: bodyText),
+                              Text('HOME Stay if you can', style: bodyText),
+                            ]),
                         SizedBox(height: 30),
                         BlockButton(
                             onPressed: () => Navigator.of(context)
