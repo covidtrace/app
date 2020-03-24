@@ -1,6 +1,6 @@
 import 'package:covidtrace/storage/location.dart';
+import 'dashborad.dart';
 import 'debug_locations.dart';
-import 'listen_location.dart';
 import 'package:covidtrace/onboarding.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -175,7 +175,7 @@ class MainPageState extends State<MainPage> {
         ),
         floatingActionButton: FloatingActionButton.extended(
           icon: Icon(Icons.add_circle),
-          label: Text('REPORT SYMPTOMS'),
+          label: Text('SELF REPORT'),
           onPressed: () => Navigator.pushNamed(context, '/send_report'),
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
@@ -191,7 +191,7 @@ class MainPageState extends State<MainPage> {
                   icon: Icon(Icons.settings), title: Text('Settings')),
             ]),
         body: {
-          0: ListenLocationWidget(),
+          0: Dashboard(),
           2: ChangeNotifierProvider(
               create: (context) => SettingsState(), child: Settings())
         }[navBarIndex]);
