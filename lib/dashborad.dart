@@ -25,6 +25,7 @@ class DashboardState extends State {
                 style: Theme.of(context).textTheme.body1)
           ])),
       Card(
+          elevation: 4,
           margin: EdgeInsets.all(15),
           child: Column(children: [
             SizedBox(
