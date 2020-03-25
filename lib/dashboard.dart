@@ -61,6 +61,8 @@ class DashboardState extends State {
     var title = subhead.merge(TextStyle(fontWeight: FontWeight.bold));
     var body = Theme.of(context).textTheme.body1.merge(TextStyle(height: 1.3));
     var alertText = TextStyle(color: Colors.white);
+    var imageIcon = (String name) =>
+        Image.asset(name, width: 50, height: 50, fit: BoxFit.contain);
 
     return FutureBuilder(
         future: _recentExposure,
@@ -93,7 +95,49 @@ class DashboardState extends State {
                                     ])),
                                 Image.asset('assets/people_arrows_icon.png',
                                     height: 40),
-                              ])))
+                              ]))),
+                      SizedBox(height: 20),
+                      Center(child: Text('TIPS & RESOURCES', style: subhead)),
+                      SizedBox(height: 20),
+                      Card(
+                          child: Column(children: [
+                        ListTile(
+                          isThreeLine: true,
+                          leading: imageIcon('assets/stay_home_save_lives.png'),
+                          title: Text('Stay Home, Save Lives'),
+                          subtitle: Text(
+                              'Let frontline workers do their jobs. #StayHome'),
+                          onTap: () =>
+                              launch('https://www.stayhomesavelives.us'),
+                        ),
+                        Divider(height: 0),
+                        ListTile(
+                          isThreeLine: true,
+                          leading: imageIcon('assets/do_the_five.gif'),
+                          title: Text('Do The Five.'),
+                          subtitle: Text('Help Stop Coronavirus'),
+                          onTap: () => launch(
+                              'https://www.google.com/covid19/#safety-tips'),
+                        ),
+                        Divider(height: 0),
+                        ListTile(
+                          isThreeLine: true,
+                          leading: imageIcon('assets/who_logo.jpg'),
+                          title: Text('World Health Organization'),
+                          subtitle: Text('Get the latest updates on COVID-19'),
+                          onTap: () => launch(
+                              'https://www.who.int/emergencies/diseases/novel-coronavirus-2019'),
+                        ),
+                        Divider(height: 0),
+                        ListTile(
+                          isThreeLine: true,
+                          leading: imageIcon('assets/crisis_test_line.png'),
+                          title: Text('Crisis Text Line'),
+                          subtitle: Text(
+                              "Free, 24/7 support at your fingertips. We're only a text away."),
+                          onTap: () => launch('https://www.crisistextline.org'),
+                        ),
+                      ]))
                     ])));
           }
 
