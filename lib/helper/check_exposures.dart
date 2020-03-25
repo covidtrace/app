@@ -90,22 +90,22 @@ Future<bool> checkExposures() async {
 
       // We have the relevant file, locally, with proper checksum. Parse and compare with local locations.
       var fileCsv = await fileHandle.readAsString();
-      var parsedRows = CsvToListConverter(eol: '\n').convert(fileCsv);
+      var parsedRows = CsvToListConverter(shouldParseNumbers: false, eol: '\n')
+          .convert(fileCsv);
 
       // Iterate through rows and search for matching locations
       await Future.forEach(parsedRows, (parsedRow) async {
-        var timestamp = roundedDateTime(
-            DateTime.fromMillisecondsSinceEpoch(parsedRow[0] * 1000));
+        var timestamp = roundedDateTime(DateTime.fromMillisecondsSinceEpoch(
+            int.parse(parsedRow[0]) * 1000));
 
         // Note: aggregate CSVs look like
         // [timestamp, cellID.parent(compareLevel), cellID.parent(localLevel), ...]
         // so let's take the cellID at compareLevel
-        String roughCellID = parsedRow[1];
+        String compareCellID = parsedRow[1];
 
-        var locationsbyTimestamp = geoLookup[roughCellID];
+        var locationsbyTimestamp = geoLookup[compareCellID];
         if (locationsbyTimestamp != null) {
           var exposures = locationsbyTimestamp[timestamp];
-          print(exposures.length);
 
           if (exposures != null) {
             await Future.forEach(exposures, (location) async {
