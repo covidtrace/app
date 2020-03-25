@@ -1,10 +1,11 @@
-import 'package:url_launcher/url_launcher.dart';
 import 'config.dart';
 import 'dart:convert';
+import 'helper/signed_upload.dart';
 import 'package:csv/csv.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart';
+import 'package:uuid/uuid.dart';
 import 'storage/location.dart';
 import 'storage/report.dart';
 import 'storage/user.dart';
@@ -38,6 +39,30 @@ class SendReportState extends State<SendReport> {
       var config = await getConfig();
 
       var user = await UserModel.find();
+
+      var symptoms = {
+        'age': user.age,
+        'breathing': _breathing,
+        'cough': _cough,
+        'days': _days,
+        'fever': _fever,
+        'gender': user.gender,
+        'tested': _tested,
+      };
+
+      var symptomSuccess = await signedUpload(config,
+          query: {
+            'bucket': config['symptomBucket'],
+            'contentType': 'application/json; charset=utf-8',
+            'object': '${Uuid().v4()}.json'
+          },
+          headers: {'Content-Type': 'application/json; charset=utf-8'},
+          body: jsonEncode(symptoms));
+
+      if (!symptomSuccess) {
+        return false;
+      }
+
       var latestReport = await ReportModel.findLatest();
       String where =
           latestReport != null ? 'id > ${latestReport.lastLocationId}' : null;
@@ -52,37 +77,25 @@ class SendReportState extends State<SendReport> {
       var object = '${user.uuid}.csv';
       var contentType = 'text/csv; charset=utf-8';
 
-      var signUri = Uri.parse(config['notaryUrl']).replace(queryParameters: {
-        'contentType': contentType,
-        'object': object,
-      });
-
-      var signResp = await http.post(signUri, body: {});
-      if (signResp.statusCode != 200) {
-        return false;
-      }
-
-      var signJson = jsonDecode(signResp.body);
-      var signedUrl = signJson['signed_url'];
-      if (signedUrl == null) {
-        return false;
-      }
-
-      // Upload to Cloud Storage
-      var uploadResp = await http.put(signedUrl,
-          headers: <String, String>{
+      var uploadSuccess = await signedUpload(config,
+          query: {
+            'contentType': contentType,
+            'object': object,
+          },
+          headers: {
             'Content-Type': contentType,
           },
           body: ListToCsvConverter()
               .convert(headers + locations.map((l) => l.toCSV()).toList()));
 
-      if (uploadResp.statusCode != 200) {
+      if (!uploadSuccess) {
         return false;
       }
 
       var report = ReportModel(
           lastLocationId: locations.last.id, timestamp: DateTime.now());
       await report.create();
+
       success = true;
     } catch (err) {
       print(err);
