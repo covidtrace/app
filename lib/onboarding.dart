@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:covidtrace/storage/user.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -47,13 +46,13 @@ class OnboardingState extends State {
   void initState() {
     super.initState();
 
-    bg.BackgroundGeolocation.onProviderChange((event) {
-      var allowed = statusChange(event.status);
+    bg.BackgroundGeolocation.onProviderChange((event) async {
+      var allowed = await statusChange(event.status);
       setState(() => _linkToSettings = !allowed);
     });
   }
 
-  bool statusChange(int status) {
+  Future<bool> statusChange(int status) async {
     var allowed = false;
     switch (status) {
       case bg.Config.AUTHORIZATION_STATUS_ALWAYS:
@@ -63,6 +62,10 @@ class OnboardingState extends State {
     }
 
     setState(() => _requestLocation = allowed);
+    var user = await UserModel.find();
+    user.trackLocation = allowed;
+    user.save();
+
     return allowed;
   }
 
@@ -78,7 +81,7 @@ class OnboardingState extends State {
     setState(() => _requestLocation = true);
     try {
       var status = await bg.BackgroundGeolocation.requestPermission();
-      var allowed = statusChange(status);
+      var allowed = await statusChange(status);
 
       if (allowed) {
         bg.BackgroundGeolocation.start();

@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
 import 'storage/location.dart';
-import 'helper/check_exposures.dart';
 
 final Map<String, Icon> activities = {
   'unknown': Icon(Icons.not_listed_location),
@@ -80,21 +79,14 @@ class DebugLocationsState extends State {
               flex: 2,
               child: GoogleMap(
                 mapType: MapType.normal,
-                myLocationEnabled: true,
-                myLocationButtonEnabled: true,
+                myLocationEnabled: false,
+                myLocationButtonEnabled: false,
                 initialCameraPosition: _camera,
                 markers: _markers.toSet(),
                 onMapCreated: (GoogleMapController controller) {
                   _controller.complete(controller);
                 },
               )),
-          Flexible(
-            flex: 1,
-            child: FlatButton(
-              child: Text('Check Exposure'),
-              onPressed: checkExposures,
-            ),
-          ),
           Flexible(
               flex: 4,
               child: RefreshIndicator(

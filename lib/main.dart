@@ -1,9 +1,8 @@
+import 'dashboard.dart';
 import 'debug_locations.dart';
 import 'helper/check_exposures.dart';
-import 'listen_location.dart';
+import 'onboarding.dart';
 import 'package:background_fetch/background_fetch.dart';
-import 'package:covidtrace/onboarding.dart';
-import 'package:covidtrace/storage/location.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_background_geolocation/flutter_background_geolocation.dart'
     as bg;
@@ -11,6 +10,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'send_report.dart';
 import 'settings.dart';
+import 'storage/location.dart';
 import 'storage/user.dart';
 
 void main() async {
@@ -33,7 +33,6 @@ void main() async {
       onSelectNotification: (notice) async {});
 
   bg.BackgroundGeolocation.onLocation((bg.Location l) {
-    print('[location] - $l');
     LocationModel model = LocationModel(
         longitude: l.coords.longitude,
         latitude: l.coords.latitude,
@@ -43,7 +42,7 @@ void main() async {
         timestamp: DateTime.parse(l.timestamp));
     LocationModel.insert(model);
   }, (bg.LocationError error) {
-    print('[location_error] - $error');
+    // Do nothing
   });
 
   bg.BackgroundGeolocation.onProviderChange((bg.ProviderChangeEvent event) {
@@ -97,7 +96,7 @@ class CovidTraceAppState extends State {
           if (snapshot.hasData) {
             return MaterialApp(
               debugShowCheckedModeBanner: false,
-              initialRoute: snapshot.data.onboarding ? '/onboarding' : '/home',
+              initialRoute: !snapshot.data.onboarding ? '/onboarding' : '/home',
               title: 'Covid Trace',
               theme: ThemeData(primarySwatch: primaryColor),
               routes: {
@@ -153,7 +152,8 @@ class MainPageState extends State<MainPage> {
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
-                Text('Created by Josh Gummersall, Dudley Carr, Wes Carr'),
+                Text(
+                    'Find out more about Covid Trace and how it works on our website.'),
                 SizedBox(height: 10),
                 InkWell(
                   child: Text(
@@ -198,14 +198,10 @@ class MainPageState extends State<MainPage> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: Row(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Image.asset('assets/app_icon.png',
-                    fit: BoxFit.contain, height: 40),
-                Text('Covid Trace'),
-              ]),
+          title: Row(mainAxisSize: MainAxisSize.min, children: [
+            Image.asset('assets/app_icon.png', fit: BoxFit.contain, height: 40),
+            Text('Covid Trace'),
+          ]),
         ),
         floatingActionButton: FloatingActionButton.extended(
           icon: Image.asset('assets/self_report_icon.png', height: 25),
@@ -215,6 +211,12 @@ class MainPageState extends State<MainPage> {
           onPressed: showSendReport,
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+        // Use an empty bottom sheet to better control positiong of floating action button
+        bottomSheet: BottomSheet(
+            onClosing: () {},
+            builder: (context) {
+              return SizedBox(height: 50);
+            }),
         drawer: Drawer(
           child: ListView(children: [
             ListTile(
@@ -240,6 +242,6 @@ class MainPageState extends State<MainPage> {
                 }),
           ]),
         ),
-        body: ListenLocationWidget());
+        body: Dashboard());
   }
 }
