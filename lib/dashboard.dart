@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
@@ -143,6 +145,11 @@ class DashboardState extends State {
                                   MinMaxZoomPreference(10, 18),
                               markers: [
                                 Marker(markerId: MarkerId('1'), position: loc)
+                              ].toSet(),
+                              gestureRecognizers: [
+                                Factory(() => PanGestureRecognizer()),
+                                Factory(() => ScaleGestureRecognizer()),
+                                Factory(() => TapGestureRecognizer()),
                               ].toSet(),
                               onMapCreated: (controller) {
                                 if (!_mapController.isCompleted) {
