@@ -92,9 +92,13 @@ Future<bool> checkExposures() async {
       await Future.forEach(parsedRows, (parsedRow) async {
         var timestamp = roundedDateTime(
             DateTime.fromMillisecondsSinceEpoch(parsedRow[0] * 1000));
-        String cellID = parsedRow[1];
 
-        var locationsbyTimestamp = geoLookup[cellID];
+        // Note: aggregate CSVs look like
+        // [timestamp, cellID.parent(compareLevel), cellID.parent(localLevel), ...]
+        // so let's take the cellID at compareLevel
+        String roughCellID = parsedRow[1];
+
+        var locationsbyTimestamp = geoLookup[roughCellID];
         if (locationsbyTimestamp != null) {
           var exposures = locationsbyTimestamp[timestamp];
           print(exposures.length);
