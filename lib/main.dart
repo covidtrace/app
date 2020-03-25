@@ -175,7 +175,7 @@ class MainPageState extends State<MainPage> {
         ),
         floatingActionButton: FloatingActionButton.extended(
           icon: Icon(Icons.add_circle),
-          label: Text('REPORT SYMPTOMS'),
+          label: Text('SELF REPORT'),
           onPressed: () => Navigator.pushNamed(context, '/send_report'),
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,

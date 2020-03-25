@@ -121,7 +121,7 @@ class SendReportState extends State<SendReport> {
 
       return Scaffold(
           appBar: AppBar(
-              title: Text('Report Symptoms'),
+              title: Text('Self Report'),
               leading: IconButton(
                   icon: Icon(Icons.arrow_back),
                   onPressed: () {
