@@ -11,6 +11,7 @@ class UserModel {
   double longitude;
   bool trackLocation;
   bool onboarding;
+  DateTime lastCheck;
 
   UserModel(
       {this.id,
@@ -20,12 +21,15 @@ class UserModel {
       this.trackLocation,
       this.latitude,
       this.longitude,
-      this.onboarding});
+      this.onboarding,
+      this.lastCheck});
 
   static Future<UserModel> find() async {
     final Database db = await Storage.db;
     final List<Map<String, dynamic>> rows =
         await db.query('user', limit: 1, orderBy: "id ASC");
+
+    var lastCheck = rows[0]['last_check'];
 
     return UserModel(
       id: rows[0]['id'],
@@ -36,6 +40,7 @@ class UserModel {
       latitude: rows[0]['latitude'],
       longitude: rows[0]['longitude'],
       onboarding: rows[0]['onboarding'] == 1,
+      lastCheck: lastCheck != null ? DateTime.parse(lastCheck) : null,
     );
   }
 
@@ -50,6 +55,7 @@ class UserModel {
           'latitude': latitude,
           'longitude': longitude,
           'onboarding': onboarding ? 1 : 0,
+          'last_check': lastCheck != null ? lastCheck.toIso8601String() : null
         },
         where: 'id = ?',
         whereArgs: [id]);
