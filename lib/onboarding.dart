@@ -129,7 +129,7 @@ class OnboardingState extends State {
     var bodyText = Theme.of(context)
         .textTheme
         .body1
-        .merge(TextStyle(fontSize: 18, height: 1.4));
+        .merge(TextStyle(fontSize: 16, height: 1.4));
 
     return Container(
         color: Colors.white,
@@ -223,13 +223,13 @@ class OnboardingState extends State {
                         ]),
                         SizedBox(height: 10),
                         Text(
-                            'CovidTrace does not record any data when it determines you’re near your home. We do not want your home to be part of any of the recorded time and place data.',
+                            'CovidTrace does not record any data when it determines you’re near your home. We do not want your home to be part of any of the recorded location history.',
                             style: bodyText),
                         SizedBox(height: 30),
                         ClipRRect(
                             borderRadius: BorderRadius.circular(10),
                             child: SizedBox(
-                                height: 300,
+                                height: 250,
                                 child: GoogleMap(
                                   mapType: MapType.normal,
                                   myLocationEnabled: _requestLocation,
@@ -282,7 +282,7 @@ class OnboardingState extends State {
                             text: TextSpan(style: bodyText, children: [
                           TextSpan(
                             text:
-                                "Your phone will periodically remind you that your location is being tracked by this app. It is important to ",
+                                "Your phone may remind you that your location is being tracked by this app. It is important to ",
                           ),
                           TextSpan(
                             text: 'Always Allow',
@@ -295,11 +295,12 @@ class OnboardingState extends State {
                         SizedBox(height: 30),
                         BlockButton(onPressed: nextPage, label: 'Continue'),
                       ])),
-                  Center(
-                      child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
+                  SingleChildScrollView(
+                      child: Center(
+                          child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
                         Text(
                           'Thank You',
                           style: Theme.of(context).textTheme.headline,
@@ -359,7 +360,7 @@ class OnboardingState extends State {
                             onPressed: () => Navigator.of(context)
                                 .pushReplacementNamed('/home'),
                             label: 'Finish'),
-                      ])),
+                      ]))),
                 ])));
   }
 }

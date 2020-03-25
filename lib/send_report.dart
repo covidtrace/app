@@ -129,7 +129,8 @@ class SendReportState extends State<SendReport> {
                     Navigator.pop(context);
                   })),
           body: Builder(builder: (context) {
-            return Column(children: [
+            return SingleChildScrollView(
+                child: Column(children: [
               Padding(
                   padding: EdgeInsets.only(top: 20, left: 30, right: 30),
                   child: Text(
@@ -308,7 +309,7 @@ class SendReportState extends State<SendReport> {
                                   ]),
                             ])),
                   ])
-            ]);
+            ]));
           }));
     });
   }
