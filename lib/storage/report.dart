@@ -20,7 +20,7 @@ class ReportModel {
   static Future<ReportModel> findLatest() async {
     final Database db = await Storage.db;
     final List<Map<String, dynamic>> rows =
-        await db.query('report', limit: 1, orderBy: "id DESC");
+        await db.query('report', limit: 1, orderBy: "timestamp DESC");
 
     if (rows.length == 0) {
       return null;

@@ -1,18 +1,25 @@
-import 'package:covidtrace/storage/location.dart';
 import 'dashborad.dart';
 import 'debug_locations.dart';
-import 'package:covidtrace/onboarding.dart';
+import 'helper/check_exposures.dart';
+import 'onboarding.dart';
+import 'package:background_fetch/background_fetch.dart';
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'send_report.dart';
-import 'settings.dart';
-import 'storage/user.dart';
 import 'package:flutter_background_geolocation/flutter_background_geolocation.dart'
     as bg;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'send_report.dart';
+import 'settings.dart';
+import 'storage/location.dart';
+import 'storage/user.dart';
 
 void main() async {
   runApp(CovidTraceApp());
+
+  BackgroundFetch.registerHeadlessTask((String id) async {
+    await checkExposures();
+    BackgroundFetch.finish(id);
+  });
 
   var notificationPlugin = FlutterLocalNotificationsPlugin();
   notificationPlugin.initialize(
@@ -112,6 +119,30 @@ class MainPage extends StatefulWidget {
 }
 
 class MainPageState extends State<MainPage> {
+  Future<void> initBackgroundFetch() async {
+    await BackgroundFetch.configure(
+        BackgroundFetchConfig(
+          enableHeadless: true,
+          minimumFetchInterval: 60,
+          requiredNetworkType: NetworkType.ANY,
+          requiresBatteryNotLow: true,
+          requiresCharging: false,
+          requiresDeviceIdle: false,
+          requiresStorageNotLow: true,
+          startOnBoot: true,
+          stopOnTerminate: false,
+        ), (String id) async {
+      await checkExposures();
+      BackgroundFetch.finish(id);
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    initBackgroundFetch();
+  }
+
   _showInfoDialog() {
     return showDialog<void>(
       context: context,
