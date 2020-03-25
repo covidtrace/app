@@ -40,24 +40,26 @@ class SendReportState extends State<SendReport> {
 
       var user = await UserModel.find();
 
-      var symptoms = {
-        'age': user.age,
-        'breathing': _breathing,
-        'cough': _cough,
-        'days': _days,
-        'fever': _fever,
-        'gender': user.gender,
-        'tested': _tested,
-      };
+      var symptomBucket = config['symptomBucket'];
+      if (symptomBucket == null) {
+        symptomBucket = 'covidtrace-symptoms';
+      }
 
+      var contentType = 'application/json; charset=utf-8';
       var symptomSuccess = await signedUpload(config,
           query: {
-            'bucket': config['symptomBucket'],
-            'contentType': 'application/json; charset=utf-8',
+            'bucket': symptomBucket,
+            'contentType': contentType,
             'object': '${Uuid().v4()}.json'
           },
-          headers: {'Content-Type': 'application/json; charset=utf-8'},
-          body: jsonEncode(symptoms));
+          headers: {'Content-Type': contentType},
+          body: jsonEncode({
+            'breathing': _breathing,
+            'cough': _cough,
+            'days': _days,
+            'fever': _fever,
+            'tested': _tested,
+          }));
 
       if (!symptomSuccess) {
         return false;
@@ -74,13 +76,17 @@ class SendReportState extends State<SendReport> {
         ['timestamp', 's2geo', 'status']
       ];
 
-      var object = '${user.uuid}.csv';
-      var contentType = 'text/csv; charset=utf-8';
+      var holdingBucket = config['holdingBucket'];
+      if (holdingBucket == null) {
+        holdingBucket = 'covidtrace-holding';
+      }
 
+      contentType = 'text/csv; charset=utf-8';
       var uploadSuccess = await signedUpload(config,
           query: {
+            'bucket': holdingBucket,
             'contentType': contentType,
-            'object': object,
+            'object': '${user.uuid}.csv',
           },
           headers: {
             'Content-Type': contentType,
