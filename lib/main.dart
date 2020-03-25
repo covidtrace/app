@@ -3,19 +3,16 @@ import 'debug_locations.dart';
 import 'listen_location.dart';
 import 'package:covidtrace/onboarding.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'send_report.dart';
 import 'settings.dart';
-import 'state.dart';
 import 'storage/user.dart';
 import 'package:flutter_background_geolocation/flutter_background_geolocation.dart'
     as bg;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 void main() async {
-  runApp(ChangeNotifierProvider(
-      create: (context) => ReportState(), child: CovidTraceApp()));
+  runApp(CovidTraceApp());
 
   var notificationPlugin = FlutterLocalNotificationsPlugin();
   notificationPlugin.initialize(
