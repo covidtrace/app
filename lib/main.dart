@@ -26,7 +26,6 @@ void main() async {
       onSelectNotification: (notice) async {});
 
   bg.BackgroundGeolocation.onLocation((bg.Location l) {
-    print('[location] - $l');
     LocationModel model = LocationModel(
         longitude: l.coords.longitude,
         latitude: l.coords.latitude,
@@ -36,7 +35,7 @@ void main() async {
         timestamp: DateTime.parse(l.timestamp));
     LocationModel.insert(model);
   }, (bg.LocationError error) {
-    print('[location_error] - $error');
+    // Do nothing
   });
 
   bg.BackgroundGeolocation.onProviderChange((bg.ProviderChangeEvent event) {
@@ -90,7 +89,7 @@ class CovidTraceAppState extends State {
           if (snapshot.hasData) {
             return MaterialApp(
               debugShowCheckedModeBanner: false,
-              initialRoute: snapshot.data.onboarding ? '/onboarding' : '/home',
+              initialRoute: !snapshot.data.onboarding ? '/onboarding' : '/home',
               title: 'Covid Trace',
               theme: ThemeData(primarySwatch: primaryColor),
               routes: {
@@ -122,7 +121,8 @@ class MainPageState extends State<MainPage> {
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
-                Text('Created by Josh Gummersall, Dudley Carr, Wes Carr'),
+                Text(
+                    'Find out more about Covid Trace and how it works on our website.'),
                 SizedBox(height: 10),
                 InkWell(
                   child: Text(
@@ -167,14 +167,10 @@ class MainPageState extends State<MainPage> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: Row(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Image.asset('assets/app_icon.png',
-                    fit: BoxFit.contain, height: 40),
-                Text('Covid Trace'),
-              ]),
+          title: Row(mainAxisSize: MainAxisSize.min, children: [
+            Image.asset('assets/app_icon.png', fit: BoxFit.contain, height: 40),
+            Text('Covid Trace'),
+          ]),
         ),
         floatingActionButton: FloatingActionButton.extended(
           icon: Image.asset('assets/self_report_icon.png', height: 25),
