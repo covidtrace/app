@@ -1,10 +1,10 @@
+import 'package:url_launcher/url_launcher.dart';
 import 'config.dart';
 import 'dart:convert';
 import 'package:csv/csv.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:url_launcher/url_launcher.dart';
 import 'storage/location.dart';
 import 'storage/report.dart';
 import 'storage/user.dart';
@@ -111,6 +111,7 @@ class SendReportState extends State<SendReport> {
     var textTheme = Theme.of(context).textTheme;
     var stepTextTheme =
         textTheme.subhead.merge(TextStyle(color: Colors.black54));
+    var bodyText = textTheme.subhead.merge(TextStyle(height: 1.4));
 
     return Scaffold(
         appBar: AppBar(
@@ -132,7 +133,7 @@ class SendReportState extends State<SendReport> {
                       SizedBox(height: 10),
                       Text(
                           'Thank you for submitting your anonymized location history. Your data will help affected people respond faster to get COVID-19 under control.',
-                          style: textTheme.subhead),
+                          style: bodyText),
                       SizedBox(height: 40),
                       Text('What you do next is important',
                           style: Theme.of(context).textTheme.headline),
@@ -167,7 +168,7 @@ class SendReportState extends State<SendReport> {
                 padding: EdgeInsets.only(top: 20, left: 30, right: 30),
                 child: Text(
                     'When you report, you help others, save lives, and end the COVID-19 crisis sooner.',
-                    style: textTheme.subhead)),
+                    style: bodyText)),
             Stepper(
                 currentStep: _step,
                 onStepContinue: () => setState(() => _step++),
