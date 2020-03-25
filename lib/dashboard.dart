@@ -46,7 +46,7 @@ class DashboardState extends State {
 
           var location = snapshot.data;
           if (location != null) {
-            var timestamp = location.timestamp;
+            var timestamp = location.timestamp.toLocal();
 
             return Padding(
                 padding: EdgeInsets.all(15),

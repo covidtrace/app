@@ -1,4 +1,4 @@
-import 'dashborad.dart';
+import 'dashboard.dart';
 import 'debug_locations.dart';
 import 'helper/check_exposures.dart';
 import 'onboarding.dart';
