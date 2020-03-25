@@ -123,7 +123,7 @@ class SendReportState extends State<SendReport> {
           appBar: AppBar(
               title: Text('Self Report'),
               leading: IconButton(
-                  icon: Icon(Icons.arrow_back),
+                  icon: Icon(Icons.close),
                   onPressed: () {
                     state.reset();
                     Navigator.pop(context);

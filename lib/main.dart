@@ -99,8 +99,9 @@ class CovidTraceAppState extends State {
               routes: {
                 '/onboarding': (context) => Onboarding(),
                 '/home': (context) => MainPage(),
-                '/send_report': (context) => SendReport(),
-                '/debug': (context) => DebugLocations(),
+                '/settings': (context) => ChangeNotifierProvider(
+                    create: (context) => SettingsState(), child: Settings()),
+                '/location_history': (context) => DebugLocations(),
               },
             );
           } else {
@@ -116,8 +117,6 @@ class MainPage extends StatefulWidget {
 }
 
 class MainPageState extends State<MainPage> {
-  int navBarIndex = 0;
-
   _showInfoDialog() {
     return showDialog<void>(
       context: context,
@@ -154,46 +153,66 @@ class MainPageState extends State<MainPage> {
     );
   }
 
+  showSendReport() {
+    Navigator.push(
+        context,
+        PageRouteBuilder(
+            pageBuilder: (context, animation, _) => SendReport(),
+            transitionsBuilder: (context, animation, _, child) {
+              var tween = Tween(begin: Offset(0.0, 1.0), end: Offset.zero)
+                  .chain(CurveTween(curve: Curves.ease));
+
+              return SlideTransition(
+                  position: animation.drive(tween), child: child);
+            }));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: Row(mainAxisAlignment: MainAxisAlignment.start, children: [
-            Image.asset('assets/app_icon.png', fit: BoxFit.contain, height: 40),
-            Text('CovidTrace')
-          ]),
-          actions: <Widget>[
-            IconButton(
-              icon: Icon(Icons.info_outline),
-              onPressed: _showInfoDialog,
-            ),
-            IconButton(
-              icon: Icon(Icons.bug_report),
-              onPressed: () => Navigator.pushNamed(context, '/debug'),
-            )
-          ],
+          title: Row(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Image.asset('assets/app_icon.png',
+                    fit: BoxFit.contain, height: 40),
+                Text('CovidTrace'),
+              ]),
         ),
         floatingActionButton: FloatingActionButton.extended(
           icon: Icon(Icons.add_circle),
-          label: Text('SELF REPORT'),
-          onPressed: () => Navigator.pushNamed(context, '/send_report'),
+          label: Text('Self Report',
+              style: TextStyle(
+                  letterSpacing: 0, fontSize: 20, fontWeight: FontWeight.w500)),
+          onPressed: showSendReport,
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-        bottomNavigationBar: BottomNavigationBar(
-            currentIndex: navBarIndex,
-            onTap: (index) => setState(() => navBarIndex = index),
-            items: [
-              BottomNavigationBarItem(
-                  icon: Icon(Icons.home), title: Text('Home')),
-              BottomNavigationBarItem(
-                  icon: Icon(Icons.assignment), title: Text('Reports')),
-              BottomNavigationBarItem(
-                  icon: Icon(Icons.settings), title: Text('Settings')),
-            ]),
-        body: {
-          0: ListenLocationWidget(),
-          2: ChangeNotifierProvider(
-              create: (context) => SettingsState(), child: Settings())
-        }[navBarIndex]);
+        drawer: Drawer(
+          child: ListView(children: [
+            ListTile(
+                leading: Icon(Icons.home),
+                title: Text('Set My Home'),
+                onTap: () =>
+                    Navigator.of(context).popAndPushNamed('/settings')),
+            ListTile(
+                leading: Icon(Icons.location_on),
+                title: Text('Location History'),
+                onTap: () =>
+                    Navigator.of(context).popAndPushNamed('/location_history')),
+            ListTile(
+                leading: Icon(Icons.lock),
+                title: Text('Privacy Policy'),
+                onTap: () => launch('https://covidtrace.com/privacy')),
+            ListTile(
+                leading: Icon(Icons.info),
+                title: Text('About CovidTrace'),
+                onTap: () {
+                  Navigator.of(context).pop();
+                  _showInfoDialog();
+                }),
+          ]),
+        ),
+        body: ListenLocationWidget());
   }
 }
