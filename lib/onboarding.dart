@@ -162,7 +162,7 @@ class OnboardingState extends State {
                             ]),
                             SizedBox(height: 10),
                             Text(
-                              "CovidTrace is an early warning app to let people know if they've recently been potentially exposed to COVID-19. CovidTrace is an online way to do instant contact tracing. Contact tracing is one of the most effective ways to combat the spread of the disease. By participating, you help save lives by flattening the curve.",
+                              "Covid Trace is an early warning app to let people know if they've recently been potentially exposed to COVID-19. Covid Trace is an online way to do instant contact tracing. Contact tracing is one of the most effective ways to combat the spread of the disease. By participating, you help save lives by flattening the curve.",
                               style: bodyText,
                             ),
                             SizedBox(height: 30),
@@ -188,7 +188,7 @@ class OnboardingState extends State {
                               text: TextSpan(style: bodyText, children: [
                                 TextSpan(
                                   text:
-                                      "CovidTrace’s early detection works by checking where you've been recently against the time and place of people who reported positive test results. CovidTrace does this all on your phone to maintain your privacy. Limited information is shared when reporting an infection, symptoms or exposure.\n",
+                                      "Covid Trace’s early detection works by checking where you've been recently against the time and place of people who reported positive test results. Covid Trace does this all on your phone to maintain your privacy. Limited information is shared when reporting an infection, symptoms or exposure.\n",
                                 ),
                                 TextSpan(
                                     text: 'Find out more here',
@@ -229,7 +229,7 @@ class OnboardingState extends State {
                             ]),
                             SizedBox(height: 10),
                             Text(
-                                'CovidTrace does not record any data when it determines you’re near your home. We do not want your home to be part of any of the recorded location history.',
+                                'Covid Trace does not record any data when it determines you’re near your home. We do not want your home to be part of any of the recorded location history.',
                                 style: bodyText),
                             SizedBox(height: 30),
                             ClipRRect(
@@ -286,7 +286,7 @@ class OnboardingState extends State {
                             ),
                             SizedBox(height: 10),
                             Text(
-                              "CovidTrace is now monitoring your location. You will get a notification if you were potentially exposed to COVID-19.",
+                              "Covid Trace is now monitoring your location. You will get a notification if you were potentially exposed to COVID-19.",
                               style: bodyText,
                             ),
                             SizedBox(height: 20),
@@ -313,7 +313,7 @@ class OnboardingState extends State {
                               ),
                               TextSpan(
                                   text:
-                                      ' CovidTrace to have access to your location data.')
+                                      ' Covid Trace to have access to your location data.')
                             ])),
                             SizedBox(height: 30),
                             BlockButton(onPressed: nextPage, label: 'Continue'),
@@ -330,7 +330,7 @@ class OnboardingState extends State {
                             ),
                             SizedBox(height: 10),
                             Text(
-                              "CovidTrace will now alert you when you're potentially exposed to COVID-19. If you do get sick, let us know so that we can help others.\n\nCovidTrace cannot prevent you from getting exposed. It can only help us react faster when exposures happen.",
+                              "Covid Trace will now alert you when you're potentially exposed to COVID-19. If you do get sick, let us know so that we can help others.\n\nCovid Trace cannot prevent you from getting exposed. It can only help us react faster when exposures happen.",
                               style: bodyText,
                             ),
                             SizedBox(height: 20),

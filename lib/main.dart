@@ -94,7 +94,7 @@ class CovidTraceAppState extends State {
             return MaterialApp(
               debugShowCheckedModeBanner: false,
               initialRoute: snapshot.data.onboarding ? '/onboarding' : '/home',
-              title: 'CovidTrace',
+              title: 'Covid Trace',
               theme: ThemeData(primarySwatch: primaryColor),
               routes: {
                 '/onboarding': (context) => Onboarding(),
@@ -121,7 +121,7 @@ class MainPageState extends State<MainPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('CovidTrace'),
+          title: Text('Covid Trace'),
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
@@ -176,11 +176,11 @@ class MainPageState extends State<MainPage> {
               children: [
                 Image.asset('assets/app_icon.png',
                     fit: BoxFit.contain, height: 40),
-                Text('CovidTrace'),
+                Text('Covid Trace'),
               ]),
         ),
         floatingActionButton: FloatingActionButton.extended(
-          icon: Icon(Icons.add_circle),
+          icon: Image.asset('assets/self_report_icon.png', height: 25),
           label: Text('Self Report',
               style: TextStyle(
                   letterSpacing: 0, fontSize: 20, fontWeight: FontWeight.w500)),
@@ -205,7 +205,7 @@ class MainPageState extends State<MainPage> {
                 onTap: () => launch('https://covidtrace.com/privacy')),
             ListTile(
                 leading: Icon(Icons.info),
-                title: Text('About CovidTrace'),
+                title: Text('About Covid Trace'),
                 onTap: () {
                   Navigator.of(context).pop();
                   _showInfoDialog();
