@@ -18,12 +18,12 @@ class DashboardState extends State {
   }
 
   Future<LocationModel> loadExposures() async {
-    var date = DateTime.now().add(Duration(days: 7));
+    var date = DateTime.now().subtract(Duration(days: 7));
     var timestamp = DateFormat('yyyy-MM-dd').format(date);
 
     var locations = await LocationModel.findAll(
         limit: 1,
-        where: 'DATE(timestamp) > DATE($timestamp)',
+        where: 'DATE(timestamp) > DATE(\'$timestamp\')',
         orderBy: 'timestamp DESC');
 
     return locations.isEmpty ? null : locations.first;
