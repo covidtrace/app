@@ -61,8 +61,9 @@ class DashboardState extends State {
     var title = subhead.merge(TextStyle(fontWeight: FontWeight.bold));
     var body = Theme.of(context).textTheme.body1.merge(TextStyle(height: 1.3));
     var alertText = TextStyle(color: Colors.white);
-    var imageIcon = (String name) =>
-        Image.asset(name, width: 50, height: 50, fit: BoxFit.contain);
+    var imageIcon = (String name) => ClipRRect(
+        borderRadius: BorderRadius.circular(5),
+        child: Image.asset(name, width: 50, height: 50, fit: BoxFit.contain));
 
     return FutureBuilder(
         future: _recentExposure,
@@ -96,9 +97,9 @@ class DashboardState extends State {
                                 Image.asset('assets/people_arrows_icon.png',
                                     height: 40),
                               ]))),
-                      SizedBox(height: 20),
+                      SizedBox(height: 40),
                       Center(child: Text('TIPS & RESOURCES', style: subhead)),
-                      SizedBox(height: 20),
+                      SizedBox(height: 10),
                       Card(
                           child: Column(children: [
                         ListTile(
