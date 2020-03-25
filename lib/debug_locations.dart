@@ -60,7 +60,7 @@ class DebugLocationsState extends State {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: Text('Debug locations'),
+          title: Text('Location History'),
           actions: [
             Padding(
                 padding: EdgeInsets.only(right: 10),
