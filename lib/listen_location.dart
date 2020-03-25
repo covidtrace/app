@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'dart:math';
+
 import 'location_history.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
 import 'storage/location.dart';
+import 'storage/user.dart';
 
 class ListenLocationWidget extends StatefulWidget {
   ListenLocationWidget({Key key}) : super(key: key);
@@ -17,6 +19,7 @@ class _ListenLocationState extends State<ListenLocationWidget> {
   Timer timer;
   int _numLocations = 0;
   int _numExposures = 0;
+  UserModel _user;
   LocationModel _recent;
   LocationModel _center = LocationModel(
       latitude: 37.42796133580664,
@@ -46,11 +49,14 @@ class _ListenLocationState extends State<ListenLocationWidget> {
   }
 
   Future<void> pollLocations() async {
+    var user = await UserModel.find();
+
     List<LocationModel> locations =
         await LocationModel.findAll(limit: 10, orderBy: 'timestamp DESC');
     Map<String, int> counts = await LocationModel.count();
 
     setState(() {
+      _user = user;
       _locations = locations;
       _numLocations = counts['count'];
       _numExposures = counts['exposures'];
@@ -140,6 +146,9 @@ class _ListenLocationState extends State<ListenLocationWidget> {
                       Text('Locations: $_numLocations',
                           style: Theme.of(context).textTheme.body2),
                       Text('Exposures: $_numExposures',
+                          style: Theme.of(context).textTheme.body2),
+                      Text(
+                          'Last check: ${_user != null && _user.lastCheck != null ? formatDate(_user.lastCheck) : ''}',
                           style: Theme.of(context).textTheme.body2),
                       Text(
                           'Latest: ${_recent != null ? formatDate(_recent.timestamp) : ''}',

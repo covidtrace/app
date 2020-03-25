@@ -1,7 +1,9 @@
 import 'package:covidtrace/helper/datetime.dart';
+import 'package:covidtrace/storage/user.dart';
 
 import '../config.dart';
 import '../storage/location.dart';
+import '../storage/user.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -13,6 +15,8 @@ import 'package:path_provider/path_provider.dart';
 
 Future<bool> checkExposures() async {
   print('Checking exposures...');
+
+  var user = await UserModel.find();
 
   var config = await getConfig();
   int aggLevel = config['aggS2Level'];
@@ -114,6 +118,9 @@ Future<bool> checkExposures() async {
       });
     });
   });
+
+  user.lastCheck = DateTime.now();
+  await user.save();
 
   print('Done checking exposures!');
   return exposed;
