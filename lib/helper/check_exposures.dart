@@ -1,3 +1,5 @@
+import 'package:covidtrace/helper/datetime.dart';
+
 import '../config.dart';
 import '../storage/location.dart';
 import 'dart:async';
@@ -24,6 +26,23 @@ Future<bool> checkExposures() async {
   var locations = await LocationModel.findAll();
   var geos = Set.from(
       locations.map((location) => location.cellID.parent(aggLevel).toToken()));
+
+  // Big ass map of geo ID -> map of timestamp -> locations
+  Map<String, Map<int, List<LocationModel>>> geoLookup = new Map();
+  locations.forEach((location) {
+    var cellID = location.cellID.parent(compareLevel).toToken();
+    var unixHour = roundedDateTime(location.timestamp);
+
+    if (geoLookup[cellID] == null) {
+      geoLookup[cellID] = new Map();
+    }
+
+    if (geoLookup[cellID][unixHour] == null) {
+      geoLookup[cellID][unixHour] = new List();
+    }
+
+    geoLookup[cellID][unixHour].add(location);
+  });
 
   // for each truncated geo, download aggregated data
   await Future.forEach(geos, (geo) async {
@@ -71,23 +90,23 @@ Future<bool> checkExposures() async {
 
       // Iterate through rows and search for matching locations
       await Future.forEach(parsedRows, (parsedRow) async {
-        var timestamp =
-            DateTime.fromMillisecondsSinceEpoch(parsedRow[0] * 1000);
+        var timestamp = roundedDateTime(
+            DateTime.fromMillisecondsSinceEpoch(parsedRow[0] * 1000));
         String cellID = parsedRow[1];
 
-        var exposures = locations
-            .where((location) =>
-                location.cellID.parent(compareLevel).toToken() == cellID &&
-                timestamp.millisecondsSinceEpoch -
-                        location.timestamp.millisecondsSinceEpoch <
-                    1000 * 60 * 60)
-            .toList();
+        var locationsbyTimestamp = geoLookup[cellID];
+        if (locationsbyTimestamp != null) {
+          var exposures = locationsbyTimestamp[timestamp];
+          print(exposures.length);
 
-        await Future.forEach(exposures, (location) async {
-          exposed = true;
-          location.exposure = true;
-          await location.save();
-        });
+          if (exposures != null) {
+            await Future.forEach(exposures, (location) async {
+              exposed = true;
+              location.exposure = true;
+              await location.save();
+            });
+          }
+        }
       });
     });
   });

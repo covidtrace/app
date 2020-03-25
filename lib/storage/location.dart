@@ -95,7 +95,7 @@ class LocationModel {
         sample: rows[i]['sample'],
         speed: rows[i]['speed'],
         timestamp: DateTime.parse(rows[i]['timestamp']),
-        exposure: rows[i]['exposure'] == 0,
+        exposure: rows[i]['exposure'] == 1,
       );
     });
   }
