@@ -99,9 +99,7 @@ class CovidTraceAppState extends State {
               routes: {
                 '/onboarding': (context) => Onboarding(),
                 '/home': (context) => MainPage(),
-                '/settings': (context) => ChangeNotifierProvider(
-                    create: (context) => SettingsState(),
-                    child: SettingsView()),
+                '/settings': (context) => SettingsView(),
                 '/location_history': (context) => DebugLocations(),
               },
             );

@@ -11,18 +11,13 @@ class SettingsView extends StatefulWidget {
 }
 
 class SettingsViewState extends State {
+  Future<UserModel> _user;
   Completer<GoogleMapController> _mapController = Completer();
-  Set<Circle> _circles = Set();
+  List<Circle> _circles = [];
 
-  @override
-  void initState() {
+  initState() {
     super.initState();
-    loadHomePosition();
-  }
-
-  Future<void> loadHomePosition() async {
-    var user = await UserModel.find();
-    setHomePosition(LatLng(user.latitude, user.longitude));
+    _user = UserModel.find();
   }
 
   void setHomePosition(LatLng position) async {
@@ -34,7 +29,7 @@ class SettingsViewState extends State {
         strokeColor: Colors.red,
         strokeWidth: 2);
 
-    setState(() => _circles = [circle].toSet());
+    setState(() => _circles = [circle]);
     var mapController = await _mapController.future;
     mapController.animateCamera(CameraUpdate.newLatLng(position));
   }
@@ -67,56 +62,67 @@ class SettingsViewState extends State {
   Widget build(BuildContext context) => Scaffold(
       appBar: AppBar(title: Text('Set My Home')),
       body: Builder(
-          builder: (context) => Padding(
-              padding: EdgeInsets.all(20),
-              child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-                        child: SizedBox(
-                            height: 250,
-                            child: GoogleMap(
-                              mapType: MapType.normal,
-                              myLocationEnabled: true,
-                              myLocationButtonEnabled: true,
-                              circles: _circles,
-                              initialCameraPosition: CameraPosition(
-                                  target: LatLng(39.5, -98.35), zoom: 18),
-                              minMaxZoomPreference:
-                                  MinMaxZoomPreference(10, 18),
-                              onMapCreated: (controller) {
-                                if (!_mapController.isCompleted) {
-                                  _mapController.complete(controller);
-                                }
-                              },
-                            ))),
-                    SizedBox(height: 10),
-                    Text(
-                        'Update your home to your current location below. CovidTrace will never record any activity around your home as part of your location history.'),
-                    ButtonBar(
-                        alignment: MainAxisAlignment.center,
-                        buttonPadding:
-                            EdgeInsets.symmetric(horizontal: 40, vertical: 15),
-                        children: [
-                          RaisedButton(
-                              color: Theme.of(context)
-                                  .buttonTheme
-                                  .colorScheme
-                                  .primary,
-                              onPressed: () async {
-                                if (await setHome()) {
-                                  Scaffold.of(context).showSnackBar(SnackBar(
-                                      content: Text(
-                                          'Your home location was updated successfully')));
-                                } else {
-                                  Scaffold.of(context).showSnackBar(SnackBar(
-                                      backgroundColor: Colors.red,
-                                      content: Text(
-                                          'There was an error updating your home location ')));
-                                }
-                              },
-                              child: Text('Set as My Home'))
-                        ]),
-                  ]))));
+          builder: (context) =>
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                SizedBox(
+                    height: 250,
+                    child: FutureBuilder(
+                        future: _user,
+                        builder: (context, AsyncSnapshot<UserModel> snapshot) {
+                          if (!snapshot.hasData) {
+                            return Container();
+                          }
+
+                          var user = snapshot.data;
+                          var loc = user.latitude != null
+                              ? LatLng(user.latitude, user.longitude)
+                              : LatLng(39.5, -98.35);
+
+                          if (user.latitude != null && _circles.length == 0) {
+                            setHomePosition(loc);
+                          }
+
+                          return GoogleMap(
+                            mapType: MapType.normal,
+                            myLocationEnabled: true,
+                            myLocationButtonEnabled: true,
+                            circles: _circles.toSet(),
+                            initialCameraPosition:
+                                CameraPosition(target: loc, zoom: 18),
+                            minMaxZoomPreference: MinMaxZoomPreference(10, 18),
+                            onMapCreated: (controller) {
+                              if (!_mapController.isCompleted) {
+                                _mapController.complete(controller);
+                              }
+                            },
+                          );
+                        })),
+                Padding(
+                    padding: EdgeInsets.only(top: 20, left: 20, right: 20),
+                    child: Text(
+                        'Update your home to your current location below. CovidTrace will never record any activity around your home.',
+                        style: Theme.of(context).textTheme.subhead)),
+                ButtonBar(
+                    alignment: MainAxisAlignment.center,
+                    buttonPadding:
+                        EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                    children: [
+                      RaisedButton(
+                          color:
+                              Theme.of(context).buttonTheme.colorScheme.primary,
+                          onPressed: () async {
+                            if (await setHome()) {
+                              Scaffold.of(context).showSnackBar(SnackBar(
+                                  content: Text(
+                                      'Your home location was updated successfully')));
+                            } else {
+                              Scaffold.of(context).showSnackBar(SnackBar(
+                                  backgroundColor: Colors.red,
+                                  content: Text(
+                                      'There was an error updating your home location ')));
+                            }
+                          },
+                          child: Text('Set as My Home'))
+                    ]),
+              ])));
 }
