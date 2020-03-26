@@ -233,18 +233,20 @@ class SendReportState extends State<SendReport> {
                           'Pending',
                           'Not Tested'
                         ]
-                            .map((value) => RadioListTile(
-                                controlAffinity:
-                                    ListTileControlAffinity.trailing,
-                                groupValue: _tested,
-                                value: value,
-                                title: Text(value),
-                                onChanged: (value) {
-                                  setState(() => _tested = value);
-                                  if (value == 'Tested Positive') {
-                                    setState(() => _confirm = true);
-                                  }
-                                }))
+                            .map((value) => ListTileTheme(
+                                contentPadding: EdgeInsets.all(0),
+                                child: RadioListTile(
+                                    controlAffinity:
+                                        ListTileControlAffinity.trailing,
+                                    groupValue: _tested,
+                                    value: value,
+                                    title: Text(value),
+                                    onChanged: (value) {
+                                      setState(() => _tested = value);
+                                      if (value == 'Tested Positive') {
+                                        setState(() => _confirm = true);
+                                      }
+                                    })))
                             .toList()
                       ])),
                   Step(
@@ -257,30 +259,38 @@ class SendReportState extends State<SendReport> {
                           children: [
                             Text('What symptoms are you experiencing?',
                                 style: stepTextTheme),
-                            CheckboxListTile(
-                              value: _fever,
-                              onChanged: (selected) =>
-                                  setState(() => _fever = selected),
-                              title: Text('Fever (101°F or above)'),
-                            ),
-                            CheckboxListTile(
-                              value: _cough,
-                              onChanged: (selected) =>
-                                  setState(() => _cough = selected),
-                              title: Text('Dry cough'),
-                            ),
-                            CheckboxListTile(
-                              value: _breathing,
-                              onChanged: (selected) =>
-                                  setState(() => _breathing = selected),
-                              title: Text('Difficulty breathing'),
-                            ),
-                            ListTile(
-                              title: Text('Days with symptoms'),
-                              trailing: Text(
-                                  '${_days.round() == 10 ? '10+' : _days.round()}',
-                                  style: textTheme.title),
-                            ),
+                            ListTileTheme(
+                                contentPadding: EdgeInsets.all(0),
+                                child: CheckboxListTile(
+                                  value: _fever,
+                                  onChanged: (selected) =>
+                                      setState(() => _fever = selected),
+                                  title: Text('Fever (101°F or above)'),
+                                )),
+                            ListTileTheme(
+                                contentPadding: EdgeInsets.all(0),
+                                child: CheckboxListTile(
+                                  value: _cough,
+                                  onChanged: (selected) =>
+                                      setState(() => _cough = selected),
+                                  title: Text('Dry cough'),
+                                )),
+                            ListTileTheme(
+                                contentPadding: EdgeInsets.all(0),
+                                child: CheckboxListTile(
+                                  value: _breathing,
+                                  onChanged: (selected) =>
+                                      setState(() => _breathing = selected),
+                                  title: Text('Difficulty breathing'),
+                                )),
+                            ListTileTheme(
+                                contentPadding: EdgeInsets.only(right: 10),
+                                child: ListTile(
+                                  title: Text('Days with symptoms'),
+                                  trailing: Text(
+                                      '${_days.round() == 10 ? '10+' : _days.round()}',
+                                      style: textTheme.title),
+                                )),
                             Slider(
                                 min: 1,
                                 max: 10,
@@ -296,21 +306,15 @@ class SendReportState extends State<SendReport> {
                           children: [
                             Text(
                                 'I understand that my anonymized location history outside my home will alert others who were nearby at the time of a possible infection.'),
-                            InkWell(
-                                onTap: () =>
-                                    setState(() => _confirm = !_confirm),
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                        child: Text(
-                                            'I strongly believe I have COVID-19',
-                                            style: textTheme.subtitle)),
-                                    Checkbox(
-                                      value: _confirm,
-                                      onChanged: (selected) =>
-                                          setState(() => _confirm = selected),
-                                    )
-                                  ],
+                            ListTileTheme(
+                                contentPadding: EdgeInsets.all(0),
+                                child: CheckboxListTile(
+                                  value: _confirm,
+                                  title: Text(
+                                      'I strongly believe I have COVID-19',
+                                      style: textTheme.subtitle),
+                                  onChanged: (selected) =>
+                                      setState(() => _confirm = selected),
                                 )),
                             ButtonBar(
                                 alignment: MainAxisAlignment.start,

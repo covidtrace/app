@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'storage/location.dart';
 
 final Map<String, Icon> activities = {
@@ -58,7 +59,7 @@ class LocationHistoryState extends State {
         duration: Duration(milliseconds: 200), curve: Curves.easeOut);
   }
 
-  setLocation(LocationModel item) async {
+  setLocation(LocationModel item, {bool open = false}) async {
     if (item == null) {
       setState(() {
         _selected = null;
@@ -78,6 +79,11 @@ class LocationHistoryState extends State {
 
     final GoogleMapController controller = await _controller.future;
     controller.animateCamera(CameraUpdate.newLatLng(loc));
+
+    if (open && Theme.of(context).platform == TargetPlatform.iOS) {
+      launch('https://maps.apple.com?q=${loc.latitude},${loc.longitude}',
+          forceSafariVC: false);
+    }
   }
 
   @override
@@ -132,6 +138,8 @@ class LocationHistoryState extends State {
                                     : Colors.transparent,
                                 child: ListTile(
                                   selected: selected,
+                                  onLongPress: () =>
+                                      setLocation(item, open: true),
                                   onTap: () => setLocation(item),
                                   title: Text(
                                       '${DateFormat.Md().format(timestamp)}'),
@@ -141,9 +149,11 @@ class LocationHistoryState extends State {
                                       item.exposure
                                           ? Icons.warning
                                           : Icons.place,
-                                      color: item.exposure
-                                          ? Colors.orange
-                                          : Colors.grey),
+                                      color: selected
+                                          ? Colors.red
+                                          : item.exposure
+                                              ? Colors.orange
+                                              : Colors.grey),
                                 ))),
                         Divider(height: 0),
                       ]);
