@@ -93,40 +93,51 @@ class LocationHistoryState extends State {
         body: Column(children: [
           Flexible(
               flex: 2,
-              child: FutureBuilder(
-                  future: _initLoad,
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState != ConnectionState.done) {
-                      return Container();
-                    }
+              child: Stack(children: [
+                FutureBuilder(
+                    future: _initLoad,
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState != ConnectionState.done) {
+                        return Container();
+                      }
 
-                    return GoogleMap(
-                      mapType: MapType.normal,
-                      myLocationEnabled: false,
-                      myLocationButtonEnabled: false,
-                      initialCameraPosition: CameraPosition(
-                          target: _selected != null
-                              ? LatLng(_selected.latitude, _selected.longitude)
-                              : LatLng(0, 0),
-                          zoom: 16),
-                      markers: _markers.toSet(),
-                      onMapCreated: (GoogleMapController controller) {
-                        _controller.complete(controller);
-                      },
-                    );
-                  })),
-          Padding(
-              padding: EdgeInsets.symmetric(vertical: 15),
-              child: CupertinoSlidingSegmentedControl(
-                  padding: EdgeInsets.all(5),
-                  groupValue: _filter,
-                  children: {
-                    'all': Text('All Locations'),
-                    'exposed': Text('Potential Exposures'),
-                  },
-                  onValueChanged: setFilter)),
+                      return GoogleMap(
+                        mapType: MapType.normal,
+                        myLocationEnabled: false,
+                        myLocationButtonEnabled: false,
+                        initialCameraPosition: CameraPosition(
+                            target: _selected != null
+                                ? LatLng(
+                                    _selected.latitude, _selected.longitude)
+                                : LatLng(0, 0),
+                            zoom: 16),
+                        markers: _markers.toSet(),
+                        onMapCreated: (GoogleMapController controller) {
+                          _controller.complete(controller);
+                        },
+                      );
+                    }),
+                Positioned(
+                    left: 0,
+                    right: 0,
+                    bottom: 15.0,
+                    child: Center(
+                        child: CupertinoSlidingSegmentedControl(
+                            backgroundColor: Color(0xCCCCCCCC),
+                            padding: EdgeInsets.all(5),
+                            groupValue: _filter,
+                            children: {
+                              'all': Text('All Locations'),
+                              'exposed': Text('Potential Exposures'),
+                            },
+                            onValueChanged: setFilter))),
+              ])),
+          Divider(
+            height: 0,
+            color: Colors.grey,
+          ),
           Flexible(
-              flex: 4,
+              flex: 3,
               child: RefreshIndicator(
                   onRefresh: loadLocations,
                   child: ListView.builder(

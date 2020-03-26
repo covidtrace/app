@@ -44,6 +44,13 @@ class UserModel {
     );
   }
 
+  static Future<void> setHome(double latitude, double longitude) async {
+    var user = await find();
+    user.latitude = latitude;
+    user.longitude = longitude;
+    await user.save();
+  }
+
   Future<void> save() async {
     final Database db = await Storage.db;
     return db.update(

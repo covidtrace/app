@@ -44,13 +44,9 @@ class SettingsViewState extends State {
   }
 
   Future<bool> setHome() async {
-    var position = await locateCurrentPosition();
-    var user = await UserModel.find();
-
-    user.latitude = position.latitude;
-    user.longitude = position.longitude;
     try {
-      await user.save();
+      var position = await locateCurrentPosition();
+      await UserModel.setHome(position.latitude, position.longitude);
       setHomePosition(position);
       return true;
     } catch (err) {
