@@ -275,26 +275,29 @@ class DashboardState extends State with SingleTickerProviderStateMixin {
                       ),
                     ])),
                     SizedBox(height: 20),
-                    Column(children: [
-                      Text('HAVE A PLAN FOR IF YOU GET SICK', style: subhead),
-                      SizedBox(height: 20),
-                      Text('Consult with your healthcare provider',
-                          style: title),
-                      Text(
-                          'for more information about monitoring your health for symptoms suggestive of COVID-19',
-                          style: body,
-                          textAlign: TextAlign.center),
-                      SizedBox(height: 20),
-                      Text('Stay in touch with others by phone or email',
-                          style: title),
-                      Text(
-                          'You may need to ask for help from friends, family, neighbors, community health workers, etc. if you become sick.',
-                          style: body,
-                          textAlign: TextAlign.center),
-                      SizedBox(height: 20),
-                      Text('Determine who can care for you', style: title),
-                      Text('if your caregiver gets sick',
-                          style: body, textAlign: TextAlign.center),
+                    Center(
+                        child: Text('HAVE A PLAN FOR IF YOU GET SICK',
+                            style: subhead)),
+                    SizedBox(height: 20),
+                    Card(
+                        child: Column(children: [
+                      ListTile(
+                          isThreeLine: true,
+                          title: Text('Consult with your healthcare provider'),
+                          subtitle: Text(
+                              'for more information about monitoring your health for symptoms suggestive of COVID-19')),
+                      Divider(height: 0),
+                      ListTile(
+                          isThreeLine: true,
+                          title:
+                              Text('Stay in touch with others by phone/email'),
+                          subtitle: Text(
+                              'You may need to ask for help from friends, family, neighbors, etc. if you become sick.')),
+                      Divider(height: 0),
+                      ListTile(
+                          title: Text('Determine who can care for you'),
+                          subtitle: Text('if your caregiver gets sick')),
+                      Divider(height: 0),
                       FlatButton(
                         child: Text('FIND OUT MORE',
                             style: TextStyle(
@@ -302,7 +305,7 @@ class DashboardState extends State with SingleTickerProviderStateMixin {
                         onPressed: () => launch(
                             'https://www.cdc.gov/coronavirus/2019-ncov/specific-groups/get-ready.html'),
                       )
-                    ]),
+                    ])),
                     SizedBox(height: 100), // Account for floating action button
                   ])));
         });
