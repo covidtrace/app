@@ -1,5 +1,7 @@
 import 'package:covidtrace/helper/datetime.dart';
 import 'package:covidtrace/storage/user.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:intl/intl.dart';
 
 import '../config.dart';
 import '../storage/location.dart';
@@ -113,6 +115,8 @@ Future<bool> checkExposures() async {
               location.exposure = true;
               await location.save();
             });
+
+            showExposureNotification(exposures.last);
           }
         }
       });
@@ -124,4 +128,19 @@ Future<bool> checkExposures() async {
 
   print('Done checking exposures!');
   return exposed;
+}
+
+void showExposureNotification(LocationModel location) async {
+  var timestamp = location.timestamp.toLocal();
+
+  var notificationPlugin = FlutterLocalNotificationsPlugin();
+  var androidSpec = AndroidNotificationDetails(
+      'covid_channel_id', 'covid_channel_name', 'covid_channel_description',
+      importance: Importance.Max, priority: Priority.High, ticker: 'ticker');
+  var iosSpecs = IOSNotificationDetails();
+  await notificationPlugin.show(
+      0,
+      'COVID-19 Exposure Alert',
+      'Your location history matched with a reported infection on ${DateFormat.Md().format(timestamp)} ${DateFormat('ha').format(timestamp).toLowerCase()} - ${DateFormat('ha').format(timestamp.add(Duration(hours: 1))).toLowerCase()}',
+      NotificationDetails(androidSpec, iosSpecs));
 }

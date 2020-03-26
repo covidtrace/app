@@ -14,6 +14,7 @@ class Dashboard extends StatefulWidget {
 }
 
 class DashboardState extends State with SingleTickerProviderStateMixin {
+  var _exposed;
   var _recentExposure;
   var _expandHeader = false;
   Completer<GoogleMapController> _mapController = Completer();
@@ -49,7 +50,7 @@ class DashboardState extends State with SingleTickerProviderStateMixin {
   }
 
   Future<void> refreshExposures() async {
-    await checkExposures();
+    var found = await checkExposures();
 
     var load = loadExposures();
     setState(() {
@@ -62,6 +63,15 @@ class DashboardState extends State with SingleTickerProviderStateMixin {
       var controller = await _mapController.future;
       controller.animateCamera(CameraUpdate.newLatLng(
           LatLng(location.latitude, location.longitude)));
+    }
+
+    var currentExposed = _exposed;
+    setState(() => _exposed = location != null);
+    // checkEposures also sends a notification if it found one.
+    // Since we have debug functionality for testing infections
+    // we special case showing a notice here.
+    if (_exposed && currentExposed != true && !found) {
+      showExposureNotification(location);
     }
   }
 

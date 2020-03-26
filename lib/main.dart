@@ -143,7 +143,7 @@ class MainPageState extends State<MainPage> {
     initBackgroundFetch();
   }
 
-  _showInfoDialog() {
+  showInfoDialog() {
     return showDialog<void>(
       context: context,
       builder: (BuildContext context) {
@@ -214,6 +214,13 @@ class MainPageState extends State<MainPage> {
     }
   }
 
+  resetOnboarding() async {
+    Navigator.of(context).pop();
+    var user = await UserModel.find();
+    user.onboarding = true;
+    await user.save();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -258,9 +265,9 @@ class MainPageState extends State<MainPage> {
                 title: Text('About Covid Trace'),
                 onTap: () {
                   Navigator.of(context).pop();
-                  _showInfoDialog();
+                  showInfoDialog();
                 }),
-            SizedBox(height: 400),
+            SizedBox(height: 350),
             ListTile(
                 leading: Icon(Icons.bug_report),
                 title: Text('Test Infection'),
@@ -269,6 +276,10 @@ class MainPageState extends State<MainPage> {
                 leading: Icon(Icons.restore),
                 title: Text('Reset Infection'),
                 onTap: resetInfection),
+            ListTile(
+                leading: Icon(Icons.power_settings_new),
+                title: Text('Reset Onboarding'),
+                onTap: resetOnboarding),
           ]),
         ),
         body: Dashboard());
