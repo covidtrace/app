@@ -76,7 +76,7 @@ class DashboardState extends State {
                     child: ListView(children: [
                       Container(
                           decoration: BoxDecoration(
-                              color: Colors.green,
+                              color: Colors.blueGrey,
                               borderRadius: BorderRadius.circular(10)),
                           child: Padding(
                               padding: EdgeInsets.all(15),
