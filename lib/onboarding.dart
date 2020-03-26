@@ -40,13 +40,11 @@ class OnboardingState extends State {
   var _requestLocation = false;
   var _requestNotification = false;
   var _linkToSettings = false;
-  var _initPosition;
   Completer<GoogleMapController> _mapController = Completer();
 
   @override
   void initState() {
     super.initState();
-    _initPosition = locateCurrentPosition();
 
     bg.BackgroundGeolocation.onProviderChange((event) async {
       var allowed = await statusChange(event.status);
@@ -247,7 +245,7 @@ class OnboardingState extends State {
                                     height: 250,
                                     child: _requestLocation
                                         ? FutureBuilder(
-                                            future: _initPosition,
+                                            future: locateCurrentPosition(),
                                             builder: (context, snapshot) {
                                               if (!snapshot.hasData) {
                                                 return Container();
