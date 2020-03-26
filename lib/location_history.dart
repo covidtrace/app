@@ -26,15 +26,15 @@ class LocationHistoryState extends State {
   List<LocationModel> _locations = [];
   List<LocationModel> _display = [];
   LocationModel _selected;
+  Future<void> _initLoad;
   Completer<GoogleMapController> _controller = Completer();
   ScrollController _scroller = ScrollController();
   List<Marker> _markers = [];
-  var _camera = CameraPosition(target: LatLng(0, 0), zoom: 16);
 
   @override
   void initState() {
     super.initState();
-    loadLocations();
+    _initLoad = loadLocations();
   }
 
   Future<void> loadLocations() async {
@@ -88,25 +88,33 @@ class LocationHistoryState extends State {
 
   @override
   Widget build(BuildContext context) {
-    var locations = _filter == 'exposed'
-        ? _locations.where((l) => l.exposure).toList()
-        : _locations;
-
     return Scaffold(
         appBar: AppBar(title: Text('Location History')),
         body: Column(children: [
           Flexible(
               flex: 2,
-              child: GoogleMap(
-                mapType: MapType.normal,
-                myLocationEnabled: false,
-                myLocationButtonEnabled: false,
-                initialCameraPosition: _camera,
-                markers: _markers.toSet(),
-                onMapCreated: (GoogleMapController controller) {
-                  _controller.complete(controller);
-                },
-              )),
+              child: FutureBuilder(
+                  future: _initLoad,
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState != ConnectionState.done) {
+                      return Container();
+                    }
+
+                    return GoogleMap(
+                      mapType: MapType.normal,
+                      myLocationEnabled: false,
+                      myLocationButtonEnabled: false,
+                      initialCameraPosition: CameraPosition(
+                          target: _selected != null
+                              ? LatLng(_selected.latitude, _selected.longitude)
+                              : LatLng(0, 0),
+                          zoom: 16),
+                      markers: _markers.toSet(),
+                      onMapCreated: (GoogleMapController controller) {
+                        _controller.complete(controller);
+                      },
+                    );
+                  })),
           Padding(
               padding: EdgeInsets.symmetric(vertical: 15),
               child: CupertinoSlidingSegmentedControl(
@@ -123,9 +131,9 @@ class LocationHistoryState extends State {
                   onRefresh: loadLocations,
                   child: ListView.builder(
                     controller: _scroller,
-                    itemCount: locations.length,
+                    itemCount: _display.length,
                     itemBuilder: (context, i) {
-                      var item = locations[i];
+                      var item = _display[i];
                       var timestamp = item.timestamp.toLocal();
                       var selected = _selected.id == item.id;
 
