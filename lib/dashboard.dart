@@ -86,7 +86,7 @@ class DashboardState extends State with SingleTickerProviderStateMixin {
     return FutureBuilder(
         future: _recentExposure,
         builder: (context, AsyncSnapshot<LocationModel> snapshot) {
-          if (!snapshot.hasData) {
+          if (snapshot.connectionState != ConnectionState.done) {
             return Container();
           }
 
