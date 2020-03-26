@@ -1,5 +1,5 @@
 import 'dashboard.dart';
-import 'debug_locations.dart';
+import 'location_history.dart';
 import 'helper/check_exposures.dart';
 import 'onboarding.dart';
 import 'package:background_fetch/background_fetch.dart';
@@ -103,7 +103,7 @@ class CovidTraceAppState extends State {
                 '/onboarding': (context) => Onboarding(),
                 '/home': (context) => MainPage(),
                 '/settings': (context) => SettingsView(),
-                '/location_history': (context) => DebugLocations(),
+                '/location_history': (context) => LocationHistory(),
               },
             );
           } else {
