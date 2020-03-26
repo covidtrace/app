@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
@@ -20,9 +21,12 @@ class DebugLocations extends StatefulWidget {
 }
 
 class DebugLocationsState extends State {
+  String _filter = 'all';
   List<LocationModel> _locations = [];
-  int _selected;
+  List<LocationModel> _display = [];
+  LocationModel _selected;
   Completer<GoogleMapController> _controller = Completer();
+  ScrollController _scroller = ScrollController();
   List<Marker> _markers = [];
   var _camera = CameraPosition(target: LatLng(0, 0), zoom: 16);
 
@@ -33,20 +37,40 @@ class DebugLocationsState extends State {
   }
 
   Future<void> loadLocations() async {
-    var locations = await LocationModel.findAll(orderBy: 'timestamp DESC');
+    var locations = await LocationModel.findAll(
+        where: 'sample = 0', orderBy: 'timestamp DESC');
     setState(() => _locations = locations);
-
-    if (locations.length > 0) {
-      setLocation(0);
-    }
+    setFilter(_filter);
   }
 
-  setLocation(int index) async {
-    var item = _locations[index];
-    var loc = LatLng(item.latitude, item.longitude);
+  setFilter(String value) {
+    var locations = value == 'exposed'
+        ? _locations.where((l) => l.exposure).toList()
+        : _locations;
 
     setState(() {
-      _selected = index;
+      _filter = value;
+      _display = locations;
+    });
+
+    setLocation(_display.length > 0 ? _display.first : null);
+    _scroller.animateTo(0.0,
+        duration: Duration(milliseconds: 200), curve: Curves.easeOut);
+  }
+
+  setLocation(LocationModel item) async {
+    if (item == null) {
+      setState(() {
+        _selected = null;
+        _markers = [];
+      });
+
+      return;
+    }
+
+    var loc = LatLng(item.latitude, item.longitude);
+    setState(() {
+      _selected = item;
       _markers = [
         Marker(markerId: MarkerId(item.id.toString()), position: loc)
       ];
@@ -58,22 +82,12 @@ class DebugLocationsState extends State {
 
   @override
   Widget build(BuildContext context) {
+    var locations = _filter == 'exposed'
+        ? _locations.where((l) => l.exposure).toList()
+        : _locations;
+
     return Scaffold(
-        appBar: AppBar(
-          title: Text('Location History'),
-          actions: [
-            Padding(
-                padding: EdgeInsets.only(right: 10),
-                child: Chip(
-                  label: Text(_locations.length.toString(),
-                      style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).colorScheme.primary)),
-                  backgroundColor: Colors.white,
-                  elevation: 0,
-                ))
-          ],
-        ),
+        appBar: AppBar(title: Text('Location History')),
         body: Column(children: [
           Flexible(
               flex: 2,
@@ -87,32 +101,40 @@ class DebugLocationsState extends State {
                   _controller.complete(controller);
                 },
               )),
+          Padding(
+              padding: EdgeInsets.only(top: 15),
+              child: CupertinoSlidingSegmentedControl(
+                  padding: EdgeInsets.all(5),
+                  groupValue: _filter,
+                  children: {
+                    'all': Text('All Locations'),
+                    'exposed': Text('Potential Exposures'),
+                  },
+                  onValueChanged: setFilter)),
           Flexible(
               flex: 4,
               child: RefreshIndicator(
                   onRefresh: loadLocations,
                   child: ListView.builder(
-                    itemCount: _locations.length,
+                    controller: _scroller,
+                    itemCount: locations.length,
                     itemBuilder: (context, i) {
-                      var item = _locations[i];
+                      var item = locations[i];
                       var timestamp = item.timestamp.toLocal();
+                      var selected = _selected.id == item.id;
+
                       return Column(children: [
                         ListTile(
-                          selected: i == _selected,
-                          onTap: () => setLocation(i),
-                          title: Text(
-                              '${DateFormat.Md().format(timestamp)} @ ${DateFormat.jms().format(timestamp)}'),
-                          subtitle: Text(item.exposure == true
-                              ? 'Possible Exposure'
-                              : 'No Exposure Found'),
-                          trailing: SizedBox(
-                              width: 100,
-                              child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.end,
-                                  children: [
-                                    Text('${item.speed} m/s'),
-                                    activities[item.activity]
-                                  ])),
+                          selected: selected,
+                          onTap: () => setLocation(item),
+                          title: Text('${DateFormat.Md().format(timestamp)}'),
+                          subtitle:
+                              Text('${DateFormat.jms().format(timestamp)}'),
+                          trailing: Icon(
+                              item.exposure ? Icons.warning : Icons.place,
+                              color: item.exposure && !selected
+                                  ? Colors.orange
+                                  : null),
                         ),
                         Divider(height: 0),
                       ]);
