@@ -128,6 +128,14 @@ class OnboardingState extends State {
     nextPage();
   }
 
+  void finish() async {
+    var user = await UserModel.find();
+    user.onboarding = false;
+    await user.save();
+
+    Navigator.of(context).pushReplacementNamed('/home');
+  }
+
   @override
   Widget build(BuildContext context) {
     var bodyText = Theme.of(context)
@@ -385,10 +393,7 @@ class OnboardingState extends State {
                                     .values
                                     .toList()),
                             SizedBox(height: 30),
-                            BlockButton(
-                                onPressed: () => Navigator.of(context)
-                                    .pushReplacementNamed('/home'),
-                                label: 'Finish'),
+                            BlockButton(onPressed: finish, label: 'Finish'),
                           ]))),
                     ]))));
   }

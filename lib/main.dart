@@ -96,7 +96,7 @@ class CovidTraceAppState extends State {
           if (snapshot.hasData) {
             return MaterialApp(
               debugShowCheckedModeBanner: false,
-              initialRoute: !snapshot.data.onboarding ? '/onboarding' : '/home',
+              initialRoute: snapshot.data.onboarding ? '/onboarding' : '/home',
               title: 'Covid Trace',
               theme: ThemeData(primarySwatch: primaryColor),
               routes: {
