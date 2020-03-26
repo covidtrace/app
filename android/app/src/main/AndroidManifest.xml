@@ -1,4 +1,5 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.example.covidtrace">
     <!-- io.flutter.app.FlutterApplication is an android.app.Application that
          calls FlutterMain.startInitialization(this); in its onCreate method.
@@ -6,9 +7,11 @@
          additional functionality it is fine to subclass or reimplement
          FlutterApplication and put your custom class here. -->
     <application
+        tools:replace="android:label"
         android:name="io.flutter.app.FlutterApplication"
         android:label="covidtrace"
         android:icon="@mipmap/launcher_icon">
+        <meta-data android:name="com.transistorsoft.locationmanager.license" android:value="93d6676804d4e0059d4342774f61d0fbbb01d27d6c0c2a10a5ed4b7715df3c14" />
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyAPrVanVPxAlZOGgRecnNUew_zAneh8guw"/>
