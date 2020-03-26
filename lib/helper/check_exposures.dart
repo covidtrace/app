@@ -21,7 +21,8 @@ Future<bool> checkExposures() async {
   var user = await UserModel.find();
 
   var config = await getConfig();
-  int aggLevel = config['aggS2Level'];
+  int aggIndex = config['aggS2Index'];
+  List<dynamic> aggLevels = config['aggS2Levels'];
   int compareLevel = config['compareS2Level'];
   String publishedBucket = config['publishedBucket'];
 
@@ -30,8 +31,8 @@ Future<bool> checkExposures() async {
 
   // Collection set of truncated geos for google cloud rsync
   var locations = await LocationModel.findAll();
-  var geos = Set.from(
-      locations.map((location) => location.cellID.parent(aggLevel).toToken()));
+  var geos = Set.from(locations.map((location) =>
+      location.cellID.parent(aggLevels[aggIndex] as int).toToken()));
 
   // Big ass map of geo ID -> map of timestamp -> locations
   Map<String, Map<int, List<LocationModel>>> geoLookup = new Map();
@@ -65,7 +66,7 @@ Future<bool> checkExposures() async {
       return;
     }
 
-    await Future.forEach(listItems, (item) async {
+    await Future.wait(listItems.map((item) async {
       String object = item['name'];
       print('Syncing $object...');
 
@@ -118,7 +119,7 @@ Future<bool> checkExposures() async {
           }
         }
       });
-    });
+    }));
   });
 
   user.lastCheck = DateTime.now();
