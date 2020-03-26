@@ -89,6 +89,11 @@ class DashboardState extends State with SingleTickerProviderStateMixin {
         future: _recentExposure,
         builder: (context, AsyncSnapshot<LocationModel> snapshot) {
           if (!snapshot.hasData) {
+            return Container();
+          }
+
+          var location = snapshot.data;
+          if (location == null) {
             return Padding(
                 padding: EdgeInsets.all(15),
                 child: RefreshIndicator(
@@ -184,109 +189,122 @@ class DashboardState extends State with SingleTickerProviderStateMixin {
                     ])));
           }
 
-          var location = snapshot.data;
-          if (location != null) {
-            var timestamp = location.timestamp.toLocal();
-            var loc = LatLng(location.latitude, location.longitude);
+          var timestamp = location.timestamp.toLocal();
+          var loc = LatLng(location.latitude, location.longitude);
 
-            return Padding(
-                padding: EdgeInsets.all(15),
-                child: RefreshIndicator(
-                    onRefresh: refreshExposures,
-                    child: ListView(children: [
-                      Container(
-                          decoration: BoxDecoration(
-                              color: Colors.orange,
-                              borderRadius: BorderRadius.circular(10)),
-                          child: Padding(
-                              padding: EdgeInsets.all(15),
-                              child: Row(children: [
-                                Expanded(
-                                    child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                      Text('Possible Exposure',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .title
-                                              .merge(alertText)),
-                                      Text('In the last 7 days',
-                                          style: alertText)
-                                    ])),
-                                Image.asset('assets/shield_virus_icon.png',
-                                    height: 40),
-                              ]))),
-                      SizedBox(height: 10),
-                      Card(
-                          child: Column(children: [
-                        SizedBox(
-                            height: 150,
-                            child: GoogleMap(
-                              mapType: MapType.normal,
-                              myLocationEnabled: false,
-                              myLocationButtonEnabled: false,
-                              initialCameraPosition:
-                                  CameraPosition(target: loc, zoom: 16),
-                              minMaxZoomPreference:
-                                  MinMaxZoomPreference(10, 18),
-                              markers: [
-                                Marker(markerId: MarkerId('1'), position: loc)
-                              ].toSet(),
-                              gestureRecognizers: [
-                                Factory(() => PanGestureRecognizer()),
-                                Factory(() => ScaleGestureRecognizer()),
-                                Factory(() => TapGestureRecognizer()),
-                              ].toSet(),
-                              onMapCreated: (controller) {
-                                if (!_mapController.isCompleted) {
-                                  _mapController.complete(controller);
-                                }
-                              },
-                            )),
-                        ListTile(
-                          isThreeLine: true,
-                          title: Text(
-                              '${DateFormat.Md().format(timestamp)} ${DateFormat('ha').format(timestamp).toLowerCase()} - ${DateFormat('ha').format(timestamp.add(Duration(hours: 1))).toLowerCase()}'),
-                          subtitle: Text(
-                              'Your location overlapped with someone who reported as having COVID-19.'),
-                        ),
-                      ])),
-                      SizedBox(height: 20),
-                      Column(children: [
-                        Text('HAVE A PLAN FOR IF YOU GET SICK', style: subhead),
-                        SizedBox(height: 20),
-                        Text('Consult with your healthcare provider',
-                            style: title),
-                        Text(
-                            'for more information about monitoring your health for symptoms suggestive of COVID-19',
-                            style: body,
-                            textAlign: TextAlign.center),
-                        SizedBox(height: 20),
-                        Text('Stay in touch with others by phone or email',
-                            style: title),
-                        Text(
-                            'You may need to ask for help from friends, family, neighbors, community health workers, etc. if you become sick.',
-                            style: body,
-                            textAlign: TextAlign.center),
-                        SizedBox(height: 20),
-                        Text('Determine who can care for you', style: title),
-                        Text('if your caregiver gets sick',
-                            style: body, textAlign: TextAlign.center),
-                        FlatButton(
-                          child: Text('FIND OUT MORE',
-                              style: TextStyle(
-                                  decoration: TextDecoration.underline)),
-                          onPressed: () => launch(
-                              'https://www.cdc.gov/coronavirus/2019-ncov/specific-groups/get-ready.html'),
-                        )
-                      ]),
+          return Padding(
+              padding: EdgeInsets.all(15),
+              child: RefreshIndicator(
+                  onRefresh: refreshExposures,
+                  child: ListView(children: [
+                    Container(
+                        decoration: BoxDecoration(
+                            color: Colors.orange,
+                            borderRadius: BorderRadius.circular(10)),
+                        child: InkWell(
+                            onTap: () {
+                              setState(() => _expandHeader = !_expandHeader);
+                              _expandHeader
+                                  ? expandController.forward()
+                                  : expandController.reverse();
+                            },
+                            child: Padding(
+                                padding: EdgeInsets.all(15),
+                                child: Column(children: [
+                                  Row(children: [
+                                    Expanded(
+                                        child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                          Text('Possible Exposure',
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .title
+                                                  .merge(alertText)),
+                                          Text('In the last 7 days',
+                                              style: alertText)
+                                        ])),
+                                    Image.asset('assets/shield_virus_icon.png',
+                                        height: 40),
+                                  ]),
+                                  SizeTransition(
+                                      child: Column(children: [
+                                        SizedBox(height: 15),
+                                        Divider(height: 0, color: Colors.white),
+                                        SizedBox(height: 15),
+                                        Text(
+                                            "We determine the potential for exposure by comparing your location history against the history of people who have reported as having COVID-19.",
+                                            style: alertText)
+                                      ]),
+                                      axisAlignment: 1.0,
+                                      sizeFactor: animation),
+                                ])))),
+                    SizedBox(height: 10),
+                    Card(
+                        child: Column(children: [
                       SizedBox(
-                          height: 100), // Account for floating action button
-                    ])));
-          }
-
-          return Container();
+                          height: 150,
+                          child: GoogleMap(
+                            mapType: MapType.normal,
+                            myLocationEnabled: false,
+                            myLocationButtonEnabled: false,
+                            initialCameraPosition:
+                                CameraPosition(target: loc, zoom: 16),
+                            minMaxZoomPreference: MinMaxZoomPreference(10, 18),
+                            markers: [
+                              Marker(markerId: MarkerId('1'), position: loc)
+                            ].toSet(),
+                            gestureRecognizers: [
+                              Factory(() => PanGestureRecognizer()),
+                              Factory(() => ScaleGestureRecognizer()),
+                              Factory(() => TapGestureRecognizer()),
+                            ].toSet(),
+                            onMapCreated: (controller) {
+                              if (!_mapController.isCompleted) {
+                                _mapController.complete(controller);
+                              }
+                            },
+                          )),
+                      ListTile(
+                        isThreeLine: true,
+                        title: Text(
+                            '${DateFormat.Md().format(timestamp)} ${DateFormat('ha').format(timestamp).toLowerCase()} - ${DateFormat('ha').format(timestamp.add(Duration(hours: 1))).toLowerCase()}'),
+                        subtitle: Text(
+                            'Your location overlapped with someone who reported as having COVID-19.'),
+                      ),
+                    ])),
+                    SizedBox(height: 20),
+                    Column(children: [
+                      Text('HAVE A PLAN FOR IF YOU GET SICK', style: subhead),
+                      SizedBox(height: 20),
+                      Text('Consult with your healthcare provider',
+                          style: title),
+                      Text(
+                          'for more information about monitoring your health for symptoms suggestive of COVID-19',
+                          style: body,
+                          textAlign: TextAlign.center),
+                      SizedBox(height: 20),
+                      Text('Stay in touch with others by phone or email',
+                          style: title),
+                      Text(
+                          'You may need to ask for help from friends, family, neighbors, community health workers, etc. if you become sick.',
+                          style: body,
+                          textAlign: TextAlign.center),
+                      SizedBox(height: 20),
+                      Text('Determine who can care for you', style: title),
+                      Text('if your caregiver gets sick',
+                          style: body, textAlign: TextAlign.center),
+                      FlatButton(
+                        child: Text('FIND OUT MORE',
+                            style: TextStyle(
+                                decoration: TextDecoration.underline)),
+                        onPressed: () => launch(
+                            'https://www.cdc.gov/coronavirus/2019-ncov/specific-groups/get-ready.html'),
+                      )
+                    ]),
+                    SizedBox(height: 100), // Account for floating action button
+                  ])));
         });
   }
 }

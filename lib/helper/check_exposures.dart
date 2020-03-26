@@ -25,7 +25,7 @@ Future<bool> checkExposures() async {
   int compareLevel = config['compareS2Level'];
   String publishedBucket = config['publishedBucket'];
 
-  var exposed = false;
+  LocationModel exposed;
   var dir = await getApplicationSupportDirectory();
 
   // Collection set of truncated geos for google cloud rsync
@@ -110,13 +110,11 @@ Future<bool> checkExposures() async {
           var exposures = locationsbyTimestamp[timestamp];
 
           if (exposures != null) {
+            exposed = exposures.last;
             await Future.forEach(exposures, (location) async {
-              exposed = true;
               location.exposure = true;
               await location.save();
             });
-
-            showExposureNotification(exposures.last);
           }
         }
       });
@@ -127,7 +125,11 @@ Future<bool> checkExposures() async {
   await user.save();
 
   print('Done checking exposures!');
-  return exposed;
+  if (exposed != null) {
+    showExposureNotification(exposed);
+  }
+
+  return exposed != null;
 }
 
 void showExposureNotification(LocationModel location) async {

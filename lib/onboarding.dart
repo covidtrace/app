@@ -354,13 +354,16 @@ class OnboardingState extends State {
                             Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: {
-                                  1: 'HANDS Wash them often',
-                                  2: 'ELBOW Cough into it',
-                                  3: 'FACE Don\'t touch it',
-                                  4: 'SPACE Keep safe distance',
-                                  5: 'HOME Stay if you can',
+                                  1: ['HANDS', 'Wash them often'],
+                                  2: ['ELBOW', 'Cough into it'],
+                                  3: ['FACE', 'Don\'t touch it'],
+                                  4: ['SPACE', 'Keep safe distance'],
+                                  5: ['HOME', 'Stay if you can'],
                                 }
                                     .map((step, text) {
+                                      var lead = text[0];
+                                      var title = text[1];
+
                                       return MapEntry(
                                           step,
                                           Padding(
@@ -387,7 +390,14 @@ class OnboardingState extends State {
                                                                     FontWeight
                                                                         .bold)))),
                                                 SizedBox(width: 10),
-                                                Text(text, style: bodyText)
+                                                Text(lead,
+                                                    style: bodyText.merge(
+                                                        TextStyle(
+                                                            fontWeight:
+                                                                FontWeight
+                                                                    .bold))),
+                                                SizedBox(width: 5),
+                                                Text(title, style: bodyText)
                                               ])));
                                     })
                                     .values

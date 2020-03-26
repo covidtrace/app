@@ -151,7 +151,7 @@ class SendReportState extends State<SendReport> {
                           style: Theme.of(context).textTheme.headline),
                       SizedBox(height: 10),
                       Text(
-                          'Thank you for submitting your anonymized location history. Your data will help affected people respond faster to get COVID-19 under control.',
+                          'Thank you for submitting your anonymized location history. Your data will help people at risk respond faster.',
                           style: bodyText),
                       SizedBox(height: 40),
                       Text('What you do next is important',
