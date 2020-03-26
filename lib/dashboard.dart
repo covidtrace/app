@@ -78,8 +78,6 @@ class DashboardState extends State with SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     var subhead = Theme.of(context).textTheme.subhead;
-    var title = subhead.merge(TextStyle(fontWeight: FontWeight.bold));
-    var body = Theme.of(context).textTheme.body1.merge(TextStyle(height: 1.3));
     var alertText = TextStyle(color: Colors.white);
     var imageIcon = (String name) => ClipRRect(
         borderRadius: BorderRadius.circular(5),
