@@ -13,13 +13,26 @@ class Dashboard extends StatefulWidget {
   State<StatefulWidget> createState() => DashboardState();
 }
 
-class DashboardState extends State {
+class DashboardState extends State with SingleTickerProviderStateMixin {
   var _recentExposure;
+  var _expandHeader = false;
   Completer<GoogleMapController> _mapController = Completer();
+  AnimationController expandController;
+  CurvedAnimation animation;
 
   void initState() {
     super.initState();
     _recentExposure = loadExposures();
+    expandController =
+        AnimationController(vsync: this, duration: Duration(milliseconds: 200));
+    animation =
+        CurvedAnimation(parent: expandController, curve: Curves.fastOutSlowIn);
+  }
+
+  @override
+  void dispose() {
+    expandController.dispose();
+    super.dispose();
   }
 
   Future<LocationModel> loadExposures() async {
@@ -36,10 +49,7 @@ class DashboardState extends State {
   }
 
   Future<void> refreshExposures() async {
-    var found = await checkExposures();
-    if (!found) {
-      return;
-    }
+    await checkExposures();
 
     var load = loadExposures();
     setState(() {
@@ -78,25 +88,47 @@ class DashboardState extends State {
                           decoration: BoxDecoration(
                               color: Colors.blueGrey,
                               borderRadius: BorderRadius.circular(10)),
-                          child: Padding(
-                              padding: EdgeInsets.all(15),
-                              child: Row(children: [
-                                Expanded(
-                                    child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                      Text('No Exposures Found',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .title
-                                              .merge(alertText)),
-                                      Text('In the last 7 days',
-                                          style: alertText)
-                                    ])),
-                                Image.asset('assets/people_arrows_icon.png',
-                                    height: 40),
-                              ]))),
+                          child: InkWell(
+                              onTap: () {
+                                setState(() => _expandHeader = !_expandHeader);
+                                _expandHeader
+                                    ? expandController.forward()
+                                    : expandController.reverse();
+                              },
+                              child: Padding(
+                                  padding: EdgeInsets.all(15),
+                                  child: Column(children: [
+                                    Row(children: [
+                                      Expanded(
+                                          child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                            Text('No Exposures Found',
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .title
+                                                    .merge(alertText)),
+                                            Text('In the last 7 days',
+                                                style: alertText)
+                                          ])),
+                                      Image.asset(
+                                          'assets/people_arrows_icon.png',
+                                          height: 40),
+                                    ]),
+                                    SizeTransition(
+                                        child: Column(children: [
+                                          SizedBox(height: 15),
+                                          Divider(
+                                              height: 0, color: Colors.white),
+                                          SizedBox(height: 15),
+                                          Text(
+                                              'We\'ve compared your location history to infected reports and have found no overlapping history. This does not mean you have not been exposed.',
+                                              style: alertText)
+                                        ]),
+                                        axisAlignment: 1.0,
+                                        sizeFactor: animation),
+                                  ])))),
                       SizedBox(height: 40),
                       Center(child: Text('TIPS & RESOURCES', style: subhead)),
                       SizedBox(height: 10),

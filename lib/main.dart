@@ -194,6 +194,26 @@ class MainPageState extends State<MainPage> {
             }));
   }
 
+  testInfection() async {
+    Navigator.of(context).pop();
+    var locs = await LocationModel.findAll(limit: 1, orderBy: 'timestamp DESC');
+    if (locs.length > 0) {
+      locs.first.exposure = true;
+      await locs.first.save();
+    }
+  }
+
+  resetInfection() async {
+    Navigator.of(context).pop();
+    var locs = await LocationModel.findAll(where: 'exposure = 1');
+    if (locs.length > 0) {
+      await Future.forEach(locs, (location) async {
+        location.exposure = false;
+        await location.save();
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -240,6 +260,15 @@ class MainPageState extends State<MainPage> {
                   Navigator.of(context).pop();
                   _showInfoDialog();
                 }),
+            SizedBox(height: 400),
+            ListTile(
+                leading: Icon(Icons.bug_report),
+                title: Text('Test Infection'),
+                onTap: testInfection),
+            ListTile(
+                leading: Icon(Icons.restore),
+                title: Text('Reset Infection'),
+                onTap: resetInfection),
           ]),
         ),
         body: Dashboard());
