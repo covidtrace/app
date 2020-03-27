@@ -1,8 +1,11 @@
 import 'dart:async';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+
 import 'db.dart';
 import 'package:s2geometry/s2geometry.dart';
 import 'package:sqflite/sqflite.dart';
 import '../helper/datetime.dart';
+import 'package:latlong/latlong.dart' as lt;
 
 class LocationModel {
   final int id;
@@ -55,11 +58,13 @@ class LocationModel {
     return db.update('location', toMap(), where: 'id = ?', whereArgs: [id]);
   }
 
-  static Future<void> insert(LocationModel location) async {
+  Future<void> insert() async {
     final Database db = await Storage.db;
-    await db.insert('location', location.toMap());
-    print('inserted location $location');
+    await db.insert('location', toMap());
+    print('inserted location ${toMap()}');
   }
+
+  LatLng get latLng => LatLng(latitude, longitude);
 
   static Future<Map<String, int>> count() async {
     var db = await Storage.db;
@@ -71,6 +76,24 @@ class LocationModel {
         await db.rawQuery('SELECT COUNT(*) FROM location WHERE exposure = 1;'));
 
     return {'count': count, 'exposures': exposures};
+  }
+
+  Future<void> destroy() async {
+    final Database db = await Storage.db;
+    return db.delete('location', where: 'id = ?', whereArgs: [id]);
+  }
+
+  static Future<void> deleteInArea(LatLng center, double radius) async {
+    var locations = await findAll();
+
+    var area = lt.Circle(lt.LatLng(center.latitude, center.longitude), radius);
+    var remove = locations.where((LocationModel l) {
+      return radius == 0 ||
+          area.isPointInside(lt.LatLng(l.latitude, l.longitude));
+    });
+
+    await Future.forEach(remove, (LocationModel l) => l.destroy());
+    return;
   }
 
   static Future<List<LocationModel>> findAll(

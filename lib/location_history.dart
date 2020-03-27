@@ -1,10 +1,13 @@
 import 'dart:async';
+import 'package:covidtrace/helper/location.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'storage/location.dart';
+import 'storage/user.dart';
+import 'package:latlong/latlong.dart' as lt;
 
 final Map<String, Icon> activities = {
   'unknown': Icon(Icons.not_listed_location),
@@ -26,15 +29,38 @@ class LocationHistoryState extends State {
   List<LocationModel> _locations = [];
   List<LocationModel> _display = [];
   LocationModel _selected;
-  Future<void> _initLoad;
+  LatLng _currentLocation;
+  bool _nearHome;
   Completer<GoogleMapController> _controller = Completer();
   ScrollController _scroller = ScrollController();
   List<Marker> _markers = [];
+  UserModel _user;
 
   @override
   void initState() {
     super.initState();
-    _initLoad = loadLocations();
+    loadInitState();
+  }
+
+  Future<void> loadInitState() async {
+    await loadUser();
+    var position = await currentLocation();
+    var nearHome = await UserModel.isInHome(position);
+    setState(() => _nearHome = nearHome);
+
+    await loadLocations();
+  }
+
+  loadUser() async {
+    var user = await UserModel.find();
+    setState(() => _user = user);
+  }
+
+  Future<LatLng> currentLocation() async {
+    var loc = await locateCurrentPosition();
+    setState(() => _currentLocation = loc);
+
+    return loc;
   }
 
   Future<void> loadLocations() async {
@@ -86,37 +112,65 @@ class LocationHistoryState extends State {
     }
   }
 
+  lt.LatLng toLtLatLng(LatLng loc) {
+    return lt.LatLng(loc.latitude, loc.longitude);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(title: Text('Location History')),
         body: Column(children: [
+          _nearHome != null
+              ? Container(
+                  color: Colors.blueGrey,
+                  child: ListTileTheme(
+                    textColor: Colors.white,
+                    iconColor: Colors.white,
+                    child: ListTile(
+                      trailing: Icon(
+                        _nearHome ? Icons.location_off : Icons.location_on,
+                        size: 35,
+                      ),
+                      title: Text(_nearHome
+                          ? 'Near your home'
+                          : 'Location tracking on'),
+                      subtitle: Text(_nearHome
+                          ? 'Location tracking is off.'
+                          : 'The location history is only on your phone.'),
+                    ),
+                  ))
+              : Container(),
           Flexible(
               flex: 2,
               child: Stack(children: [
-                FutureBuilder(
-                    future: _initLoad,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState != ConnectionState.done) {
-                        return Container();
-                      }
-
-                      return GoogleMap(
+                (_selected != null || _currentLocation != null)
+                    ? GoogleMap(
                         mapType: MapType.normal,
-                        myLocationEnabled: false,
+                        myLocationEnabled: true,
                         myLocationButtonEnabled: false,
                         initialCameraPosition: CameraPosition(
                             target: _selected != null
-                                ? LatLng(
-                                    _selected.latitude, _selected.longitude)
-                                : LatLng(0, 0),
+                                ? _selected.latLng
+                                : _currentLocation,
                             zoom: 16),
                         markers: _markers.toSet(),
+                        circles: _user?.home != null
+                            ? [
+                                new Circle(
+                                    circleId: CircleId('home'),
+                                    center: _user.home,
+                                    radius: _user.homeRadius,
+                                    fillColor: Colors.red.withOpacity(.2),
+                                    strokeColor: Colors.red,
+                                    strokeWidth: 2)
+                              ].toSet()
+                            : Set(),
                         onMapCreated: (GoogleMapController controller) {
                           _controller.complete(controller);
                         },
-                      );
-                    }),
+                      )
+                    : Container(),
                 Positioned(
                     left: 0,
                     right: 0,
@@ -142,6 +196,7 @@ class LocationHistoryState extends State {
                   onRefresh: loadLocations,
                   child: ListView.builder(
                     controller: _scroller,
+                    physics: AlwaysScrollableScrollPhysics(),
                     itemCount: _display.length,
                     itemBuilder: (context, i) {
                       var item = _display[i];
@@ -163,7 +218,7 @@ class LocationHistoryState extends State {
                                   title: Text(
                                       '${DateFormat.Md().format(timestamp)}'),
                                   subtitle: Text(
-                                      '${DateFormat.jms().format(timestamp)}'),
+                                      '${DateFormat.jm().format(timestamp)}'),
                                   trailing: Icon(
                                       item.exposure
                                           ? Icons.warning

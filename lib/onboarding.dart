@@ -9,6 +9,9 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:app_settings/app_settings.dart';
 
+import 'helper/location.dart';
+import 'storage/location.dart';
+
 class BlockButton extends StatelessWidget {
   final onPressed;
   final String label;
@@ -46,10 +49,18 @@ class OnboardingState extends State {
   void initState() {
     super.initState();
 
-    bg.BackgroundGeolocation.onProviderChange((event) async {
-      var allowed = await statusChange(event.status);
-      setState(() => _linkToSettings = !allowed);
-    });
+    bg.BackgroundGeolocation.onProviderChange(onProviderChange);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    bg.BackgroundGeolocation.removeListener(onProviderChange);
+  }
+
+  void onProviderChange(event) async {
+    var allowed = await statusChange(event.status);
+    setState(() => _linkToSettings = !allowed);
   }
 
   Future<bool> statusChange(int status) async {
@@ -94,15 +105,6 @@ class OnboardingState extends State {
     }
   }
 
-  Future<LatLng> locateCurrentPosition() async {
-    // Get current positon to show on map for marking home
-    var current = await bg.BackgroundGeolocation.getCurrentPosition(
-        timeout: 15, maximumAge: 10000);
-    var latlng = LatLng(current.coords.latitude, current.coords.longitude);
-
-    return latlng;
-  }
-
   // TODO(wes): Don't need to do this on Android
   void requestNotifications(bool selected) async {
     var plugin = FlutterLocalNotificationsPlugin();
@@ -120,6 +122,8 @@ class OnboardingState extends State {
   void setHome() async {
     var position = await locateCurrentPosition();
     await UserModel.setHome(position.latitude, position.longitude);
+    await LocationModel.deleteInArea(
+        position, 40); // TODO(wes): Allow configuration of radius
 
     nextPage();
   }
@@ -298,15 +302,22 @@ class OnboardingState extends State {
                             ),
                             SizedBox(height: 20),
                             Image.asset('assets/ios_notification.png'),
-                            Row(children: [
-                              Expanded(
-                                  child: Text('Enable notifications',
-                                      style:
-                                          Theme.of(context).textTheme.title)),
-                              Switch.adaptive(
-                                  value: _requestNotification,
-                                  onChanged: requestNotifications),
-                            ]),
+                            SizedBox(height: 20),
+                            Material(
+                                color: Colors.white,
+                                child: InkWell(
+                                    onTap: () =>
+                                        requestNotifications(!_requestLocation),
+                                    child: Row(children: [
+                                      Expanded(
+                                          child: Text('Enable notifications',
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .title)),
+                                      Switch.adaptive(
+                                          value: _requestNotification,
+                                          onChanged: requestNotifications),
+                                    ]))),
                             SizedBox(height: 10),
                             RichText(
                                 text: TextSpan(style: bodyText, children: [
