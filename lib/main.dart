@@ -1,3 +1,5 @@
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+
 import 'dashboard.dart';
 import 'location_history.dart';
 import 'helper/check_exposures.dart';
@@ -32,15 +34,20 @@ void main() async {
               requestSoundPermission: false)),
       onSelectNotification: (notice) async {});
 
-  bg.BackgroundGeolocation.onLocation((bg.Location l) {
-    LocationModel model = LocationModel(
-        longitude: l.coords.longitude,
-        latitude: l.coords.latitude,
-        activity: l.activity.type,
-        sample: l.sample ? 1 : 0,
-        speed: l.coords.speed,
-        timestamp: DateTime.parse(l.timestamp));
-    LocationModel.insert(model);
+  bg.BackgroundGeolocation.onLocation((bg.Location l) async {
+    var coords = l.coords;
+    if (await UserModel.isInHome(LatLng(coords.latitude, coords.longitude))) {
+      return;
+    }
+
+    await LocationModel(
+            longitude: coords.longitude,
+            latitude: coords.latitude,
+            activity: l.activity.type,
+            sample: l.sample ? 1 : 0,
+            speed: coords.speed,
+            timestamp: DateTime.parse(l.timestamp))
+        .insert();
   }, (bg.LocationError error) {
     // Do nothing
   });

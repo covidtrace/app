@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'db.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:latlong/latlong.dart' as lt;
 
 class UserModel {
   final int id;
@@ -57,6 +58,17 @@ class UserModel {
       user.homeRadius = radius;
     }
     await user.save();
+  }
+
+  static Future<bool> isInHome(LatLng point) async {
+    var user = await find();
+    if (user.latitude == null || user.homeRadius == 0) {
+      return false;
+    }
+
+    var area =
+        lt.Circle(lt.LatLng(user.latitude, user.longitude), user.homeRadius);
+    return area.isPointInside(lt.LatLng(point.latitude, point.longitude));
   }
 
   LatLng get home {

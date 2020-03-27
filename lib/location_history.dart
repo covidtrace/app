@@ -231,7 +231,7 @@ class LocationHistoryState extends State {
                                   title: Text(
                                       '${DateFormat.Md().format(timestamp)}'),
                                   subtitle: Text(
-                                      '${DateFormat.jms().format(timestamp)}'),
+                                      '${DateFormat.jm().format(timestamp)}'),
                                   trailing: Icon(
                                       item.exposure
                                           ? Icons.warning

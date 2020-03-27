@@ -58,10 +58,10 @@ class LocationModel {
     return db.update('location', toMap(), where: 'id = ?', whereArgs: [id]);
   }
 
-  static Future<void> insert(LocationModel location) async {
+  Future<void> insert() async {
     final Database db = await Storage.db;
-    await db.insert('location', location.toMap());
-    print('inserted location $location');
+    await db.insert('location', toMap());
+    print('inserted location ${toMap()}');
   }
 
   static Future<Map<String, int>> count() async {
