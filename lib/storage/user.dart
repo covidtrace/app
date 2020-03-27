@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'db.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -9,6 +10,7 @@ class UserModel {
   int age;
   double latitude;
   double longitude;
+  double homeRadius;
   bool trackLocation;
   bool onboarding;
   DateTime lastCheck;
@@ -21,6 +23,7 @@ class UserModel {
       this.trackLocation,
       this.latitude,
       this.longitude,
+      this.homeRadius,
       this.onboarding,
       this.lastCheck});
 
@@ -40,15 +43,24 @@ class UserModel {
       latitude: rows[0]['latitude'],
       longitude: rows[0]['longitude'],
       onboarding: rows[0]['onboarding'] == 1,
+      homeRadius: rows[0]['home_radius'] ?? 40.0,
       lastCheck: lastCheck != null ? DateTime.parse(lastCheck) : null,
     );
   }
 
-  static Future<void> setHome(double latitude, double longitude) async {
+  static Future<void> setHome(double latitude, double longitude,
+      {double radius}) async {
     var user = await find();
     user.latitude = latitude;
     user.longitude = longitude;
+    if (radius != null) {
+      user.homeRadius = radius;
+    }
     await user.save();
+  }
+
+  LatLng get home {
+    return latitude != null ? LatLng(latitude, longitude) : null;
   }
 
   Future<void> save() async {
@@ -61,6 +73,7 @@ class UserModel {
           'track_location': trackLocation ? 1 : 0,
           'latitude': latitude,
           'longitude': longitude,
+          'home_radius': homeRadius,
           'onboarding': onboarding ? 1 : 0,
           'last_check': lastCheck != null ? lastCheck.toIso8601String() : null
         },

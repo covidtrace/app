@@ -9,6 +9,8 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:app_settings/app_settings.dart';
 
+import 'helper/location.dart';
+
 class BlockButton extends StatelessWidget {
   final onPressed;
   final String label;
@@ -92,15 +94,6 @@ class OnboardingState extends State {
       // TODO(wes): Prompt user to change settings?
       statusChange(bg.Config.AUTHORIZATION_STATUS_DENIED);
     }
-  }
-
-  Future<LatLng> locateCurrentPosition() async {
-    // Get current positon to show on map for marking home
-    var current = await bg.BackgroundGeolocation.getCurrentPosition(
-        timeout: 15, maximumAge: 10000);
-    var latlng = LatLng(current.coords.latitude, current.coords.longitude);
-
-    return latlng;
   }
 
   // TODO(wes): Don't need to do this on Android
