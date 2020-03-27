@@ -21,3 +21,4 @@ doc/api/
 .flutter-plugins*
 
 *.code-workspace
+android/.idea
