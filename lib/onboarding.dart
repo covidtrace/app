@@ -302,15 +302,22 @@ class OnboardingState extends State {
                             ),
                             SizedBox(height: 20),
                             Image.asset('assets/ios_notification.png'),
-                            Row(children: [
-                              Expanded(
-                                  child: Text('Enable notifications',
-                                      style:
-                                          Theme.of(context).textTheme.title)),
-                              Switch.adaptive(
-                                  value: _requestNotification,
-                                  onChanged: requestNotifications),
-                            ]),
+                            SizedBox(height: 20),
+                            Material(
+                                color: Colors.white,
+                                child: InkWell(
+                                    onTap: () =>
+                                        requestNotifications(!_requestLocation),
+                                    child: Row(children: [
+                                      Expanded(
+                                          child: Text('Enable notifications',
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .title)),
+                                      Switch.adaptive(
+                                          value: _requestNotification,
+                                          onChanged: requestNotifications),
+                                    ]))),
                             SizedBox(height: 10),
                             RichText(
                                 text: TextSpan(style: bodyText, children: [
