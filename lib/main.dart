@@ -236,6 +236,7 @@ class MainPageState extends State<MainPage> {
             Image.asset('assets/app_icon.png', fit: BoxFit.contain, height: 40),
             Text('Covid Trace'),
           ]),
+          actions: <Widget>[Container()], // Hides debug end drawer
         ),
         floatingActionButton: FloatingActionButton.extended(
           icon: Image.asset('assets/self_report_icon.png', height: 25),
@@ -274,29 +275,31 @@ class MainPageState extends State<MainPage> {
                   Navigator.of(context).pop();
                   showInfoDialog();
                 }),
-            SizedBox(height: 250),
-            ListTile(
-                leading: Icon(Icons.location_on),
-                title: Text('Start Tracking'),
-                onTap: () => bg.BackgroundGeolocation.start()),
-            ListTile(
-                leading: Icon(Icons.location_off),
-                title: Text('Stop Tracking'),
-                onTap: () => bg.BackgroundGeolocation.stop()),
-            ListTile(
-                leading: Icon(Icons.bug_report),
-                title: Text('Test Infection'),
-                onTap: testInfection),
-            ListTile(
-                leading: Icon(Icons.restore),
-                title: Text('Reset Infection'),
-                onTap: resetInfection),
-            ListTile(
-                leading: Icon(Icons.power_settings_new),
-                title: Text('Reset Onboarding'),
-                onTap: resetOnboarding),
           ]),
         ),
+        endDrawer: Drawer(
+            child: ListView(children: [
+          ListTile(
+              leading: Icon(Icons.location_on),
+              title: Text('Start Tracking'),
+              onTap: () => bg.BackgroundGeolocation.start()),
+          ListTile(
+              leading: Icon(Icons.location_off),
+              title: Text('Stop Tracking'),
+              onTap: () => bg.BackgroundGeolocation.stop()),
+          ListTile(
+              leading: Icon(Icons.bug_report),
+              title: Text('Test Infection'),
+              onTap: testInfection),
+          ListTile(
+              leading: Icon(Icons.restore),
+              title: Text('Reset Infection'),
+              onTap: resetInfection),
+          ListTile(
+              leading: Icon(Icons.power_settings_new),
+              title: Text('Reset Onboarding'),
+              onTap: resetOnboarding),
+        ])),
         body: Dashboard());
   }
 }
