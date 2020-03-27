@@ -29,8 +29,8 @@ class LocationHistoryState extends State {
   List<LocationModel> _locations = [];
   List<LocationModel> _display = [];
   LocationModel _selected;
-  Future<LatLng> _currentLocation;
-  Future<void> _initLoad;
+  LatLng _currentLocation;
+  bool _nearHome;
   Completer<GoogleMapController> _controller = Completer();
   ScrollController _scroller = ScrollController();
   List<Marker> _markers = [];
@@ -39,9 +39,16 @@ class LocationHistoryState extends State {
   @override
   void initState() {
     super.initState();
-    _initLoad = loadLocations();
-    loadUser();
-    currentLocation();
+    loadInitState();
+  }
+
+  Future<void> loadInitState() async {
+    await loadUser();
+    var position = await currentLocation();
+    var nearHome = await UserModel.isInHome(position);
+    setState(() => _nearHome = nearHome);
+
+    await loadLocations();
   }
 
   loadUser() async {
@@ -50,10 +57,10 @@ class LocationHistoryState extends State {
   }
 
   Future<LatLng> currentLocation() async {
-    var loc = locateCurrentPosition();
+    var loc = await locateCurrentPosition();
     setState(() => _currentLocation = loc);
 
-    return await loc;
+    return loc;
   }
 
   Future<void> loadLocations() async {
@@ -111,62 +118,41 @@ class LocationHistoryState extends State {
 
   @override
   Widget build(BuildContext context) {
-    var enableLocation = _user?.latitude != null;
-
     return Scaffold(
         appBar: AppBar(title: Text('Location History')),
         body: Column(children: [
-          FutureBuilder(
-              future: _currentLocation,
-              builder: (context, AsyncSnapshot<LatLng> snapshot) {
-                if (snapshot.connectionState != ConnectionState.done ||
-                    !snapshot.hasData ||
-                    _user?.home == null) {
-                  return Container();
-                }
-
-                var currentPosition = snapshot.data;
-                var home = lt.Circle(toLtLatLng(_user.home), _user.homeRadius);
-                var nearHome = home.isPointInside(toLtLatLng(currentPosition));
-
-                return Container(
-                    color: Colors.blueGrey,
-                    child: ListTileTheme(
-                      textColor: Colors.white,
-                      iconColor: Colors.white,
-                      child: ListTile(
-                        trailing: Icon(
-                          nearHome ? Icons.location_off : Icons.location_on,
-                          size: 35,
-                        ),
-                        title: Text(nearHome
-                            ? 'Near your home'
-                            : 'Location tracking on'),
-                        subtitle: Text(nearHome
-                            ? 'Location tracking is off.'
-                            : 'The location history is only on your phone.'),
+          _nearHome != null
+              ? Container(
+                  color: Colors.blueGrey,
+                  child: ListTileTheme(
+                    textColor: Colors.white,
+                    iconColor: Colors.white,
+                    child: ListTile(
+                      trailing: Icon(
+                        _nearHome ? Icons.location_off : Icons.location_on,
+                        size: 35,
                       ),
-                    ));
-              }),
+                      title: Text(_nearHome
+                          ? 'Near your home'
+                          : 'Location tracking on'),
+                      subtitle: Text(_nearHome
+                          ? 'Location tracking is off.'
+                          : 'The location history is only on your phone.'),
+                    ),
+                  ))
+              : Container(),
           Flexible(
               flex: 2,
               child: Stack(children: [
-                FutureBuilder(
-                    future: _initLoad,
-                    builder: (context, snapshot) {
-                      if (snapshot.connectionState != ConnectionState.done) {
-                        return Container();
-                      }
-
-                      return GoogleMap(
+                (_selected != null || _currentLocation != null)
+                    ? GoogleMap(
                         mapType: MapType.normal,
-                        myLocationEnabled: enableLocation,
+                        myLocationEnabled: true,
                         myLocationButtonEnabled: false,
                         initialCameraPosition: CameraPosition(
                             target: _selected != null
-                                ? LatLng(
-                                    _selected.latitude, _selected.longitude)
-                                : LatLng(0, 0),
+                                ? _selected.latLng
+                                : _currentLocation,
                             zoom: 16),
                         markers: _markers.toSet(),
                         circles: _user?.home != null
@@ -183,8 +169,8 @@ class LocationHistoryState extends State {
                         onMapCreated: (GoogleMapController controller) {
                           _controller.complete(controller);
                         },
-                      );
-                    }),
+                      )
+                    : Container(),
                 Positioned(
                     left: 0,
                     right: 0,
@@ -210,6 +196,7 @@ class LocationHistoryState extends State {
                   onRefresh: loadLocations,
                   child: ListView.builder(
                     controller: _scroller,
+                    physics: AlwaysScrollableScrollPhysics(),
                     itemCount: _display.length,
                     itemBuilder: (context, i) {
                       var item = _display[i];

@@ -10,6 +10,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:app_settings/app_settings.dart';
 
 import 'helper/location.dart';
+import 'storage/location.dart';
 
 class BlockButton extends StatelessWidget {
   final onPressed;
@@ -48,10 +49,18 @@ class OnboardingState extends State {
   void initState() {
     super.initState();
 
-    bg.BackgroundGeolocation.onProviderChange((event) async {
-      var allowed = await statusChange(event.status);
-      setState(() => _linkToSettings = !allowed);
-    });
+    bg.BackgroundGeolocation.onProviderChange(onProviderChange);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    bg.BackgroundGeolocation.removeListener(onProviderChange);
+  }
+
+  void onProviderChange(event) async {
+    var allowed = await statusChange(event.status);
+    setState(() => _linkToSettings = !allowed);
   }
 
   Future<bool> statusChange(int status) async {
@@ -113,6 +122,8 @@ class OnboardingState extends State {
   void setHome() async {
     var position = await locateCurrentPosition();
     await UserModel.setHome(position.latitude, position.longitude);
+    await LocationModel.deleteInArea(
+        position, 40); // TODO(wes): Allow configuration of radius
 
     nextPage();
   }

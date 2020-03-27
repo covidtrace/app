@@ -274,7 +274,15 @@ class MainPageState extends State<MainPage> {
                   Navigator.of(context).pop();
                   showInfoDialog();
                 }),
-            SizedBox(height: 350),
+            SizedBox(height: 250),
+            ListTile(
+                leading: Icon(Icons.location_on),
+                title: Text('Start Tracking'),
+                onTap: () => bg.BackgroundGeolocation.start()),
+            ListTile(
+                leading: Icon(Icons.location_off),
+                title: Text('Stop Tracking'),
+                onTap: () => bg.BackgroundGeolocation.stop()),
             ListTile(
                 leading: Icon(Icons.bug_report),
                 title: Text('Test Infection'),

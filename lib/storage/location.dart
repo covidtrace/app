@@ -64,6 +64,8 @@ class LocationModel {
     print('inserted location ${toMap()}');
   }
 
+  LatLng get latLng => LatLng(latitude, longitude);
+
   static Future<Map<String, int>> count() async {
     var db = await Storage.db;
 
