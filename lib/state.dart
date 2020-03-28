@@ -34,7 +34,7 @@ class AppState with ChangeNotifier {
 
     var locations = await LocationModel.findAll(
         limit: 1,
-        where: 'DATE(timestamp) > DATE(?) and exposure = 1',
+        where: 'DATE(timestamp) > DATE(?) AND exposure = 1',
         whereArgs: [timestamp],
         orderBy: 'timestamp DESC');
 
@@ -97,12 +97,18 @@ class AppState with ChangeNotifier {
       }
 
       String where = 'sample != 1';
+      List whereArgs = [];
       if (_report != null) {
         where = '$where AND id > ${_report.lastLocationId}';
+      } else {
+        var date =
+            DateTime.now().subtract(Duration(days: 8 + symptoms['days']));
+        where = '$where AND DATE(timestamp) >= DATE(?)';
+        whereArgs = [DateFormat('yyyy-MM-dd').format(date)];
       }
 
-      List<LocationModel> locations =
-          await LocationModel.findAll(orderBy: 'id ASC', where: where);
+      List<LocationModel> locations = await LocationModel.findAll(
+          orderBy: 'id ASC', where: where, whereArgs: whereArgs);
 
       List<List<dynamic>> headers = [
         ['timestamp', 's2geo', 'status']
