@@ -182,12 +182,11 @@ class OnboardingState extends State {
                             BlockButton(
                                 onPressed: nextPage, label: 'Get Started'),
                           ])),
-                      SingleChildScrollView(
-                          child: Center(
-                              child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
+                      Center(
+                          child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
                             Row(children: [
                               Expanded(
                                   child: Text('Sharing Your Location',
@@ -229,7 +228,7 @@ class OnboardingState extends State {
                             BlockButton(
                                 label: 'Continue',
                                 onPressed: _requestLocation ? nextPage : null)
-                          ]))),
+                          ])),
                       Center(
                           child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
