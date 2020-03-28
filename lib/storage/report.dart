@@ -33,7 +33,7 @@ class ReportModel {
     );
   }
 
-  static Future<void> destoryAll() async {
+  static Future<void> destroyAll() async {
     final Database db = await Storage.db;
     await db.delete('report');
   }

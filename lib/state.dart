@@ -144,7 +144,7 @@ class AppState with ChangeNotifier {
   }
 
   Future<void> clearReport() async {
-    await ReportModel.destoryAll();
+    await ReportModel.destroyAll();
     _report = null;
     notifyListeners();
   }
