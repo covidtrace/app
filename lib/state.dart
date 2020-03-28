@@ -101,8 +101,8 @@ class AppState with ChangeNotifier {
       if (_report != null) {
         where = '$where AND id > ${_report.lastLocationId}';
       } else {
-        var date =
-            DateTime.now().subtract(Duration(days: 8 + symptoms['days']));
+        double days = symptoms['days'];
+        var date = DateTime.now().subtract(Duration(days: 8 + days.toInt()));
         where = '$where AND DATE(timestamp) >= DATE(?)';
         whereArgs = [DateFormat('yyyy-MM-dd').format(date)];
       }
