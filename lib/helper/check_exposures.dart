@@ -137,7 +137,7 @@ void showExposureNotification(LocationModel location) async {
 
   var notificationPlugin = FlutterLocalNotificationsPlugin();
   var androidSpec = AndroidNotificationDetails(
-      'covid_channel_id', 'covid_channel_name', 'covid_channel_description',
+      '1', 'Covid Trace', 'Exposure notifications',
       importance: Importance.Max, priority: Priority.High, ticker: 'ticker');
   var iosSpecs = IOSNotificationDetails();
   await notificationPlugin.show(

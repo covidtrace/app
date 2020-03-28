@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:covidtrace/helper/check_exposures.dart';
 import 'package:covidtrace/storage/user.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -142,6 +143,8 @@ class OnboardingState extends State {
         .textTheme
         .body1
         .merge(TextStyle(fontSize: 16, height: 1.4));
+
+    var platform = Theme.of(context).platform;
 
     return Container(
         color: Colors.white,
@@ -304,9 +307,11 @@ class OnboardingState extends State {
                               style: bodyText,
                             ),
                             SizedBox(height: 20),
-                            Image.asset('assets/ios_notification.png'),
+                            Image.asset(platform == TargetPlatform.iOS
+                                ? 'assets/ios_notification.png'
+                                : 'assets/android_notification.png'),
                             SizedBox(height: 20),
-                            Theme.of(context).platform == TargetPlatform.iOS
+                            platform == TargetPlatform.iOS
                                 ? Material(
                                     color: Colors.white,
                                     child: InkWell(

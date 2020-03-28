@@ -29,8 +29,7 @@ void main() async {
   var notificationPlugin = FlutterLocalNotificationsPlugin();
   notificationPlugin.initialize(
       InitializationSettings(
-          AndroidInitializationSettings(
-              '@mipmap/launcher_icon'), // TODO(wes): Configure this
+          AndroidInitializationSettings('@mipmap/ic_launcher'),
           IOSInitializationSettings(
               requestAlertPermission: false,
               requestBadgePermission: false,
