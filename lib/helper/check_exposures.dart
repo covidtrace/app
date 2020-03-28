@@ -1,3 +1,4 @@
+import 'package:covidtrace/helper/cloud_storage.dart';
 import 'package:covidtrace/helper/datetime.dart';
 import 'package:covidtrace/storage/user.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -7,12 +8,7 @@ import '../config.dart';
 import '../storage/location.dart';
 import '../storage/user.dart';
 import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
-import 'package:crypto/crypto.dart';
 import 'package:csv/csv.dart';
-import 'package:flutter/foundation.dart';
-import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
 
 Future<bool> checkExposures() async {
@@ -21,7 +17,8 @@ Future<bool> checkExposures() async {
   var user = await UserModel.find();
 
   var config = await getConfig();
-  int aggLevel = config['aggS2Level'];
+  int aggIndex = config['aggS2Index'];
+  List<dynamic> aggLevels = config['aggS2Levels'];
   int compareLevel = config['compareS2Level'];
   String publishedBucket = config['publishedBucket'];
 
@@ -30,8 +27,8 @@ Future<bool> checkExposures() async {
 
   // Collection set of truncated geos for google cloud rsync
   var locations = await LocationModel.findAll();
-  var geos = Set.from(
-      locations.map((location) => location.cellID.parent(aggLevel).toToken()));
+  var geos = Set.from(locations.map((location) =>
+      location.cellID.parent(aggLevels[aggIndex] as int).toToken()));
 
   // Big ass map of geo ID -> map of timestamp -> locations
   Map<String, Map<int, List<LocationModel>>> geoLookup = new Map();
@@ -50,47 +47,15 @@ Future<bool> checkExposures() async {
     geoLookup[cellID][unixHour].add(location);
   });
 
-  // for each truncated geo, download aggregated data
   await Future.forEach(geos, (geo) async {
-    var listResp = await http.get(
-        'https://storage.googleapis.com/storage/v1/b/$publishedBucket/o?prefix=$geo'); // TODO(Josh): paging?
+    var objects = await getPrefixMatches(publishedBucket, '$geo/');
 
-    if (listResp.statusCode != 200) {
-      throw ('Google Cloud Storage returned ${listResp.statusCode}!');
-    }
+    await Future.wait(objects.map((item) async {
+      // Sync file to local storage
+      var fileHandle = await syncObject(dir.path, publishedBucket,
+          item['name'] as String, item['md5Hash'] as String);
 
-    var listJson = jsonDecode(listResp.body);
-    List<dynamic> listItems = listJson['items'];
-    if (listItems == null) {
-      return;
-    }
-
-    await Future.forEach(listItems, (item) async {
-      String object = item['name'];
-      print('Syncing $object...');
-
-      var fileHandle = new File('${dir.path}/$publishedBucket/$object');
-
-      if (!await fileHandle.exists()) {
-        await fileHandle.create(recursive: true);
-      }
-
-      var checksum = base64Decode(item['md5Hash'] as String);
-      var fileBytes = await fileHandle.readAsBytes();
-      var fileChecksum = md5.convert(fileBytes).bytes;
-
-      if (!listEquals(checksum, fileChecksum)) {
-        var fileResp = await http
-            .get('https://$publishedBucket.storage.googleapis.com/$object');
-
-        if (fileResp.statusCode != 200) {
-          throw ('Unable to download Google Cloud Storage object $object!');
-        }
-
-        await fileHandle.writeAsBytes(fileResp.bodyBytes);
-      }
-
-      // We have the relevant file, locally, with proper checksum. Parse and compare with local locations.
+      // Parse and compare with local locations.
       var fileCsv = await fileHandle.readAsString();
       var parsedRows = CsvToListConverter(shouldParseNumbers: false, eol: '\n')
           .convert(fileCsv);
@@ -118,7 +83,7 @@ Future<bool> checkExposures() async {
           }
         }
       });
-    });
+    }));
   });
 
   user.lastCheck = DateTime.now();
