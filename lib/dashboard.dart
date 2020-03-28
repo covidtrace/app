@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'helper/check_exposures.dart';
+import 'helper/location.dart';
 
 class Dashboard extends StatefulWidget {
   @override
@@ -322,7 +323,10 @@ class DashboardState extends State with SingleTickerProviderStateMixin {
                             CameraPosition(target: loc, zoom: 16),
                         minMaxZoomPreference: MinMaxZoomPreference(10, 18),
                         markers: [
-                          Marker(markerId: MarkerId('1'), position: loc)
+                          Marker(
+                              markerId: MarkerId('1'),
+                              position: loc,
+                              onTap: () => launchMapsApp(loc))
                         ].toSet(),
                         gestureRecognizers: [
                           Factory(() => PanGestureRecognizer()),
@@ -336,6 +340,7 @@ class DashboardState extends State with SingleTickerProviderStateMixin {
                         },
                       )),
                   ListTile(
+                    onTap: () => launchMapsApp(loc),
                     isThreeLine: true,
                     title: Text(
                         '${DateFormat.Md().format(timestamp)} ${DateFormat('ha').format(timestamp).toLowerCase()} - ${DateFormat('ha').format(timestamp.add(Duration(hours: 1))).toLowerCase()}'),

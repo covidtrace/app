@@ -4,7 +4,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'storage/location.dart';
 import 'storage/user.dart';
 import 'package:latlong/latlong.dart' as lt;
@@ -99,7 +98,10 @@ class LocationHistoryState extends State {
     setState(() {
       _selected = item;
       _markers = [
-        Marker(markerId: MarkerId(item.id.toString()), position: loc)
+        Marker(
+            markerId: MarkerId(item.id.toString()),
+            position: loc,
+            onTap: () => launchMapsApp(loc))
       ];
     });
 
@@ -107,8 +109,7 @@ class LocationHistoryState extends State {
     controller.animateCamera(CameraUpdate.newLatLng(loc));
 
     if (open && Theme.of(context).platform == TargetPlatform.iOS) {
-      launch('https://maps.apple.com?q=${loc.latitude},${loc.longitude}',
-          forceSafariVC: false);
+      launchMapsApp(loc);
     }
   }
 
