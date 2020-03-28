@@ -90,14 +90,6 @@ class CovidTraceAppState extends State {
     },
   );
 
-  Future<UserModel> _user;
-
-  @override
-  void initState() {
-    _user = UserModel.find();
-    super.initState();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Consumer<AppState>(builder: (context, state, _) {

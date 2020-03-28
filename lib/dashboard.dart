@@ -8,7 +8,6 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'helper/check_exposures.dart';
-import 'storage/location.dart';
 
 class Dashboard extends StatefulWidget {
   @override
