@@ -96,9 +96,10 @@ class AppState with ChangeNotifier {
         return false;
       }
 
-      var latestReport = _report;
-      String where =
-          latestReport != null ? 'id > ${latestReport.lastLocationId}' : null;
+      String where = 'sample != 1';
+      if (_report != null) {
+        where = '$where AND id > ${_report.lastLocationId}';
+      }
 
       List<LocationModel> locations =
           await LocationModel.findAll(orderBy: 'id ASC', where: where);

@@ -42,6 +42,10 @@ void main() async {
       return;
     }
 
+    if (l.sample || coords.accuracy > 100) {
+      return;
+    }
+
     await LocationModel(
             longitude: coords.longitude,
             latitude: coords.latitude,
@@ -62,6 +66,7 @@ void main() async {
       desiredAccuracy: bg.Config.DESIRED_ACCURACY_HIGH,
       stopOnTerminate: false,
       startOnBoot: true,
+      persistMode: bg.Config.PERSIST_MODE_NONE,
       logLevel: bg.Config.LOG_LEVEL_OFF));
 }
 

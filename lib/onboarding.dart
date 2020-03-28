@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:covidtrace/helper/check_exposures.dart';
 import 'package:covidtrace/storage/user.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';

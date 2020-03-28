@@ -27,12 +27,19 @@ class DashboardState extends State with SingleTickerProviderStateMixin {
         AnimationController(vsync: this, duration: Duration(milliseconds: 200));
     animation =
         CurvedAnimation(parent: expandController, curve: Curves.fastOutSlowIn);
+    Provider.of<AppState>(context, listen: false).addListener(onStateChange);
   }
 
   @override
   void dispose() {
     expandController.dispose();
     super.dispose();
+  }
+
+  void onStateChange() {
+    if (Provider.of<AppState>(context, listen: false).report != null) {
+      expandController.forward();
+    }
   }
 
   Future<void> refreshExposures(AppState state) async {
