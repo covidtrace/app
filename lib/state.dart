@@ -1,62 +1,151 @@
+import 'dart:convert';
+
+import 'package:covidtrace/storage/report.dart';
+import 'package:csv/csv.dart';
 import 'package:flutter/foundation.dart';
+import 'package:intl/intl.dart';
+import 'package:uuid/uuid.dart';
+import 'config.dart';
+import 'helper/signed_upload.dart';
+import 'storage/location.dart';
 import 'storage/user.dart';
 
-class AppState extends ChangeNotifier {}
+class AppState with ChangeNotifier {
+  static UserModel _user;
+  static ReportModel _report;
+  static bool _ready = false;
+  static LocationModel _exposure;
 
-class SettingsState with ChangeNotifier {
-  static UserModel _user = UserModel(trackLocation: false);
-
-  SettingsState() {
-    UserModel.find().then((user) {
-      _user = user;
-      notifyListeners();
-    });
+  AppState() {
+    initState();
   }
 
-  UserModel getUser() {
-    return _user;
+  initState() async {
+    _user = await UserModel.find();
+    _report = await ReportModel.findLatest();
+    _exposure = await loadExposure();
+    _ready = true;
+    notifyListeners();
   }
 
-  Future<void> setUser(user) async {
+  Future<LocationModel> loadExposure() async {
+    var date = DateTime.now().subtract(Duration(days: 7));
+    var timestamp = DateFormat('yyyy-MM-dd').format(date);
+
+    var locations = await LocationModel.findAll(
+        limit: 1,
+        where: 'DATE(timestamp) > DATE(?) and exposure = 1',
+        whereArgs: [timestamp],
+        orderBy: 'timestamp DESC');
+
+    return locations.isEmpty ? null : locations.first;
+  }
+
+  Future<LocationModel> checkExposure() async {
+    _exposure = await loadExposure();
+    notifyListeners();
+
+    return _exposure;
+  }
+
+  bool get ready {
+    return _ready;
+  }
+
+  LocationModel get exposure => _exposure;
+
+  UserModel get user => _user;
+
+  Future<void> saveUser(user) async {
     _user = user;
     _user.save();
     notifyListeners();
   }
-}
 
-class ReportState extends ChangeNotifier {
-  static final Map<String, dynamic> defaults = {
-    'fever': false,
-    'cough': false,
-    'breathing': false,
-    'days': 1.0,
-    'gender': null,
-    'age': null,
-    'tested': null
-  };
+  ReportModel get report => _report;
 
-  final Map<String, dynamic> state = {};
-
-  ReportState() {
-    state.addAll(defaults);
-  }
-
-  Map<String, dynamic> getAll() {
-    return state;
-  }
-
-  dynamic get(String key) {
-    return state[key];
-  }
-
-  void set(Map<String, dynamic> changes) {
-    state.addAll(changes);
+  Future<void> saveReport(user) async {
+    _report = report;
+    _report.create();
     notifyListeners();
   }
 
-  void reset() {
-    state.removeWhere((key, value) => true);
-    state.addAll(defaults);
+  Future<bool> sendReport(Map<String, dynamic> symptoms) async {
+    var success = false;
+
+    try {
+      var config = await getConfig();
+      var user = await UserModel.find();
+
+      var symptomBucket = config['symptomBucket'];
+      if (symptomBucket == null) {
+        symptomBucket = 'covidtrace-symptoms';
+      }
+
+      var contentType = 'application/json; charset=utf-8';
+      var symptomSuccess = await signedUpload(config,
+          query: {
+            'bucket': symptomBucket,
+            'contentType': contentType,
+            'object': '${Uuid().v4()}.json'
+          },
+          headers: {'Content-Type': contentType},
+          body: jsonEncode(symptoms));
+
+      if (!symptomSuccess) {
+        return false;
+      }
+
+      var latestReport = _report;
+      String where =
+          latestReport != null ? 'id > ${latestReport.lastLocationId}' : null;
+
+      List<LocationModel> locations =
+          await LocationModel.findAll(orderBy: 'id ASC', where: where);
+
+      List<List<dynamic>> headers = [
+        ['timestamp', 's2geo', 'status']
+      ];
+
+      var holdingBucket = config['holdingBucket'];
+      if (holdingBucket == null) {
+        holdingBucket = 'covidtrace-holding';
+      }
+
+      contentType = 'text/csv; charset=utf-8';
+      var uploadSuccess = await signedUpload(config,
+          query: {
+            'bucket': holdingBucket,
+            'contentType': contentType,
+            'object': '${user.uuid}.csv',
+          },
+          headers: {
+            'Content-Type': contentType,
+          },
+          body: ListToCsvConverter()
+              .convert(headers + locations.map((l) => l.toCSV()).toList()));
+
+      if (!uploadSuccess) {
+        return false;
+      }
+
+      _report = ReportModel(
+          lastLocationId: locations.last.id, timestamp: DateTime.now());
+      await report.create();
+
+      success = true;
+    } catch (err) {
+      print(err);
+      success = false;
+    }
+
+    notifyListeners();
+    return success;
+  }
+
+  Future<void> clearReport() async {
+    await ReportModel.destoryAll();
+    _report = null;
     notifyListeners();
   }
 }

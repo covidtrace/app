@@ -32,4 +32,9 @@ class ReportModel {
       timestamp: DateTime.parse(rows[0]['timestamp']),
     );
   }
+
+  static Future<void> destoryAll() async {
+    final Database db = await Storage.db;
+    await db.delete('report');
+  }
 }
