@@ -30,7 +30,7 @@ void main() async {
   notificationPlugin.initialize(
       InitializationSettings(
           AndroidInitializationSettings(
-              '@mipmap/ic_launcher'), // TODO(wes): Configure this
+              '@mipmap/launcher_icon'), // TODO(wes): Configure this
           IOSInitializationSettings(
               requestAlertPermission: false,
               requestBadgePermission: false,
