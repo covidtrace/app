@@ -10,7 +10,7 @@
         tools:replace="android:label"
         android:name="io.flutter.app.FlutterApplication"
         android:label="covidtrace"
-        android:icon="@mipmap/launcher_icon">
+        android:icon="@mipmap/ic_launcher">
         <meta-data android:name="com.transistorsoft.locationmanager.license" android:value="93d6676804d4e0059d4342774f61d0fbbb01d27d6c0c2a10a5ed4b7715df3c14" />
         <meta-data
             android:name="com.google.android.geo.API_KEY"

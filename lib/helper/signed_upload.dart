@@ -9,6 +9,7 @@ Future<bool> signedUpload(Map<String, dynamic> config,
 
   var signResp = await http.post(signUri);
   if (signResp.statusCode != 200) {
+    print('failed to request signed URL');
     return false;
   }
 
@@ -16,6 +17,7 @@ Future<bool> signedUpload(Map<String, dynamic> config,
 
   var signedUrl = signJson['signed_url'];
   if (signedUrl == null) {
+    print('no signed URL in response');
     return false;
   }
 
@@ -24,6 +26,11 @@ Future<bool> signedUpload(Map<String, dynamic> config,
     headers: headers,
     body: body,
   );
+
+  if (uploadResp.statusCode != 200) {
+    print('signed upload failed ${uploadResp.statusCode}');
+    print(uploadResp.body);
+  }
 
   return uploadResp.statusCode == 200;
 }

@@ -1,4 +1,5 @@
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:provider/provider.dart';
 
 import 'dashboard.dart';
 import 'location_history.dart';
@@ -12,11 +13,13 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'send_report.dart';
 import 'settings.dart';
+import 'state.dart';
 import 'storage/location.dart';
 import 'storage/user.dart';
 
 void main() async {
-  runApp(CovidTraceApp());
+  runApp(ChangeNotifierProvider(
+      create: (context) => AppState(), child: CovidTraceApp()));
 
   BackgroundFetch.registerHeadlessTask((String id) async {
     await checkExposures();
@@ -26,8 +29,7 @@ void main() async {
   var notificationPlugin = FlutterLocalNotificationsPlugin();
   notificationPlugin.initialize(
       InitializationSettings(
-          AndroidInitializationSettings(
-              'app_icon'), // TODO(wes): Configure this
+          AndroidInitializationSettings('@mipmap/ic_launcher'),
           IOSInitializationSettings(
               requestAlertPermission: false,
               requestBadgePermission: false,
@@ -87,36 +89,26 @@ class CovidTraceAppState extends State {
     },
   );
 
-  Future<UserModel> _user;
-
-  @override
-  void initState() {
-    _user = UserModel.find();
-    super.initState();
-  }
-
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-        future: _user,
-        builder: (context, AsyncSnapshot<UserModel> snapshot) {
-          if (snapshot.hasData) {
-            return MaterialApp(
-              debugShowCheckedModeBanner: false,
-              initialRoute: snapshot.data.onboarding ? '/onboarding' : '/home',
-              title: 'Covid Trace',
-              theme: ThemeData(primarySwatch: primaryColor),
-              routes: {
-                '/onboarding': (context) => Onboarding(),
-                '/home': (context) => MainPage(),
-                '/settings': (context) => SettingsView(),
-                '/location_history': (context) => LocationHistory(),
-              },
-            );
-          } else {
-            return Container(color: Colors.white);
-          }
-        });
+    return Consumer<AppState>(builder: (context, state, _) {
+      if (state.user != null) {
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          initialRoute: state.user.onboarding == true ? '/onboarding' : '/home',
+          title: 'Covid Trace',
+          theme: ThemeData(primarySwatch: primaryColor),
+          routes: {
+            '/onboarding': (context) => Onboarding(),
+            '/home': (context) => MainPage(),
+            '/settings': (context) => SettingsView(),
+            '/location_history': (context) => LocationHistory(),
+          },
+        );
+      } else {
+        return Container(color: Colors.white);
+      }
+    });
   }
 }
 
@@ -221,85 +213,111 @@ class MainPageState extends State<MainPage> {
     }
   }
 
-  resetOnboarding() async {
+  resetReport(AppState state) async {
     Navigator.of(context).pop();
-    var user = await UserModel.find();
+    await state.clearReport();
+  }
+
+  resetOnboarding(AppState state) async {
+    var user = state.user;
     user.onboarding = true;
-    await user.save();
+    await state.saveUser(user);
+    Navigator.of(context).pushReplacementNamed('/onboarding');
+  }
+
+  void testNotification() async {
+    showExposureNotification((await LocationModel.findAll(limit: 1)).first);
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: AppBar(
-          title: Row(mainAxisSize: MainAxisSize.min, children: [
-            Image.asset('assets/app_icon.png', fit: BoxFit.contain, height: 40),
-            Text('Covid Trace'),
-          ]),
-          actions: <Widget>[Container()], // Hides debug end drawer
-        ),
-        floatingActionButton: FloatingActionButton.extended(
-          icon: Image.asset('assets/self_report_icon.png', height: 25),
-          label: Text('Self Report',
-              style: TextStyle(
-                  letterSpacing: 0, fontSize: 20, fontWeight: FontWeight.w500)),
-          onPressed: showSendReport,
-        ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-        // Use an empty bottom sheet to better control positiong of floating action button
-        bottomSheet: BottomSheet(
-            onClosing: () {},
-            builder: (context) {
-              return SizedBox(height: 50);
-            }),
-        drawer: Drawer(
-          child: ListView(children: [
-            ListTile(
-                leading: Icon(Icons.home),
-                title: Text('Set My Home'),
-                onTap: () =>
-                    Navigator.of(context).popAndPushNamed('/settings')),
-            ListTile(
-                leading: Icon(Icons.location_on),
-                title: Text('Location History'),
-                onTap: () =>
-                    Navigator.of(context).popAndPushNamed('/location_history')),
-            ListTile(
-                leading: Icon(Icons.lock),
-                title: Text('Privacy Policy'),
-                onTap: () => launch('https://covidtrace.com/privacy')),
-            ListTile(
-                leading: Icon(Icons.info),
-                title: Text('About Covid Trace'),
-                onTap: () {
-                  Navigator.of(context).pop();
-                  showInfoDialog();
+    return Consumer<AppState>(
+        builder: (context, state, _) => Scaffold(
+            appBar: AppBar(
+              title: Row(mainAxisSize: MainAxisSize.min, children: [
+                Image.asset('assets/app_icon.png',
+                    fit: BoxFit.contain, height: 40),
+                Text('Covid Trace'),
+              ]),
+              actions: <Widget>[Container()], // Hides debug end drawer
+            ),
+            floatingActionButton: state.report != null
+                ? null
+                : FloatingActionButton.extended(
+                    icon:
+                        Image.asset('assets/self_report_icon.png', height: 25),
+                    label: Text('Self Report',
+                        style: TextStyle(
+                            letterSpacing: 0,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w500)),
+                    onPressed: showSendReport,
+                  ),
+            floatingActionButtonLocation:
+                FloatingActionButtonLocation.centerFloat,
+            // Use an empty bottom sheet to better control positiong of floating action button
+            bottomSheet: BottomSheet(
+                onClosing: () {},
+                builder: (context) {
+                  return SizedBox(height: 50);
                 }),
-          ]),
-        ),
-        endDrawer: Drawer(
-            child: ListView(children: [
-          ListTile(
-              leading: Icon(Icons.location_on),
-              title: Text('Start Tracking'),
-              onTap: () => bg.BackgroundGeolocation.start()),
-          ListTile(
-              leading: Icon(Icons.location_off),
-              title: Text('Stop Tracking'),
-              onTap: () => bg.BackgroundGeolocation.stop()),
-          ListTile(
-              leading: Icon(Icons.bug_report),
-              title: Text('Test Infection'),
-              onTap: testInfection),
-          ListTile(
-              leading: Icon(Icons.restore),
-              title: Text('Reset Infection'),
-              onTap: resetInfection),
-          ListTile(
-              leading: Icon(Icons.power_settings_new),
-              title: Text('Reset Onboarding'),
-              onTap: resetOnboarding),
-        ])),
-        body: Dashboard());
+            drawer: Drawer(
+              child: ListView(children: [
+                ListTile(
+                    leading: Icon(Icons.home),
+                    title: Text('Set My Home'),
+                    onTap: () =>
+                        Navigator.of(context).popAndPushNamed('/settings')),
+                ListTile(
+                    leading: Icon(Icons.location_on),
+                    title: Text('Location History'),
+                    onTap: () => Navigator.of(context)
+                        .popAndPushNamed('/location_history')),
+                ListTile(
+                    leading: Icon(Icons.lock),
+                    title: Text('Privacy Policy'),
+                    onTap: () => launch('https://covidtrace.com/privacy')),
+                ListTile(
+                    leading: Icon(Icons.info),
+                    title: Text('About Covid Trace'),
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      showInfoDialog();
+                    }),
+              ]),
+            ),
+            endDrawer: Drawer(
+                child: ListView(children: [
+              ListTile(
+                  leading: Icon(Icons.location_on),
+                  title: Text('Start Tracking'),
+                  onTap: () => bg.BackgroundGeolocation.start()),
+              ListTile(
+                  leading: Icon(Icons.location_off),
+                  title: Text('Stop Tracking'),
+                  onTap: () => bg.BackgroundGeolocation.stop()),
+              ListTile(
+                  leading: Icon(Icons.bug_report),
+                  title: Text('Test Infection'),
+                  onTap: testInfection),
+              ListTile(
+                  leading: Icon(Icons.restore),
+                  title: Text('Reset Infection'),
+                  onTap: resetInfection),
+              ListTile(
+                leading: Icon(Icons.notifications),
+                title: Text('Test Notification'),
+                onTap: testNotification,
+              ),
+              ListTile(
+                  leading: Icon(Icons.delete_forever),
+                  title: Text('Reset Report'),
+                  onTap: () => resetReport(state)),
+              ListTile(
+                  leading: Icon(Icons.power_settings_new),
+                  title: Text('Reset Onboarding'),
+                  onTap: () => resetOnboarding(state)),
+            ])),
+            body: Dashboard()));
   }
 }
