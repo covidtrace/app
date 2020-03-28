@@ -180,11 +180,12 @@ class OnboardingState extends State {
                             BlockButton(
                                 onPressed: nextPage, label: 'Get Started'),
                           ])),
-                      Center(
-                          child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
+                      SingleChildScrollView(
+                          child: Center(
+                              child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
                             Row(children: [
                               Expanded(
                                   child: Text('Sharing Your Location',
@@ -217,14 +218,16 @@ class OnboardingState extends State {
                             Center(
                                 child: Transform.scale(
                                     scale: 1.5,
-                                    child: Switch.adaptive(
-                                        value: _requestLocation,
-                                        onChanged: requestPermission))),
+                                    child: Material(
+                                        color: Colors.white,
+                                        child: Switch.adaptive(
+                                            value: _requestLocation,
+                                            onChanged: requestPermission)))),
                             SizedBox(height: 30),
                             BlockButton(
                                 label: 'Continue',
                                 onPressed: _requestLocation ? nextPage : null)
-                          ])),
+                          ]))),
                       Center(
                           child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
@@ -303,21 +306,24 @@ class OnboardingState extends State {
                             SizedBox(height: 20),
                             Image.asset('assets/ios_notification.png'),
                             SizedBox(height: 20),
-                            Material(
-                                color: Colors.white,
-                                child: InkWell(
-                                    onTap: () =>
-                                        requestNotifications(!_requestLocation),
-                                    child: Row(children: [
-                                      Expanded(
-                                          child: Text('Enable notifications',
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .title)),
-                                      Switch.adaptive(
-                                          value: _requestNotification,
-                                          onChanged: requestNotifications),
-                                    ]))),
+                            Theme.of(context).platform == TargetPlatform.iOS
+                                ? Material(
+                                    color: Colors.white,
+                                    child: InkWell(
+                                        onTap: () => requestNotifications(
+                                            !_requestLocation),
+                                        child: Row(children: [
+                                          Expanded(
+                                              child: Text(
+                                                  'Enable notifications',
+                                                  style: Theme.of(context)
+                                                      .textTheme
+                                                      .title)),
+                                          Switch.adaptive(
+                                              value: _requestNotification,
+                                              onChanged: requestNotifications),
+                                        ])))
+                                : Container(),
                             SizedBox(height: 10),
                             RichText(
                                 text: TextSpan(style: bodyText, children: [

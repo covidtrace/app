@@ -30,7 +30,7 @@ void main() async {
   notificationPlugin.initialize(
       InitializationSettings(
           AndroidInitializationSettings(
-              'app_icon'), // TODO(wes): Configure this
+              '@mipmap/ic_launcher'), // TODO(wes): Configure this
           IOSInitializationSettings(
               requestAlertPermission: false,
               requestBadgePermission: false,
@@ -226,6 +226,10 @@ class MainPageState extends State<MainPage> {
     Navigator.of(context).pushReplacementNamed('/onboarding');
   }
 
+  void testNotification() async {
+    showExposureNotification((await LocationModel.findAll(limit: 1)).first);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<AppState>(
@@ -301,6 +305,11 @@ class MainPageState extends State<MainPage> {
                   leading: Icon(Icons.restore),
                   title: Text('Reset Infection'),
                   onTap: resetInfection),
+              ListTile(
+                leading: Icon(Icons.notifications),
+                title: Text('Test Notification'),
+                onTap: testNotification,
+              ),
               ListTile(
                   leading: Icon(Icons.delete_forever),
                   title: Text('Reset Report'),
