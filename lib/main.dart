@@ -185,12 +185,12 @@ class MainPageState extends State<MainPage> {
   }
 
   void showSendReport(context) async {
-    bool sent = await Navigator.push(
+    var sent = await Navigator.push(
         context,
         MaterialPageRoute(
             fullscreenDialog: true, builder: (context) => SendReport()));
 
-    if (sent) {
+    if (sent == true) {
       Scaffold.of(context).showSnackBar(
           SnackBar(content: Text('Your report was successfully submitted')));
     }
