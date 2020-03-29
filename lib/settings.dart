@@ -97,12 +97,12 @@ class SettingsViewState extends State {
                             )
                           : Container()),
                   SizedBox(height: 10),
-                  Slider(
+                  Slider.adaptive(
                       min: 0, max: 300, value: _radius, onChanged: setRadius),
                   Padding(
                       padding: EdgeInsets.only(top: 10, left: 20, right: 20),
                       child: Text(
-                          'Update your home to your current location below. Covid Trace will never record any activity around your home.',
+                          'Update your home to your current location below. COVID Trace will never record any activity around your home.',
                           style: Theme.of(context).textTheme.subhead)),
                   SizedBox(height: 10),
                   ButtonBar(

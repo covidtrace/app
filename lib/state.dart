@@ -58,7 +58,7 @@ class AppState with ChangeNotifier {
 
   Future<void> saveUser(user) async {
     _user = user;
-    _user.save();
+    await _user.save();
     notifyListeners();
   }
 
@@ -66,7 +66,7 @@ class AppState with ChangeNotifier {
 
   Future<void> saveReport(user) async {
     _report = report;
-    _report.create();
+    await _report.create();
     notifyListeners();
   }
 

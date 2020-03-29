@@ -1,3 +1,4 @@
+import 'package:covidtrace/verify_phone.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -20,7 +21,34 @@ class SendReportState extends State<SendReport> {
   var _loading = false;
   var _step = 0;
 
-  Future<bool> _sendReport(AppState state) async {
+  void onSubmit(context, AppState state) async {
+    String token;
+    bool verified = state.user.verified;
+
+    if (!verified) {
+      token = await verifyPhone();
+      verified = token != null;
+
+      if (verified) {
+        state.user.verifyToken = token;
+        await state.saveUser(state.user);
+      }
+    }
+
+    if (!verified) {
+      return;
+    } else {}
+
+    if (!await sendReport(state)) {
+      Scaffold.of(context).showSnackBar(SnackBar(
+          backgroundColor: Colors.orangeAccent,
+          content: Text('There was an error submitting your report')));
+    } else {
+      Navigator.pop(context, true);
+    }
+  }
+
+  Future<bool> sendReport(AppState state) async {
     setState(() => _loading = true);
     var success = await state.sendReport({
       'breathing': _breathing,
@@ -32,6 +60,14 @@ class SendReportState extends State<SendReport> {
     setState(() => _loading = false);
 
     return success;
+  }
+
+  Future<String> verifyPhone() {
+    return showModalBottomSheet(
+      context: context,
+      builder: (context) => VerifyPhone(),
+      isScrollControlled: true,
+    );
   }
 
   @override
@@ -52,13 +88,7 @@ class SendReportState extends State<SendReport> {
 
     return Consumer<AppState>(
         builder: (context, state, _) => Scaffold(
-            appBar: AppBar(
-                title: Text('Self Report'),
-                leading: IconButton(
-                    icon: Icon(Icons.close),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    })),
+            appBar: AppBar(title: Text('Self Report')),
             body: Builder(builder: (context) {
               return SingleChildScrollView(
                   child: Column(children: [
@@ -68,6 +98,7 @@ class SendReportState extends State<SendReport> {
                         'When you report, you help others, save lives, and end the COVID-19 crisis sooner.',
                         style: bodyText)),
                 Stepper(
+                    physics: NeverScrollableScrollPhysics(),
                     currentStep: _step,
                     onStepContinue: () => setState(() => _step++),
                     onStepTapped: (index) {
@@ -76,7 +107,7 @@ class SendReportState extends State<SendReport> {
                       }
                     },
                     onStepCancel: () => _step == 0
-                        ? Navigator.pop(context)
+                        ? Navigator.pop(context, false)
                         : setState(() => _step--),
                     controlsBuilder: (context, {onStepContinue, onStepCancel}) {
                       return _step < 2
@@ -176,7 +207,7 @@ class SendReportState extends State<SendReport> {
                                           '${_days.round() == 10 ? '10+' : _days.round()}',
                                           style: textTheme.title),
                                     )),
-                                Slider(
+                                Slider.adaptive(
                                     min: 1,
                                     max: 10,
                                     value: _days,
@@ -223,25 +254,12 @@ class SendReportState extends State<SendReport> {
                                                               Colors.white)))
                                               : Text("Submit"),
                                           onPressed: _confirm
-                                              ? () async {
-                                                  if (!await _sendReport(
-                                                      state)) {
-                                                    Scaffold.of(context)
-                                                        .showSnackBar(SnackBar(
-                                                            backgroundColor:
-                                                                Colors
-                                                                    .orangeAccent,
-                                                            content: Text(
-                                                                'There was an error submitting your report')));
-                                                  } else {
-                                                    Navigator.pop(context);
-                                                  }
-                                                }
+                                              ? () => onSubmit(context, state)
                                               : null),
                                       FlatButton(
                                         child: Text('Cancel'),
                                         onPressed: () =>
-                                            {Navigator.pop(context)},
+                                            Navigator.pop(context, false),
                                       )
                                     ]),
                               ])),
