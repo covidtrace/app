@@ -232,6 +232,13 @@ class MainPageState extends State<MainPage> {
     showExposureNotification((await LocationModel.findAll(limit: 1)).first);
   }
 
+  resetVerified(AppState state) async {
+    Navigator.of(context).pop();
+    var user = state.user;
+    user.verifyToken = null;
+    await state.saveUser(user);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<AppState>(
@@ -318,6 +325,10 @@ class MainPageState extends State<MainPage> {
                   leading: Icon(Icons.delete_forever),
                   title: Text('Reset Report'),
                   onTap: () => resetReport(state)),
+              ListTile(
+                  leading: Icon(Icons.verified_user),
+                  title: Text('Reset Verified'),
+                  onTap: () => resetVerified(state)),
               ListTile(
                   leading: Icon(Icons.power_settings_new),
                   title: Text('Reset Onboarding'),
