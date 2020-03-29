@@ -152,7 +152,7 @@ class OnboardingState extends State {
             color: Colors.white,
             child: SafeArea(
                 child: Padding(
-                    padding: EdgeInsets.all(30),
+                    padding: EdgeInsets.only(top: 30, left: 30, right: 30),
                     child: PageView(
                         controller: _pageController,
                         physics: NeverScrollableScrollPhysics(),
@@ -369,18 +369,13 @@ class OnboardingState extends State {
                                           CrossAxisAlignment.start,
                                       children: [
                                 Text(
-                                  'Thank You',
-                                  style: Theme.of(context).textTheme.headline,
-                                ),
-                                SizedBox(height: 10),
-                                Text(
                                   "COVID Trace will now alert you when you're potentially exposed to COVID-19. If you do get sick, let us know so that we can help others.\n\nCOVID Trace cannot prevent you from getting exposed. It can only help us react faster when exposures happen.",
                                   style: bodyText,
                                 ),
                                 SizedBox(height: 20),
                                 Center(
                                     child: FractionallySizedBox(
-                                        widthFactor: .5,
+                                        widthFactor: .4,
                                         child: Image.asset(
                                             'assets/do_the_five.gif'))),
                                 SizedBox(height: 20),
@@ -441,6 +436,7 @@ class OnboardingState extends State {
                                         .toList()),
                                 SizedBox(height: 30),
                                 BlockButton(onPressed: finish, label: 'Finish'),
+                                SizedBox(height: 30),
                               ]))),
                         ])))));
   }
