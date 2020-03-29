@@ -187,15 +187,8 @@ class MainPageState extends State<MainPage> {
   showSendReport() {
     Navigator.push(
         context,
-        PageRouteBuilder(
-            pageBuilder: (context, animation, _) => SendReport(),
-            transitionsBuilder: (context, animation, _, child) {
-              var tween = Tween(begin: Offset(0.0, 1.0), end: Offset.zero)
-                  .chain(CurveTween(curve: Curves.ease));
-
-              return SlideTransition(
-                  position: animation.drive(tween), child: child);
-            }));
+        MaterialPageRoute(
+            fullscreenDialog: true, builder: (context) => SendReport()));
   }
 
   testInfection() async {

@@ -19,7 +19,7 @@ Future<Database> _initDatabase() async {
 
     // Set up user table
     await db.execute(
-        "CREATE TABLE user(id INTEGER PRIMARY KEY, uuid STRING, track_location INTEGER, gender STRING, age INTEGER, longitude REAL, latitude REAL, home_radius REAL, onboarding INTEGER, last_check TEXT)");
+        "CREATE TABLE user(id INTEGER PRIMARY KEY, uuid STRING, track_location INTEGER, gender STRING, age INTEGER, longitude REAL, latitude REAL, home_radius REAL, onboarding INTEGER, last_check TEXT, verify_token TEXT)");
     await db.insert(
         'user', {'uuid': Uuid().v4(), 'home_radius': 40.0, 'onboarding': 1});
 
