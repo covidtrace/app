@@ -207,7 +207,7 @@ class SendReportState extends State<SendReport> {
                                           '${_days.round() == 10 ? '10+' : _days.round()}',
                                           style: textTheme.title),
                                     )),
-                                Slider(
+                                Slider.adaptive(
                                     min: 1,
                                     max: 10,
                                     value: _days,
