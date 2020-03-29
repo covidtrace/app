@@ -21,28 +21,30 @@ class SendReportState extends State<SendReport> {
   var _loading = false;
   var _step = 0;
 
-  void onSubmit(context, state) async {
+  void onSubmit(context, AppState state) async {
     String token;
     bool verified = state.user.verified;
 
     if (!verified) {
       token = await verifyPhone();
       verified = token != null;
+
+      if (verified) {
+        state.user.verifyToken = token;
+        await state.saveUser(state.user);
+      }
     }
 
     if (!verified) {
       return;
-    } else {
-      state.user.verifyToken = token;
-      state.saveUser(state.user);
-    }
+    } else {}
 
     if (!await sendReport(state)) {
       Scaffold.of(context).showSnackBar(SnackBar(
           backgroundColor: Colors.orangeAccent,
           content: Text('There was an error submitting your report')));
     } else {
-      Navigator.pop(context);
+      Navigator.pop(context, true);
     }
   }
 
@@ -105,7 +107,7 @@ class SendReportState extends State<SendReport> {
                       }
                     },
                     onStepCancel: () => _step == 0
-                        ? Navigator.pop(context)
+                        ? Navigator.pop(context, false)
                         : setState(() => _step--),
                     controlsBuilder: (context, {onStepContinue, onStepCancel}) {
                       return _step < 2
@@ -257,7 +259,7 @@ class SendReportState extends State<SendReport> {
                                       FlatButton(
                                         child: Text('Cancel'),
                                         onPressed: () =>
-                                            {Navigator.pop(context)},
+                                            Navigator.pop(context, false),
                                       )
                                     ]),
                               ])),

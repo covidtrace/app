@@ -184,11 +184,16 @@ class MainPageState extends State<MainPage> {
     );
   }
 
-  showSendReport() {
-    Navigator.push(
+  void showSendReport(context) async {
+    bool sent = await Navigator.push(
         context,
         MaterialPageRoute(
             fullscreenDialog: true, builder: (context) => SendReport()));
+
+    if (sent) {
+      Scaffold.of(context).showSnackBar(
+          SnackBar(content: Text('Your report was successfully submitted')));
+    }
   }
 
   testInfection() async {
@@ -239,18 +244,20 @@ class MainPageState extends State<MainPage> {
               ]),
               actions: <Widget>[Container()], // Hides debug end drawer
             ),
+            floatingActionButtonAnimator: FloatingActionButtonAnimator.scaling,
             floatingActionButton: state.report != null
                 ? null
-                : FloatingActionButton.extended(
-                    icon:
-                        Image.asset('assets/self_report_icon.png', height: 25),
-                    label: Text('Self Report',
-                        style: TextStyle(
-                            letterSpacing: 0,
-                            fontSize: 20,
-                            fontWeight: FontWeight.w500)),
-                    onPressed: showSendReport,
-                  ),
+                : Builder(
+                    builder: (context) => FloatingActionButton.extended(
+                          icon: Image.asset('assets/self_report_icon.png',
+                              height: 25),
+                          label: Text('Self Report',
+                              style: TextStyle(
+                                  letterSpacing: 0,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w500)),
+                          onPressed: () => showSendReport(context),
+                        )),
             floatingActionButtonLocation:
                 FloatingActionButtonLocation.centerFloat,
             // Use an empty bottom sheet to better control positiong of floating action button
