@@ -47,8 +47,8 @@ class VerifyPhoneState extends State with SingleTickerProviderStateMixin {
     setState(() => _loading = true);
     var config = await getConfig();
     String operatorUrl = config['operatorUrl'];
-    var resp =
-        await http.post(operatorUrl, body: jsonEncode({'phone': number}));
+    var resp = await http.post('$operatorUrl/init',
+        body: jsonEncode({'phone': number}));
     setState(() => _loading = false);
 
     if (resp.statusCode != 200) {
@@ -67,7 +67,7 @@ class VerifyPhoneState extends State with SingleTickerProviderStateMixin {
     setState(() => _loading = true);
     var config = await getConfig();
     String operatorUrl = config['operatorUrl'];
-    var resp = await http.post(operatorUrl,
+    var resp = await http.post('$operatorUrl/verify',
         body: jsonEncode({'token': _phoneToken, 'code': code}));
     setState(() => _loading = false);
 
