@@ -16,11 +16,13 @@ class Dashboard extends StatefulWidget {
   State<StatefulWidget> createState() => DashboardState();
 }
 
-class DashboardState extends State with SingleTickerProviderStateMixin {
+class DashboardState extends State with TickerProviderStateMixin {
   bool _exposed;
   bool _expandHeader = false;
   bool _sendingExposure = false;
   Completer<GoogleMapController> _mapController = Completer();
+  AnimationController reportController;
+  CurvedAnimation reportAnimation;
   AnimationController expandController;
   CurvedAnimation animation;
 
@@ -30,6 +32,12 @@ class DashboardState extends State with SingleTickerProviderStateMixin {
         AnimationController(vsync: this, duration: Duration(milliseconds: 200));
     animation =
         CurvedAnimation(parent: expandController, curve: Curves.fastOutSlowIn);
+
+    reportController = AnimationController(
+        vsync: this, duration: Duration(milliseconds: 200), value: 1);
+    reportAnimation =
+        CurvedAnimation(parent: reportController, curve: Curves.fastOutSlowIn);
+
     Provider.of<AppState>(context, listen: false).addListener(onStateChange);
   }
 
@@ -89,6 +97,9 @@ class DashboardState extends State with SingleTickerProviderStateMixin {
     setState(() => _sendingExposure = false);
     Scaffold.of(context).showSnackBar(
         SnackBar(content: Text('Your report was successfully submitted')));
+
+    await Future.delayed(Duration(seconds: 1));
+    reportController.reverse();
   }
 
   Future<String> verifyPhone() {
@@ -409,34 +420,40 @@ class DashboardState extends State with SingleTickerProviderStateMixin {
                     subtitle: Text(
                         'Your location overlapped with someone who reported as having COVID-19.'),
                   ),
-                  Row(children: [
-                    Expanded(
-                        child: Stack(children: [
-                      Center(
-                          child: OutlineButton(
-                        child: _sendingExposure
-                            ? SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  value: null,
-                                  valueColor: AlwaysStoppedAnimation(
-                                      Theme.of(context).textTheme.button.color),
-                                ))
-                            : Text(
-                                'SEND REPORT',
-                              ),
-                        onPressed: () => sendExposure(state),
-                      )),
-                      Positioned(
-                          right: 0,
-                          child: IconButton(
-                              icon:
-                                  Icon(Icons.info_outline, color: Colors.grey),
-                              onPressed: showExposureDialog)),
-                    ])),
-                  ]),
+                  SizeTransition(
+                      axisAlignment: 1,
+                      sizeFactor: reportAnimation,
+                      child: Row(children: [
+                        Expanded(
+                            child: Stack(children: [
+                          Center(
+                              child: OutlineButton(
+                            child: _sendingExposure
+                                ? SizedBox(
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      value: null,
+                                      valueColor: AlwaysStoppedAnimation(
+                                          Theme.of(context)
+                                              .textTheme
+                                              .button
+                                              .color),
+                                    ))
+                                : Text(
+                                    'SEND REPORT',
+                                  ),
+                            onPressed: () => sendExposure(state),
+                          )),
+                          Positioned(
+                              right: 0,
+                              child: IconButton(
+                                  icon: Icon(Icons.info_outline,
+                                      color: Colors.grey),
+                                  onPressed: showExposureDialog)),
+                        ])),
+                      ])),
                   SizedBox(height: 8),
                 ])),
                 SizedBox(height: 20),
