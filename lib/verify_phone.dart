@@ -116,6 +116,10 @@ class VerifyPhoneState extends State with SingleTickerProviderStateMixin {
                               }
                               return null;
                             }),
+                        SizedBox(height: 10),
+                        Text(
+                            'Your phone number is never saved or associated with any data you submit.',
+                            style: textTheme.caption),
                         SizedBox(height: 20),
                         RaisedButton(
                             onPressed: () {
