@@ -64,8 +64,11 @@ void main() async {
 
   bg.BackgroundGeolocation.ready(bg.Config(
       desiredAccuracy: bg.Config.DESIRED_ACCURACY_HIGH,
+      enableHeadless: true,
       stopOnTerminate: false,
       startOnBoot: true,
+      fastestLocationUpdateInterval: 1000 * 60 * 5,
+      useSignificantChangesOnly: true,
       persistMode: bg.Config.PERSIST_MODE_NONE,
       logLevel: bg.Config.LOG_LEVEL_OFF));
 }
