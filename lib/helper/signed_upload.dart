@@ -1,13 +1,16 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:covidtrace/operator.dart';
 
-Future<bool> signedUpload(Map<String, dynamic> config,
+Future<bool> signedUpload(Map<String, dynamic> config, Token token,
     {Map<String, dynamic> query,
     Map<String, String> headers,
     String body}) async {
-  var signUri = Uri.parse(config['notaryUrl']).replace(queryParameters: query);
+  var refreshed = await token.refreshed();
 
-  var signResp = await http.post(signUri);
+  var signUri = Uri.parse(config['notaryUrl']).replace(queryParameters: query);
+  var signResp = await http
+      .post(signUri, headers: {'Authorization': 'Bearer ${refreshed.token}'});
   if (signResp.statusCode != 200) {
     print('failed to request signed URL');
     return false;

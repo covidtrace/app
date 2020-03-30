@@ -1,4 +1,7 @@
 import 'dart:async';
+import 'helper/check_exposures.dart';
+import 'helper/location.dart';
+import 'package:covidtrace/operator.dart';
 import 'package:covidtrace/state.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
@@ -7,8 +10,6 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'helper/check_exposures.dart';
-import 'helper/location.dart';
 import 'verify_phone.dart';
 
 class Dashboard extends StatefulWidget {
@@ -84,20 +85,14 @@ class DashboardState extends State with TickerProviderStateMixin {
   }
 
   Future<void> sendExposure(AppState state) async {
-    String token;
-    bool verified = state.user.verified;
-
-    if (!verified) {
-      token = await verifyPhone();
-      verified = token != null;
-
-      if (verified) {
-        state.user.verifyToken = token;
+    if (!state.user.verified) {
+      state.user.token = await verifyPhone();
+      if (state.user.verified) {
         await state.saveUser(state.user);
       }
     }
 
-    if (!verified) {
+    if (!state.user.verified) {
       return;
     }
 
@@ -108,7 +103,7 @@ class DashboardState extends State with TickerProviderStateMixin {
         SnackBar(content: Text('Your report was successfully submitted')));
   }
 
-  Future<String> verifyPhone() {
+  Future<Token> verifyPhone() {
     return showModalBottomSheet(
       context: context,
       builder: (context) => VerifyPhone(),

@@ -1,8 +1,9 @@
 import 'dart:async';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'db.dart';
-import 'package:sqflite/sqflite.dart';
+import 'package:covidtrace/operator.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:latlong/latlong.dart' as lt;
+import 'package:sqflite/sqflite.dart';
 
 class UserModel {
   final int id;
@@ -15,7 +16,7 @@ class UserModel {
   bool trackLocation;
   bool onboarding;
   DateTime lastCheck;
-  String verifyToken;
+  Token token;
 
   UserModel(
       {this.id,
@@ -28,7 +29,7 @@ class UserModel {
       this.homeRadius,
       this.onboarding,
       this.lastCheck,
-      this.verifyToken});
+      this.token});
 
   static Future<UserModel> find() async {
     final Database db = await Storage.db;
@@ -48,7 +49,9 @@ class UserModel {
       onboarding: rows[0]['onboarding'] == 1,
       homeRadius: rows[0]['home_radius'] ?? 40.0,
       lastCheck: lastCheck != null ? DateTime.parse(lastCheck) : null,
-      verifyToken: rows[0]['verify_token'],
+      token: Token(
+          token: rows[0]['verify_token'],
+          refreshToken: rows[0]['refresh_token']),
     );
   }
 
@@ -78,7 +81,7 @@ class UserModel {
     return latitude != null ? LatLng(latitude, longitude) : null;
   }
 
-  bool get verified => verifyToken != null;
+  bool get verified => token != null && token.valid;
 
   Future<void> save() async {
     final Database db = await Storage.db;
@@ -93,7 +96,8 @@ class UserModel {
           'home_radius': homeRadius,
           'onboarding': onboarding ? 1 : 0,
           'last_check': lastCheck != null ? lastCheck.toIso8601String() : null,
-          'verify_token': verifyToken
+          'verify_token': token != null ? token.token : null,
+          'refresh_token': token != null ? token.refreshToken : null,
         },
         where: 'id = ?',
         whereArgs: [id]);
