@@ -15,6 +15,7 @@ class UserModel {
   bool trackLocation;
   bool onboarding;
   DateTime lastCheck;
+  String verifyToken;
 
   UserModel(
       {this.id,
@@ -26,7 +27,8 @@ class UserModel {
       this.longitude,
       this.homeRadius,
       this.onboarding,
-      this.lastCheck});
+      this.lastCheck,
+      this.verifyToken});
 
   static Future<UserModel> find() async {
     final Database db = await Storage.db;
@@ -46,6 +48,7 @@ class UserModel {
       onboarding: rows[0]['onboarding'] == 1,
       homeRadius: rows[0]['home_radius'] ?? 40.0,
       lastCheck: lastCheck != null ? DateTime.parse(lastCheck) : null,
+      verifyToken: rows[0]['verify_token'],
     );
   }
 
@@ -75,6 +78,8 @@ class UserModel {
     return latitude != null ? LatLng(latitude, longitude) : null;
   }
 
+  bool get verified => verifyToken != null;
+
   Future<void> save() async {
     final Database db = await Storage.db;
     return db.update(
@@ -87,7 +92,8 @@ class UserModel {
           'longitude': longitude,
           'home_radius': homeRadius,
           'onboarding': onboarding ? 1 : 0,
-          'last_check': lastCheck != null ? lastCheck.toIso8601String() : null
+          'last_check': lastCheck != null ? lastCheck.toIso8601String() : null,
+          'verify_token': verifyToken
         },
         where: 'id = ?',
         whereArgs: [id]);

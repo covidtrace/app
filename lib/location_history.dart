@@ -42,12 +42,11 @@ class LocationHistoryState extends State {
   }
 
   Future<void> loadInitState() async {
+    await loadLocations();
     await loadUser();
     var position = await currentLocation();
     var nearHome = await UserModel.isInHome(position);
     setState(() => _nearHome = nearHome);
-
-    await loadLocations();
   }
 
   loadUser() async {

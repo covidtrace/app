@@ -40,6 +40,7 @@ class DashboardState extends State with SingleTickerProviderStateMixin {
   void onStateChange() {
     if (Provider.of<AppState>(context, listen: false).report != null) {
       expandController.forward();
+      setState(() => _expandHeader = true);
     }
   }
 

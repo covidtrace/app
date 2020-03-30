@@ -101,7 +101,7 @@ class CovidTraceAppState extends State {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
           initialRoute: state.user.onboarding == true ? '/onboarding' : '/home',
-          title: 'Covid Trace',
+          title: 'COVID Trace',
           theme: ThemeData(primarySwatch: primaryColor),
           routes: {
             '/onboarding': (context) => Onboarding(),
@@ -152,12 +152,12 @@ class MainPageState extends State<MainPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Covid Trace'),
+          title: Text('COVID Trace'),
           content: SingleChildScrollView(
             child: ListBody(
               children: <Widget>[
                 Text(
-                    'Find out more about Covid Trace and how it works on our website.'),
+                    'Find out more about COVID Trace and how it works on our website.'),
                 SizedBox(height: 10),
                 InkWell(
                   child: Text(
@@ -184,18 +184,16 @@ class MainPageState extends State<MainPage> {
     );
   }
 
-  showSendReport() {
-    Navigator.push(
+  void showSendReport(context) async {
+    var sent = await Navigator.push(
         context,
-        PageRouteBuilder(
-            pageBuilder: (context, animation, _) => SendReport(),
-            transitionsBuilder: (context, animation, _, child) {
-              var tween = Tween(begin: Offset(0.0, 1.0), end: Offset.zero)
-                  .chain(CurveTween(curve: Curves.ease));
+        MaterialPageRoute(
+            fullscreenDialog: true, builder: (context) => SendReport()));
 
-              return SlideTransition(
-                  position: animation.drive(tween), child: child);
-            }));
+    if (sent == true) {
+      Scaffold.of(context).showSnackBar(
+          SnackBar(content: Text('Your report was successfully submitted')));
+    }
   }
 
   testInfection() async {
@@ -234,6 +232,13 @@ class MainPageState extends State<MainPage> {
     showExposureNotification((await LocationModel.findAll(limit: 1)).first);
   }
 
+  resetVerified(AppState state) async {
+    Navigator.of(context).pop();
+    var user = state.user;
+    user.verifyToken = null;
+    await state.saveUser(user);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<AppState>(
@@ -242,22 +247,24 @@ class MainPageState extends State<MainPage> {
               title: Row(mainAxisSize: MainAxisSize.min, children: [
                 Image.asset('assets/app_icon.png',
                     fit: BoxFit.contain, height: 40),
-                Text('Covid Trace'),
+                Text('COVID Trace'),
               ]),
               actions: <Widget>[Container()], // Hides debug end drawer
             ),
+            floatingActionButtonAnimator: FloatingActionButtonAnimator.scaling,
             floatingActionButton: state.report != null
                 ? null
-                : FloatingActionButton.extended(
-                    icon:
-                        Image.asset('assets/self_report_icon.png', height: 25),
-                    label: Text('Self Report',
-                        style: TextStyle(
-                            letterSpacing: 0,
-                            fontSize: 20,
-                            fontWeight: FontWeight.w500)),
-                    onPressed: showSendReport,
-                  ),
+                : Builder(
+                    builder: (context) => FloatingActionButton.extended(
+                          icon: Image.asset('assets/self_report_icon.png',
+                              height: 25),
+                          label: Text('Self Report',
+                              style: TextStyle(
+                                  letterSpacing: 0,
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w500)),
+                          onPressed: () => showSendReport(context),
+                        )),
             floatingActionButtonLocation:
                 FloatingActionButtonLocation.centerFloat,
             // Use an empty bottom sheet to better control positiong of floating action button
@@ -284,7 +291,7 @@ class MainPageState extends State<MainPage> {
                     onTap: () => launch('https://covidtrace.com/privacy')),
                 ListTile(
                     leading: Icon(Icons.info),
-                    title: Text('About Covid Trace'),
+                    title: Text('About COVID Trace'),
                     onTap: () {
                       Navigator.of(context).pop();
                       showInfoDialog();
@@ -318,6 +325,10 @@ class MainPageState extends State<MainPage> {
                   leading: Icon(Icons.delete_forever),
                   title: Text('Reset Report'),
                   onTap: () => resetReport(state)),
+              ListTile(
+                  leading: Icon(Icons.verified_user),
+                  title: Text('Reset Verified'),
+                  onTap: () => resetVerified(state)),
               ListTile(
                   leading: Icon(Icons.power_settings_new),
                   title: Text('Reset Onboarding'),
