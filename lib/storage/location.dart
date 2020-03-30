@@ -39,10 +39,7 @@ class LocationModel {
       'id': id,
       'longitude': longitude,
       'latitude': latitude,
-      'cell_id': cellID
-          .parent(
-              22) // TODO(Josh) configure 22 somehow? this represents area of 4.8 m^2
-          .toToken(),
+      'cell_id': cellID.toToken(),
       'activity': activity,
       'sample': sample,
       'speed': speed,
@@ -52,10 +49,10 @@ class LocationModel {
     };
   }
 
-  List<dynamic> toCSV(String tested) {
+  List<dynamic> toCSV(int s2level, String tested) {
     return [
       roundedDateTime(timestamp),
-      cellID.toToken(),
+      cellID.parent(s2level).toToken(),
       tested != null ? tested : 'Self Reported'
     ];
   }
