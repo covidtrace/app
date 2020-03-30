@@ -243,13 +243,23 @@ class LocationHistoryState extends State {
                                       ),
                                     ]),
                                 SizedBox(width: 20),
-                                Opacity(
-                                    opacity: selected ? 1 : 0,
-                                    child: Image.asset('assets/sun_icon.png',
-                                        width: 25,
-                                        color: selected
-                                            ? Colors.orangeAccent
-                                            : Colors.grey)),
+                                Stack(children: [
+                                  SizedBox(width: 25, height: 25),
+                                  AnimatedPositioned(
+                                    top: selected ? 0 : 20,
+                                    curve: Curves.fastOutSlowIn,
+                                    duration: Duration(milliseconds: 250),
+                                    child: AnimatedOpacity(
+                                        opacity: selected ? 1 : 0,
+                                        duration: Duration(milliseconds: 200),
+                                        child: Image.asset(
+                                            'assets/sun_icon.png',
+                                            width: 25,
+                                            color: selected
+                                                ? Colors.orangeAccent
+                                                : Colors.grey)),
+                                  )
+                                ]),
                                 SizedBox(width: 5),
                                 Expanded(
                                     child: Row(
@@ -293,13 +303,23 @@ class LocationHistoryState extends State {
                                           },
                                         ))),
                                 SizedBox(width: 5),
-                                Opacity(
-                                    opacity: selected ? 1 : 0,
-                                    child: Image.asset('assets/moon_icon.png',
-                                        height: 20,
-                                        color: selected
-                                            ? Colors.blueGrey
-                                            : Colors.grey)),
+                                Stack(children: [
+                                  SizedBox(width: 25, height: 25),
+                                  AnimatedPositioned(
+                                    bottom: selected ? 0 : 20,
+                                    duration: Duration(milliseconds: 250),
+                                    curve: Curves.fastOutSlowIn,
+                                    child: AnimatedOpacity(
+                                        opacity: selected ? 1 : 0,
+                                        duration: Duration(milliseconds: 200),
+                                        child: Image.asset(
+                                            'assets/moon_icon.png',
+                                            width: 25,
+                                            color: selected
+                                                ? Colors.blueGrey
+                                                : Colors.grey)),
+                                  )
+                                ]),
                                 SizedBox(width: 20),
                                 Icon(
                                     item.exposure ? Icons.warning : Icons.place,
