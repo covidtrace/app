@@ -291,7 +291,8 @@ class MainPageState extends State<MainPage> {
                 ListTile(
                     leading: Icon(Icons.lock),
                     title: Text('Privacy Policy'),
-                    onTap: () => launch('https://covidtrace.com/privacy')),
+                    onTap: () =>
+                        launch('https://covidtrace.com/privacy-policy')),
                 ListTile(
                     leading: Icon(Icons.info),
                     title: Text('About COVID Trace'),
