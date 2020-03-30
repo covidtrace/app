@@ -52,8 +52,12 @@ class LocationModel {
     };
   }
 
-  List<dynamic> toCSV() {
-    return [roundedDateTime(timestamp), cellID.toToken(), 'self'];
+  List<dynamic> toCSV(String tested) {
+    return [
+      roundedDateTime(timestamp),
+      cellID.toToken(),
+      tested != null ? tested : 'Self Reported'
+    ];
   }
 
   Future<int> save() async {
