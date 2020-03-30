@@ -25,6 +25,7 @@ class LocationHistory extends StatefulWidget {
 
 class LocationHistoryState extends State {
   String _filter = 'all';
+  Map<String, Map<int, List<LocationModel>>> _locationsIndex = Map();
   List<LocationModel> _locations = [];
   List<LocationModel> _display = [];
   LocationModel _selected;
@@ -64,7 +65,23 @@ class LocationHistoryState extends State {
   Future<void> loadLocations() async {
     var locations = await LocationModel.findAll(
         where: 'sample = 0', orderBy: 'timestamp DESC');
-    setState(() => _locations = locations);
+
+    // bucket locations by day and hour
+    Map<String, Map<int, List<LocationModel>>> locationsIndex = Map();
+    locations.forEach((l) {
+      var timestamp = l.timestamp.toLocal();
+      var dayHour = DateFormat.yMd().format(timestamp);
+      locationsIndex[dayHour] =
+          locationsIndex[dayHour] ?? Map<int, List<LocationModel>>();
+      locationsIndex[dayHour][timestamp.hour] =
+          locationsIndex[dayHour][timestamp.hour] ?? List<LocationModel>();
+      locationsIndex[dayHour][timestamp.hour].add(l);
+    });
+
+    setState(() {
+      _locationsIndex = locationsIndex;
+      _locations = locations;
+    });
     setFilter(_filter);
   }
 
@@ -201,34 +218,98 @@ class LocationHistoryState extends State {
                     itemBuilder: (context, i) {
                       var item = _display[i];
                       var timestamp = item.timestamp.toLocal();
+                      var hour = timestamp.hour;
+                      var dayHour = DateFormat.yMd().format(timestamp);
+                      var hourMap = _locationsIndex[dayHour];
                       var selected = _selected.id == item.id;
 
                       return Column(children: [
-                        ListTileTheme(
-                            selectedColor: Colors.black,
+                        InkWell(
+                            onTap: () => setLocation(item),
                             child: Container(
-                                color: selected
-                                    ? Colors.grey[200]
-                                    : Colors.transparent,
-                                child: ListTile(
-                                  selected: selected,
-                                  onLongPress: () =>
-                                      setLocation(item, open: true),
-                                  onTap: () => setLocation(item),
-                                  title: Text(
-                                      '${DateFormat.Md().format(timestamp)}'),
-                                  subtitle: Text(
-                                      '${DateFormat.jm().format(timestamp)}'),
-                                  trailing: Icon(
-                                      item.exposure
-                                          ? Icons.warning
-                                          : Icons.place,
-                                      color: selected
-                                          ? Colors.red
-                                          : item.exposure
-                                              ? Colors.orange
-                                              : Colors.grey),
-                                ))),
+                              padding: EdgeInsets.all(15),
+                              color: selected
+                                  ? Colors.grey[200]
+                                  : Colors.transparent,
+                              child: Row(children: [
+                                Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(DateFormat.Md().format(timestamp)),
+                                      Text(
+                                        DateFormat.jm().format(timestamp),
+                                        style: TextStyle(color: Colors.grey),
+                                      ),
+                                    ]),
+                                SizedBox(width: 20),
+                                Opacity(
+                                    opacity: selected ? 1 : 0,
+                                    child: Image.asset('assets/sun_icon.png',
+                                        width: 25,
+                                        color: selected
+                                            ? Colors.orangeAccent
+                                            : Colors.grey)),
+                                SizedBox(width: 5),
+                                Expanded(
+                                    child: Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.end,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceEvenly,
+                                        children: List.generate(
+                                          24,
+                                          (i) {
+                                            return Flexible(
+                                                flex: 1,
+                                                child: Row(children: [
+                                                  Expanded(
+                                                      child: Container(
+                                                    decoration: BoxDecoration(
+                                                        borderRadius:
+                                                            BorderRadius.vertical(
+                                                                top: Radius
+                                                                    .circular(
+                                                                        5),
+                                                                bottom: Radius
+                                                                    .circular(
+                                                                        5)),
+                                                        color: i == hour
+                                                            ? item.exposure
+                                                                ? Colors.red
+                                                                : Colors.grey
+                                                            : Colors.grey[
+                                                                selected
+                                                                    ? 400
+                                                                    : 300]),
+                                                    height: hourMap != null &&
+                                                            hourMap
+                                                                .containsKey(i)
+                                                        ? 25
+                                                        : 5,
+                                                  )),
+                                                  SizedBox(width: 3)
+                                                ]));
+                                          },
+                                        ))),
+                                SizedBox(width: 5),
+                                Opacity(
+                                    opacity: selected ? 1 : 0,
+                                    child: Image.asset('assets/moon_icon.png',
+                                        height: 20,
+                                        color: selected
+                                            ? Colors.blueGrey
+                                            : Colors.grey)),
+                                SizedBox(width: 20),
+                                Icon(
+                                    item.exposure ? Icons.warning : Icons.place,
+                                    color: selected
+                                        ? Colors.red
+                                        : item.exposure
+                                            ? Colors.orange
+                                            : Colors.grey)
+                              ]),
+                            )),
                         Divider(height: 0),
                       ]);
                     },
