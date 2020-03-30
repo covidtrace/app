@@ -37,7 +37,7 @@ class SendReportState extends State<SendReport> {
 
     if (!verified) {
       return;
-    } else {}
+    }
 
     if (!await sendReport(state)) {
       Scaffold.of(context).showSnackBar(SnackBar(

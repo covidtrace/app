@@ -70,6 +70,44 @@ class AppState with ChangeNotifier {
     notifyListeners();
   }
 
+  Future<bool> sendExposure() async {
+    var success = false;
+    try {
+      var config = await getConfig();
+      var user = await UserModel.find();
+
+      var bucket = config['exposureBucket'];
+      if (bucket == null) {
+        bucket = 'covidtrace-exposures';
+      }
+
+      var contentType = 'application/json; charset=utf-8';
+      var uploadSuccess = await signedUpload(config,
+          query: {
+            'bucket': bucket,
+            'contentType': contentType,
+            'object': '${user.uuid}.json'
+          },
+          headers: {'Content-Type': contentType},
+          body: jsonEncode({
+            'cellID': _exposure.cellID.parent(10).toToken(),
+            'timestamp': DateFormat('yyyy-MM-dd').format(DateTime.now())
+          }));
+
+      if (!uploadSuccess) {
+        return false;
+      }
+
+      success = true;
+    } catch (err) {
+      print(err);
+      success = false;
+    }
+
+    notifyListeners();
+    return success;
+  }
+
   Future<bool> sendReport(Map<String, dynamic> symptoms) async {
     var success = false;
 
