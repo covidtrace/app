@@ -76,7 +76,8 @@ class AppState with ChangeNotifier {
       var config = await getConfig();
       var user = await UserModel.find();
 
-      var bucket = config['exposureBucket'];
+      int level = config['exposureS2Level'];
+      String bucket = config['exposureBucket'];
       if (bucket == null) {
         bucket = 'covidtrace-exposures';
       }
@@ -90,7 +91,7 @@ class AppState with ChangeNotifier {
           },
           headers: {'Content-Type': contentType},
           body: jsonEncode({
-            'cellID': _exposure.cellID.parent(10).toToken(),
+            'cellID': _exposure.cellID.parent(level).toToken(),
             'timestamp': DateFormat('yyyy-MM-dd').format(DateTime.now())
           }));
 
@@ -117,6 +118,7 @@ class AppState with ChangeNotifier {
     try {
       var config = await getConfig();
       var user = await UserModel.find();
+      int compareLevel = config['compareS2Level'];
 
       var symptomBucket = config['symptomBucket'];
       if (symptomBucket == null) {
@@ -170,8 +172,8 @@ class AppState with ChangeNotifier {
           headers: {
             'Content-Type': contentType,
           },
-          body: ListToCsvConverter()
-              .convert(headers + locations.map((l) => l.toCSV()).toList()));
+          body: ListToCsvConverter().convert(
+              headers + locations.map((l) => l.toCSV(compareLevel)).toList()));
 
       if (!uploadSuccess) {
         return false;
