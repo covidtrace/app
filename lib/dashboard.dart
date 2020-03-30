@@ -71,6 +71,8 @@ class DashboardState extends State with SingleTickerProviderStateMixin {
     // await verifyPhone();
     await state.sendExposure();
     setState(() => _sendingExposure = false);
+    Scaffold.of(context).showSnackBar(
+        SnackBar(content: Text('Your report was successfully submitted')));
   }
 
   Future<bool> verifyPhone() async {
