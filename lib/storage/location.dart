@@ -49,11 +49,10 @@ class LocationModel {
     };
   }
 
-  List<dynamic> toCSV(int s2level, String tested) {
+  List<dynamic> toCSV(int s2level) {
     return [
       roundedDateTime(timestamp),
       cellID.parent(s2level).toToken(),
-      tested,
       false // whether this is a verified submission, always false for now
     ];
   }

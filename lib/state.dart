@@ -118,9 +118,7 @@ class AppState with ChangeNotifier {
     try {
       var config = await getConfig();
       var user = await UserModel.find();
-
       int compareLevel = config['compareS2Level'];
-      String tested = symptoms['tested'];
 
       var symptomBucket = config['symptomBucket'];
       if (symptomBucket == null) {
@@ -174,8 +172,8 @@ class AppState with ChangeNotifier {
           headers: {
             'Content-Type': contentType,
           },
-          body: ListToCsvConverter().convert(headers +
-              locations.map((l) => l.toCSV(compareLevel, tested)).toList()));
+          body: ListToCsvConverter().convert(
+              headers + locations.map((l) => l.toCSV(compareLevel)).toList()));
 
       if (!uploadSuccess) {
         return false;
