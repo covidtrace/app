@@ -98,6 +98,9 @@ class AppState with ChangeNotifier {
         return false;
       }
 
+      _exposure.reported = true;
+      await _exposure.save();
+
       success = true;
     } catch (err) {
       print(err);

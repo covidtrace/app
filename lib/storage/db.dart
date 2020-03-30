@@ -15,7 +15,7 @@ Future<Database> _initDatabase() async {
       openDatabase(dbPath, onCreate: (db, version) async {
     // Set up location table
     await db.execute(
-        "CREATE TABLE location(id INTEGER PRIMARY KEY, longitude REAL, latitude REAL, cell_id TEXT, speed REAL, activity TEXT, sample INTEGER, timestamp TEXT, exposure INTEGER DEFAULT 0)");
+        "CREATE TABLE location(id INTEGER PRIMARY KEY, longitude REAL, latitude REAL, cell_id TEXT, speed REAL, activity TEXT, sample INTEGER, timestamp TEXT, exposure INTEGER DEFAULT 0, reported INTEGER DEFAULT 0)");
 
     // Set up user table
     await db.execute(

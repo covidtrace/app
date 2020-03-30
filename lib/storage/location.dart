@@ -17,6 +17,7 @@ class LocationModel {
   final DateTime timestamp;
 
   bool exposure;
+  bool reported;
   S2CellId cellID;
 
   LocationModel(
@@ -27,7 +28,8 @@ class LocationModel {
       this.activity,
       this.sample,
       this.timestamp,
-      this.exposure}) {
+      this.exposure,
+      this.reported}) {
     cellID = new S2CellId.fromLatLng(
         new S2LatLng.fromDegrees(this.latitude, this.longitude));
   }
@@ -46,6 +48,7 @@ class LocationModel {
       'speed': speed,
       'timestamp': timestamp.toIso8601String(),
       'exposure': exposure == true ? 1 : 0,
+      'reported': reported == true ? 1 : 0,
     };
   }
 
@@ -53,7 +56,7 @@ class LocationModel {
     return [roundedDateTime(timestamp), cellID.toToken(), 'self'];
   }
 
-  Future<void> save() async {
+  Future<int> save() async {
     final Database db = await Storage.db;
     return db.update('location', toMap(), where: 'id = ?', whereArgs: [id]);
   }
@@ -75,7 +78,10 @@ class LocationModel {
     var exposures = Sqflite.firstIntValue(
         await db.rawQuery('SELECT COUNT(*) FROM location WHERE exposure = 1;'));
 
-    return {'count': count, 'exposures': exposures};
+    var reported = Sqflite.firstIntValue(
+        await db.rawQuery('SELECT COUNT(*) FROM location WHERE reported = 1;'));
+
+    return {'count': count, 'exposures': exposures, 'reported': reported};
   }
 
   Future<void> destroy() async {
@@ -119,6 +125,7 @@ class LocationModel {
         speed: rows[i]['speed'],
         timestamp: DateTime.parse(rows[i]['timestamp']),
         exposure: rows[i]['exposure'] == 1,
+        reported: rows[i]['reported'] == 1,
       );
     });
   }
