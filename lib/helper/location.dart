@@ -14,6 +14,7 @@ Future<LatLng> locateCurrentPosition() async {
   } catch (err) {
     print(err);
   }
+  return null;
 }
 
 void launchMapsApp(LatLng location) {
