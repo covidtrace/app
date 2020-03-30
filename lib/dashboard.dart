@@ -64,6 +64,33 @@ class DashboardState extends State with SingleTickerProviderStateMixin {
     }
   }
 
+  Future<void> sendExposure(LatLng location) async {}
+
+  Future<void> showExposureDialog() async {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Exposure Report'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text(
+                    "COVID Trace does not notify us automatically about possible exposures. When you hit 'Send Report', we'll know the day and the approximate area of the exposure.\n\nSending us this alert is immensely helpful to us and health officials."),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            FlatButton(
+              child: Text('Ok'),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     var subhead = Theme.of(context).textTheme.subhead;
@@ -348,6 +375,25 @@ class DashboardState extends State with SingleTickerProviderStateMixin {
                     subtitle: Text(
                         'Your location overlapped with someone who reported as having COVID-19.'),
                   ),
+                  Divider(height: 0),
+                  Row(children: [
+                    Expanded(
+                        child: Stack(children: [
+                      Center(
+                          child: FlatButton(
+                        child: Text('SEND REPORT',
+                            style: TextStyle(
+                                decoration: TextDecoration.underline)),
+                        onPressed: () => sendExposure(loc),
+                      )),
+                      Positioned(
+                          right: 0,
+                          child: IconButton(
+                              icon:
+                                  Icon(Icons.info_outline, color: Colors.grey),
+                              onPressed: showExposureDialog)),
+                    ]))
+                  ]),
                 ])),
                 SizedBox(height: 20),
                 Center(
