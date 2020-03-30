@@ -67,22 +67,36 @@ class DashboardState extends State with SingleTickerProviderStateMixin {
   }
 
   Future<void> sendExposure(AppState state) async {
+    String token;
+    bool verified = state.user.verified;
+
+    if (!verified) {
+      token = await verifyPhone();
+      verified = token != null;
+
+      if (verified) {
+        state.user.verifyToken = token;
+        await state.saveUser(state.user);
+      }
+    }
+
+    if (!verified) {
+      return;
+    }
+
     setState(() => _sendingExposure = true);
-    // await verifyPhone();
     await state.sendExposure();
     setState(() => _sendingExposure = false);
     Scaffold.of(context).showSnackBar(
         SnackBar(content: Text('Your report was successfully submitted')));
   }
 
-  Future<bool> verifyPhone() async {
-    var success = await showModalBottomSheet(
+  Future<String> verifyPhone() {
+    return showModalBottomSheet(
       context: context,
       builder: (context) => VerifyPhone(),
       isScrollControlled: true,
     );
-
-    return success == true;
   }
 
   Future<void> showExposureDialog() async {
@@ -386,20 +400,20 @@ class DashboardState extends State with SingleTickerProviderStateMixin {
                           }
                         },
                       )),
+                  SizedBox(height: 10),
                   ListTile(
                     onTap: () => launchMapsApp(loc),
-                    isThreeLine: true,
+                    isThreeLine: false,
                     title: Text(
                         '${DateFormat.Md().format(timestamp)} ${DateFormat('ha').format(timestamp).toLowerCase()} - ${DateFormat('ha').format(timestamp.add(Duration(hours: 1))).toLowerCase()}'),
                     subtitle: Text(
                         'Your location overlapped with someone who reported as having COVID-19.'),
                   ),
-                  Divider(height: 0),
                   Row(children: [
                     Expanded(
                         child: Stack(children: [
                       Center(
-                          child: FlatButton(
+                          child: OutlineButton(
                         child: _sendingExposure
                             ? SizedBox(
                                 height: 20,
@@ -410,9 +424,9 @@ class DashboardState extends State with SingleTickerProviderStateMixin {
                                   valueColor: AlwaysStoppedAnimation(
                                       Theme.of(context).textTheme.button.color),
                                 ))
-                            : Text('SEND REPORT',
-                                style: TextStyle(
-                                    decoration: TextDecoration.underline)),
+                            : Text(
+                                'SEND REPORT',
+                              ),
                         onPressed: () => sendExposure(state),
                       )),
                       Positioned(
@@ -421,8 +435,9 @@ class DashboardState extends State with SingleTickerProviderStateMixin {
                               icon:
                                   Icon(Icons.info_outline, color: Colors.grey),
                               onPressed: showExposureDialog)),
-                    ]))
+                    ])),
                   ]),
+                  SizedBox(height: 8),
                 ])),
                 SizedBox(height: 20),
                 Center(
