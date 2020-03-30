@@ -53,7 +53,8 @@ class LocationModel {
     return [
       roundedDateTime(timestamp),
       cellID.parent(s2level).toToken(),
-      tested != null ? tested : 'Self Reported'
+      tested,
+      false // whether this is a verified submission, always false for now
     ];
   }
 
