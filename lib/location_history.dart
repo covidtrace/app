@@ -287,7 +287,8 @@ class LocationHistoryState extends State {
                                                         color: i == hour
                                                             ? item.exposure
                                                                 ? Colors.red
-                                                                : Colors.grey
+                                                                : Colors
+                                                                    .grey[600]
                                                             : Colors.grey[
                                                                 selected
                                                                     ? 400
