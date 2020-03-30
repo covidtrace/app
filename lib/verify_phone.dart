@@ -108,7 +108,7 @@ class VerifyPhoneState extends State with SingleTickerProviderStateMixin {
                       key: _phoneForm,
                       child: Column(children: [
                         Text(
-                            'We need to verify your app the first time you submit data. Enter your phone number to receive a confirmation code.',
+                            'We need to verify your app the first time you submit data. Enter your phone number to receive a verification code.',
                             style: bodyText),
                         TextFormField(
                             autofocus: true,
@@ -154,8 +154,13 @@ class VerifyPhoneState extends State with SingleTickerProviderStateMixin {
                                         errorText: _codeError),
                                     controller: codeController,
                                     keyboardType: TextInputType.number,
-                                    onChanged: (value) =>
-                                        setState(() => _codeError = null),
+                                    onChanged: (value) {
+                                      setState(() => _codeError = null);
+                                      if (value.length == 6 &&
+                                          _codeForm.currentState.validate()) {
+                                        verifyCode(codeController.text);
+                                      }
+                                    },
                                     validator: (String value) {
                                       if (value.isEmpty) {
                                         return 'Please enter a valid code';

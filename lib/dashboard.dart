@@ -9,16 +9,21 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'helper/check_exposures.dart';
 import 'helper/location.dart';
+import 'verify_phone.dart';
 
 class Dashboard extends StatefulWidget {
   @override
   State<StatefulWidget> createState() => DashboardState();
 }
 
-class DashboardState extends State with SingleTickerProviderStateMixin {
+class DashboardState extends State with TickerProviderStateMixin {
   bool _exposed;
   bool _expandHeader = false;
+  bool _sendingExposure = false;
+  bool _hideReport = true;
   Completer<GoogleMapController> _mapController = Completer();
+  AnimationController reportController;
+  CurvedAnimation reportAnimation;
   AnimationController expandController;
   CurvedAnimation animation;
 
@@ -28,6 +33,12 @@ class DashboardState extends State with SingleTickerProviderStateMixin {
         AnimationController(vsync: this, duration: Duration(milliseconds: 200));
     animation =
         CurvedAnimation(parent: expandController, curve: Curves.fastOutSlowIn);
+
+    reportController = AnimationController(
+        vsync: this, duration: Duration(milliseconds: 200), value: 1);
+    reportAnimation =
+        CurvedAnimation(parent: reportController, curve: Curves.fastOutSlowIn);
+
     Provider.of<AppState>(context, listen: false).addListener(onStateChange);
   }
 
@@ -37,10 +48,18 @@ class DashboardState extends State with SingleTickerProviderStateMixin {
     super.dispose();
   }
 
-  void onStateChange() {
-    if (Provider.of<AppState>(context, listen: false).report != null) {
+  void onStateChange() async {
+    AppState state = Provider.of<AppState>(context, listen: false);
+    if (state.report != null) {
       expandController.forward();
       setState(() => _expandHeader = true);
+    }
+
+    if ((state.exposure?.reported ?? false) && !reportController.isAnimating) {
+      setState(() => _hideReport = false);
+      await Future.delayed(Duration(seconds: 1));
+      await reportController.reverse();
+      setState(() => _hideReport = true);
     }
   }
 
@@ -62,6 +81,64 @@ class DashboardState extends State with SingleTickerProviderStateMixin {
     if (_exposed && currentExposed != true && !found) {
       showExposureNotification(location);
     }
+  }
+
+  Future<void> sendExposure(AppState state) async {
+    String token;
+    bool verified = state.user.verified;
+
+    if (!verified) {
+      token = await verifyPhone();
+      verified = token != null;
+
+      if (verified) {
+        state.user.verifyToken = token;
+        await state.saveUser(state.user);
+      }
+    }
+
+    if (!verified) {
+      return;
+    }
+
+    setState(() => _sendingExposure = true);
+    await state.sendExposure();
+    setState(() => _sendingExposure = false);
+    Scaffold.of(context).showSnackBar(
+        SnackBar(content: Text('Your report was successfully submitted')));
+  }
+
+  Future<String> verifyPhone() {
+    return showModalBottomSheet(
+      context: context,
+      builder: (context) => VerifyPhone(),
+      isScrollControlled: true,
+    );
+  }
+
+  Future<void> showExposureDialog() async {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Exposure Report'),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: <Widget>[
+                Text(
+                    "The COVID Trace app does not automatically notify us about an exposure alert. When you hit \"Send Report\", we will be able to count in your area the number of people potentially exposed.\n\nCounting your alert helps health officials know how much COVID-19 may be spreading."),
+              ],
+            ),
+          ),
+          actions: <Widget>[
+            FlatButton(
+              child: Text('Ok'),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -340,14 +417,52 @@ class DashboardState extends State with SingleTickerProviderStateMixin {
                           }
                         },
                       )),
+                  SizedBox(height: 10),
                   ListTile(
                     onTap: () => launchMapsApp(loc),
-                    isThreeLine: true,
+                    isThreeLine: false,
                     title: Text(
                         '${DateFormat.Md().format(timestamp)} ${DateFormat('ha').format(timestamp).toLowerCase()} - ${DateFormat('ha').format(timestamp.add(Duration(hours: 1))).toLowerCase()}'),
                     subtitle: Text(
                         'Your location overlapped with someone who reported as having COVID-19.'),
                   ),
+                  location.reported && _hideReport
+                      ? Container()
+                      : SizeTransition(
+                          axisAlignment: 1,
+                          sizeFactor: reportAnimation,
+                          child: Row(children: [
+                            Expanded(
+                                child: Stack(children: [
+                              Center(
+                                  child: OutlineButton(
+                                child: _sendingExposure
+                                    ? SizedBox(
+                                        height: 20,
+                                        width: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          value: null,
+                                          valueColor: AlwaysStoppedAnimation(
+                                              Theme.of(context)
+                                                  .textTheme
+                                                  .button
+                                                  .color),
+                                        ))
+                                    : Text(
+                                        'SEND REPORT',
+                                      ),
+                                onPressed: () => sendExposure(state),
+                              )),
+                              Positioned(
+                                  right: 0,
+                                  child: IconButton(
+                                      icon: Icon(Icons.info_outline,
+                                          color: Colors.grey),
+                                      onPressed: showExposureDialog)),
+                            ])),
+                          ])),
+                  SizedBox(height: 8),
                 ])),
                 SizedBox(height: 20),
                 Center(
