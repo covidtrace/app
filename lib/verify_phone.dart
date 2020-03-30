@@ -1,8 +1,6 @@
-import 'dart:convert';
-import 'package:covidtrace/config.dart';
+import 'package:covidtrace/operator.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 
 class VerifyPhone extends StatefulWidget {
   VerifyPhone({Key key}) : super(key: key);
@@ -21,7 +19,6 @@ class VerifyPhoneState extends State with SingleTickerProviderStateMixin {
   var animation;
   String _phoneToken;
   String _phoneError;
-  String _codeToken;
   String _codeError;
   bool _loading = false;
 
@@ -45,42 +42,32 @@ class VerifyPhoneState extends State with SingleTickerProviderStateMixin {
 
   Future<void> requestCode(String number) async {
     setState(() => _loading = true);
-    var config = await getConfig();
-    String operatorUrl = config['operatorUrl'];
-    var resp = await http.post('$operatorUrl/init',
-        body: jsonEncode({'phone': number}));
+    var token = await Operator.init(number);
     setState(() => _loading = false);
 
-    if (resp.statusCode != 200) {
+    if (token == null) {
       setState(() => _phoneError = 'There was an error requesting a code');
-      return false;
+      return;
     }
 
-    var result = jsonDecode(resp.body);
-    _phoneToken = result['token'];
-
+    _phoneToken = token;
     slideController.forward();
     codeFocus.requestFocus();
   }
 
   Future<void> verifyCode(String code) async {
     setState(() => _loading = true);
-    var config = await getConfig();
-    String operatorUrl = config['operatorUrl'];
-    var resp = await http.post('$operatorUrl/verify',
-        body: jsonEncode({'token': _phoneToken, 'code': code}));
+    var token = await Operator.verify(_phoneToken, code);
     setState(() => _loading = false);
 
-    if (resp.statusCode != 200) {
+    if (token == null) {
       setState(() => _codeError = 'The code provided was incorrect');
       codeController.text = '';
-      return false;
+      return;
     }
 
-    var result = jsonDecode(resp.body);
-    _codeToken = result['token'];
-    if (_codeToken.isNotEmpty) {
-      Navigator.pop(context, _codeToken);
+    if (token.valid) {
+      Navigator.pop(context, token);
     } else {
       setState(() => _codeError = 'Something went wrong');
       codeController.text = '';

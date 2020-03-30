@@ -36,6 +36,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "2.4.0"
+  auth_header:
+    dependency: transitive
+    description:
+      name: auth_header
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.1.4"
   background_fetch:
     dependency: "direct main"
     description:
@@ -208,6 +215,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.16.0"
+  jaguar_jwt:
+    dependency: "direct main"
+    description:
+      name: jaguar_jwt
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.1.6"
   json_rpc_2:
     dependency: transitive
     description:

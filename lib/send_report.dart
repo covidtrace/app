@@ -1,3 +1,4 @@
+import 'package:covidtrace/operator.dart';
 import 'package:covidtrace/verify_phone.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -20,22 +21,22 @@ class SendReportState extends State<SendReport> {
   var _confirm = false;
   var _loading = false;
   var _step = 0;
+  Token _token;
 
   void onSubmit(context, AppState state) async {
-    String token;
-    bool verified = state.user.verified;
+    _token = Token(
+        token: state.user.verifyToken, refreshToken: state.user.refreshToken);
 
-    if (!verified) {
-      token = await verifyPhone();
-      verified = token != null;
-
-      if (verified) {
-        state.user.verifyToken = token;
+    if (!_token.valid) {
+      _token = await verifyPhone();
+      if (_token != null && _token.valid) {
+        state.user.verifyToken = _token.token;
+        state.user.refreshToken = _token.refreshToken;
         await state.saveUser(state.user);
       }
     }
 
-    if (!verified) {
+    if (_token == null || !_token.valid) {
       return;
     }
 
@@ -50,7 +51,7 @@ class SendReportState extends State<SendReport> {
 
   Future<bool> sendReport(AppState state) async {
     setState(() => _loading = true);
-    var success = await state.sendReport({
+    var success = await state.sendReport(_token, {
       'breathing': _breathing,
       'cough': _cough,
       'days': _days,
@@ -62,7 +63,7 @@ class SendReportState extends State<SendReport> {
     return success;
   }
 
-  Future<String> verifyPhone() {
+  Future<Token> verifyPhone() {
     return showModalBottomSheet(
       context: context,
       builder: (context) => VerifyPhone(),

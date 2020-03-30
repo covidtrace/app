@@ -1,12 +1,13 @@
 import 'dart:convert';
 
+import 'config.dart';
+import 'helper/signed_upload.dart';
+import 'package:covidtrace/operator.dart';
 import 'package:covidtrace/storage/report.dart';
 import 'package:csv/csv.dart';
 import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
-import 'config.dart';
-import 'helper/signed_upload.dart';
 import 'storage/location.dart';
 import 'storage/user.dart';
 
@@ -70,7 +71,7 @@ class AppState with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<bool> sendExposure() async {
+  Future<bool> sendExposure(Token token) async {
     var success = false;
     try {
       var config = await getConfig();
@@ -83,7 +84,7 @@ class AppState with ChangeNotifier {
       }
 
       var contentType = 'application/json; charset=utf-8';
-      var uploadSuccess = await signedUpload(config,
+      var uploadSuccess = await signedUpload(config, token,
           query: {
             'bucket': bucket,
             'contentType': contentType,
@@ -112,7 +113,7 @@ class AppState with ChangeNotifier {
     return success;
   }
 
-  Future<bool> sendReport(Map<String, dynamic> symptoms) async {
+  Future<bool> sendReport(Token token, Map<String, dynamic> symptoms) async {
     var success = false;
 
     try {
@@ -126,7 +127,7 @@ class AppState with ChangeNotifier {
       }
 
       var contentType = 'application/json; charset=utf-8';
-      var symptomSuccess = await signedUpload(config,
+      var symptomSuccess = await signedUpload(config, token,
           query: {
             'bucket': symptomBucket,
             'contentType': contentType,
@@ -163,7 +164,7 @@ class AppState with ChangeNotifier {
       }
 
       contentType = 'text/csv; charset=utf-8';
-      var uploadSuccess = await signedUpload(config,
+      var uploadSuccess = await signedUpload(config, token,
           query: {
             'bucket': holdingBucket,
             'contentType': contentType,
