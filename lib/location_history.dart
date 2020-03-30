@@ -303,11 +303,9 @@ class LocationHistoryState extends State {
                                 SizedBox(width: 20),
                                 Icon(
                                     item.exposure ? Icons.warning : Icons.place,
-                                    color: selected
-                                        ? Colors.red
-                                        : item.exposure
-                                            ? Colors.orange
-                                            : Colors.grey)
+                                    color: item.exposure
+                                        ? Colors.orange
+                                        : Colors.grey)
                               ]),
                             )),
                         Divider(height: 0),
