@@ -45,7 +45,7 @@ class SendReportState extends State<SendReport> {
 
   Future<bool> sendReport(AppState state) async {
     setState(() => _loading = true);
-    var success = await state.sendReport(state.user.token, {
+    var success = await state.sendReport({
       'breathing': _breathing,
       'cough': _cough,
       'days': _days,

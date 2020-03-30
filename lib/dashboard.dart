@@ -97,7 +97,7 @@ class DashboardState extends State with TickerProviderStateMixin {
     }
 
     setState(() => _sendingExposure = true);
-    await state.sendExposure(state.user.token);
+    await state.sendExposure();
     setState(() => _sendingExposure = false);
     Scaffold.of(context).showSnackBar(
         SnackBar(content: Text('Your report was successfully submitted')));
