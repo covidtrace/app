@@ -19,7 +19,9 @@ class VerifyPhoneState extends State with SingleTickerProviderStateMixin {
   AnimationController slideController;
   var animation;
   String _phoneToken;
+  String _phoneError;
   String _codeToken;
+  String _codeError;
   bool _loading = false;
 
   void initState() {
@@ -47,7 +49,7 @@ class VerifyPhoneState extends State with SingleTickerProviderStateMixin {
     setState(() => _loading = false);
 
     if (resp.statusCode != 200) {
-      print('failed to request verification code');
+      setState(() => _phoneError = 'There was an error requesting a code');
       return false;
     }
 
@@ -66,7 +68,8 @@ class VerifyPhoneState extends State with SingleTickerProviderStateMixin {
     setState(() => _loading = false);
 
     if (resp.statusCode != 200) {
-      print('failed to verify code');
+      setState(() => _codeError = 'The code provided was incorrect');
+      codeController.text = '';
       return false;
     }
 
@@ -75,7 +78,8 @@ class VerifyPhoneState extends State with SingleTickerProviderStateMixin {
     if (_codeToken.isNotEmpty) {
       Navigator.pop(context, _codeToken);
     } else {
-      // Display error message
+      setState(() => _codeError = 'Something went wrong');
+      codeController.text = '';
     }
   }
 
@@ -108,10 +112,13 @@ class VerifyPhoneState extends State with SingleTickerProviderStateMixin {
                             style: bodyText),
                         TextFormField(
                             autofocus: true,
-                            decoration:
-                                InputDecoration(labelText: 'Phone number'),
+                            decoration: InputDecoration(
+                                labelText: 'Phone number',
+                                errorText: _phoneError),
                             controller: phoneController,
                             keyboardType: TextInputType.phone,
+                            onChanged: (value) =>
+                                setState(() => _phoneError = null),
                             validator: (String value) {
                               if (value.isEmpty) {
                                 return 'Please enter a valid US phone number';
@@ -142,10 +149,13 @@ class VerifyPhoneState extends State with SingleTickerProviderStateMixin {
                                     style: bodyText, textAlign: TextAlign.left),
                                 TextFormField(
                                     focusNode: codeFocus,
-                                    decoration:
-                                        InputDecoration(labelText: 'Code'),
+                                    decoration: InputDecoration(
+                                        labelText: 'Code',
+                                        errorText: _codeError),
                                     controller: codeController,
                                     keyboardType: TextInputType.number,
+                                    onChanged: (value) =>
+                                        setState(() => _codeError = null),
                                     validator: (String value) {
                                       if (value.isEmpty) {
                                         return 'Please enter a valid code';
@@ -156,7 +166,7 @@ class VerifyPhoneState extends State with SingleTickerProviderStateMixin {
                                 Center(
                                     child: RaisedButton(
                                         onPressed: () {
-                                          if (_phoneForm.currentState
+                                          if (_codeForm.currentState
                                               .validate()) {
                                             verifyCode(codeController.text);
                                           }

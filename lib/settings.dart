@@ -122,7 +122,7 @@ class SettingsViewState extends State {
                                         'Your home location was updated successfully')));
                               } else {
                                 Scaffold.of(context).showSnackBar(SnackBar(
-                                    backgroundColor: Colors.red,
+                                    backgroundColor: Colors.deepOrange,
                                     content: Text(
                                         'There was an error updating your home location ')));
                               }

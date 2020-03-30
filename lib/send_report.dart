@@ -41,7 +41,7 @@ class SendReportState extends State<SendReport> {
 
     if (!await sendReport(state)) {
       Scaffold.of(context).showSnackBar(SnackBar(
-          backgroundColor: Colors.orangeAccent,
+          backgroundColor: Colors.deepOrange,
           content: Text('There was an error submitting your report')));
     } else {
       Navigator.pop(context, true);
