@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'helper/check_exposures.dart';
 import 'helper/location.dart';
+import 'verify_phone.dart';
 
 class Dashboard extends StatefulWidget {
   @override
@@ -18,6 +19,7 @@ class Dashboard extends StatefulWidget {
 class DashboardState extends State with SingleTickerProviderStateMixin {
   bool _exposed;
   bool _expandHeader = false;
+  bool _sendingExposure = false;
   Completer<GoogleMapController> _mapController = Completer();
   AnimationController expandController;
   CurvedAnimation animation;
@@ -64,7 +66,22 @@ class DashboardState extends State with SingleTickerProviderStateMixin {
     }
   }
 
-  Future<void> sendExposure(LatLng location) async {}
+  Future<void> sendExposure(AppState state) async {
+    setState(() => _sendingExposure = true);
+    // await verifyPhone();
+    await state.sendExposure();
+    setState(() => _sendingExposure = false);
+  }
+
+  Future<bool> verifyPhone() async {
+    var success = await showModalBottomSheet(
+      context: context,
+      builder: (context) => VerifyPhone(),
+      isScrollControlled: true,
+    );
+
+    return success == true;
+  }
 
   Future<void> showExposureDialog() async {
     return showDialog<void>(
@@ -76,7 +93,7 @@ class DashboardState extends State with SingleTickerProviderStateMixin {
             child: ListBody(
               children: <Widget>[
                 Text(
-                    "COVID Trace does not notify us automatically about possible exposures. When you hit 'Send Report', we'll know the day and the approximate area of the exposure.\n\nSending us this alert is immensely helpful to us and health officials."),
+                    "The COVID Trace app does not automatically notify us about an exposure alert. When you hit \"Send Report\", we will be able to count in your area the number of people potentially exposed.\n\nCounting your alert helps health officials know how much COVID-19 may be spreading."),
               ],
             ),
           ),
@@ -381,10 +398,20 @@ class DashboardState extends State with SingleTickerProviderStateMixin {
                         child: Stack(children: [
                       Center(
                           child: FlatButton(
-                        child: Text('SEND REPORT',
-                            style: TextStyle(
-                                decoration: TextDecoration.underline)),
-                        onPressed: () => sendExposure(loc),
+                        child: _sendingExposure
+                            ? SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  value: null,
+                                  valueColor: AlwaysStoppedAnimation(
+                                      Theme.of(context).textTheme.button.color),
+                                ))
+                            : Text('SEND REPORT',
+                                style: TextStyle(
+                                    decoration: TextDecoration.underline)),
+                        onPressed: () => sendExposure(state),
                       )),
                       Positioned(
                           right: 0,
