@@ -50,7 +50,26 @@ Future<bool> checkExposures() async {
   await Future.forEach(geos, (geo) async {
     var objects = await getPrefixMatches(publishedBucket, '$geo/');
 
-    await Future.wait(objects.map((item) async {
+    await Future.wait(objects.where((item) {
+      // Filter objects for any that are lexically equal to or greater than
+      // the CSVs we last downloaded. If we have never checked before, we
+      // should fetch everything for the last three weeks
+      var lastCheck = user.lastCheck;
+      if (lastCheck == null) {
+        lastCheck = DateTime.now().subtract(Duration(days: 21));
+      }
+
+      var name = item['name'] as String;
+      var nameParts = name.split('/');
+      if (nameParts.length != 2) {
+        return false;
+      }
+
+      var unixCsv = nameParts[1];
+      return unixCsv
+              .compareTo('${lastCheck.millisecondsSinceEpoch / 1000}.csv') >=
+          0;
+    }).map((item) async {
       // Sync file to local storage
       var fileHandle = await syncObject(dir.path, publishedBucket,
           item['name'] as String, item['md5Hash'] as String);
