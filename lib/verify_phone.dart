@@ -1,6 +1,7 @@
+import 'dart:convert';
+import 'package:covidtrace/config.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 class VerifyPhone extends StatefulWidget {
@@ -44,8 +45,10 @@ class VerifyPhoneState extends State with SingleTickerProviderStateMixin {
 
   Future<void> requestCode(String number) async {
     setState(() => _loading = true);
-    var uri = Uri.parse('https://operator-k3cimrd2pq-uc.a.run.app/init');
-    var resp = await http.post(uri, body: jsonEncode({'phone': number}));
+    var config = await getConfig();
+    String operatorUrl = config['operatorUrl'];
+    var resp =
+        await http.post(operatorUrl, body: jsonEncode({'phone': number}));
     setState(() => _loading = false);
 
     if (resp.statusCode != 200) {
@@ -62,8 +65,9 @@ class VerifyPhoneState extends State with SingleTickerProviderStateMixin {
 
   Future<void> verifyCode(String code) async {
     setState(() => _loading = true);
-    var uri = Uri.parse('https://operator-k3cimrd2pq-uc.a.run.app/verify');
-    var resp = await http.post(uri,
+    var config = await getConfig();
+    String operatorUrl = config['operatorUrl'];
+    var resp = await http.post(operatorUrl,
         body: jsonEncode({'token': _phoneToken, 'code': code}));
     setState(() => _loading = false);
 
