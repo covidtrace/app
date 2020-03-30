@@ -85,25 +85,19 @@ class DashboardState extends State with TickerProviderStateMixin {
   }
 
   Future<void> sendExposure(AppState state) async {
-    var token = Token(
-        token: state.user.verifyToken, refreshToken: state.user.refreshToken);
-
-    if (!token.valid) {
-      token = await verifyPhone();
-
-      if (token != null && token.valid) {
-        state.user.verifyToken = token.token;
-        state.user.refreshToken = token.refreshToken;
+    if (!state.user.verified) {
+      state.user.token = await verifyPhone();
+      if (state.user.verified) {
         await state.saveUser(state.user);
       }
     }
 
-    if (!token.valid) {
+    if (!state.user.verified) {
       return;
     }
 
     setState(() => _sendingExposure = true);
-    await state.sendExposure(token);
+    await state.sendExposure(state.user.token);
     setState(() => _sendingExposure = false);
     Scaffold.of(context).showSnackBar(
         SnackBar(content: Text('Your report was successfully submitted')));

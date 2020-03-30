@@ -21,22 +21,16 @@ class SendReportState extends State<SendReport> {
   var _confirm = false;
   var _loading = false;
   var _step = 0;
-  Token _token;
 
   void onSubmit(context, AppState state) async {
-    _token = Token(
-        token: state.user.verifyToken, refreshToken: state.user.refreshToken);
-
-    if (!_token.valid) {
-      _token = await verifyPhone();
-      if (_token != null && _token.valid) {
-        state.user.verifyToken = _token.token;
-        state.user.refreshToken = _token.refreshToken;
+    if (!state.user.verified) {
+      state.user.token = await verifyPhone();
+      if (state.user.verified) {
         await state.saveUser(state.user);
       }
     }
 
-    if (_token == null || !_token.valid) {
+    if (!state.user.verified) {
       return;
     }
 
@@ -51,7 +45,7 @@ class SendReportState extends State<SendReport> {
 
   Future<bool> sendReport(AppState state) async {
     setState(() => _loading = true);
-    var success = await state.sendReport(_token, {
+    var success = await state.sendReport(state.user.token, {
       'breathing': _breathing,
       'cough': _cough,
       'days': _days,

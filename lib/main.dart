@@ -238,7 +238,7 @@ class MainPageState extends State<MainPage> {
   resetVerified(AppState state) async {
     Navigator.of(context).pop();
     var user = state.user;
-    user.verifyToken = null;
+    user.token = null;
     await state.saveUser(user);
   }
 
