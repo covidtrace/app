@@ -145,9 +145,12 @@ class OnboardingState extends State {
         .merge(TextStyle(fontSize: 16, height: 1.4));
 
     var platform = Theme.of(context).platform;
+    var brightness = MediaQuery.platformBrightnessOf(context);
 
     return AnnotatedRegion(
-        value: SystemUiOverlayStyle.dark,
+        value: brightness == Brightness.light
+            ? SystemUiOverlayStyle.dark
+            : SystemUiOverlayStyle.light,
         child: Container(
             color: Colors.white,
             child: SafeArea(
@@ -374,10 +377,13 @@ class OnboardingState extends State {
                                 ),
                                 SizedBox(height: 20),
                                 Center(
-                                    child: FractionallySizedBox(
-                                        widthFactor: .4,
-                                        child: Image.asset(
-                                            'assets/do_the_five.gif'))),
+                                    child: Image.asset('assets/do_the_five.gif',
+                                        height: 80)),
+                                SizedBox(height: 20),
+                                Center(
+                                    child: Text('DO THE FIVE',
+                                        style:
+                                            Theme.of(context).textTheme.title)),
                                 SizedBox(height: 20),
                                 Column(
                                     crossAxisAlignment:
