@@ -29,7 +29,7 @@ void main() async {
   var notificationPlugin = FlutterLocalNotificationsPlugin();
   notificationPlugin.initialize(
       InitializationSettings(
-          AndroidInitializationSettings('@mipmap/ic_launcher'),
+          AndroidInitializationSettings('ic_launcher'),
           IOSInitializationSettings(
               requestAlertPermission: false,
               requestBadgePermission: false,
