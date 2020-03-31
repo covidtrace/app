@@ -3,6 +3,7 @@ import 'package:covidtrace/helper/datetime.dart';
 import 'package:covidtrace/storage/user.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:intl/intl.dart';
+import 'package:tuple/tuple.dart';
 
 import '../config.dart';
 import '../storage/location.dart';
@@ -17,93 +18,131 @@ Future<bool> checkExposures() async {
   var user = await UserModel.find();
 
   var config = await getConfig();
-  int aggIndex = config['aggS2Index'];
   List<dynamic> aggLevels = config['aggS2Levels'];
   int compareLevel = config['compareS2Level'];
   String publishedBucket = config['publishedBucket'];
 
   LocationModel exposed;
   var dir = await getApplicationSupportDirectory();
-
-  // Collection set of truncated geos for google cloud rsync
   var locations = await LocationModel.findAll();
-  var geos = Set.from(locations.map((location) =>
-      location.cellID.parent(aggLevels[aggIndex] as int).toToken()));
 
-  // Big ass map of geo ID -> map of timestamp -> locations
-  Map<String, Map<int, List<LocationModel>>> geoLookup = new Map();
+  // Set of all top level geo prefixes to begin querying
+  var prefixes = Set<String>();
+
+  // S2 cell ID to locations at each aggregation level
+  var geoLevelsLookup = Map<String, List<LocationModel>>();
+
+  // S2 cell ID at compare level -> locations grouped by unix timestamp
+  var geoCompareLookup = new Map<String, Map<int, List<LocationModel>>>();
+
+  // Build all structures by iterating over locations only once
   locations.forEach((location) {
+    // Populate `prefixes` with least precise S2 geo
+    prefixes.add(location.cellID.parent(aggLevels.first as int).toToken());
+
+    // Populate `geoLevelLookup` at each aggregation level
+    aggLevels.forEach((level) {
+      var cellID = location.cellID.parent(level).toToken();
+      if (geoLevelsLookup[cellID] == null) {
+        geoLevelsLookup[cellID] = [];
+      }
+
+      geoLevelsLookup[cellID].add(location);
+    });
+
+    // Populate `geoCompareLookup` object
     var cellID = location.cellID.parent(compareLevel).toToken();
     var unixHour = roundedDateTime(location.timestamp);
 
-    if (geoLookup[cellID] == null) {
-      geoLookup[cellID] = new Map();
+    if (geoCompareLookup[cellID] == null) {
+      geoCompareLookup[cellID] = new Map();
     }
 
-    if (geoLookup[cellID][unixHour] == null) {
-      geoLookup[cellID][unixHour] = new List();
+    if (geoCompareLookup[cellID][unixHour] == null) {
+      geoCompareLookup[cellID][unixHour] = [];
     }
 
-    geoLookup[cellID][unixHour].add(location);
+    geoCompareLookup[cellID][unixHour].add(location);
   });
 
-  await Future.forEach(geos, (geo) async {
-    var objects = await getPrefixMatches(publishedBucket, '$geo/');
+  // Build a queue of geos to fetch
+  List<Tuple2<String, int>> queue =
+      prefixes.map((prefix) => Tuple2(prefix, 0)).toList();
 
-    await Future.wait(objects.where((item) {
-      // Filter objects for any that are lexically equal to or greater than
-      // the CSVs we last downloaded. If we have never checked before, we
-      // should fetch everything for the last three weeks
-      var lastCheck = user.lastCheck;
-      if (lastCheck == null) {
-        lastCheck = DateTime.now().subtract(Duration(days: 21));
-      }
+  var objects = [];
+  while (queue.length > 0) {
+    var prefix = queue.removeAt(0);
+    var geo = prefix.item1;
+    var level = prefix.item2;
 
-      var name = item['name'] as String;
-      var nameParts = name.split('/');
-      if (nameParts.length != 2) {
-        return false;
-      }
+    var hint = await objectExists(publishedBucket, '$geo/0_HINT');
+    if (hint && level + 1 < aggLevels.length) {
+      queue.addAll(Set.from(locations
+              .where((location) =>
+                  location.cellID.parent(aggLevels[level]).toToken() == geo)
+              .map((location) =>
+                  location.cellID.parent(aggLevels[level + 1]).toToken()))
+          .map((geo) => Tuple2(geo, level + 1)));
+    } else {
+      objects.addAll(await getPrefixMatches(publishedBucket, '$geo/'));
+    }
+  }
 
-      var unixCsv = nameParts[1];
-      return unixCsv
-              .compareTo('${lastCheck.millisecondsSinceEpoch / 1000}.csv') >=
-          0;
-    }).map((item) async {
-      // Sync file to local storage
-      var fileHandle = await syncObject(dir.path, publishedBucket,
-          item['name'] as String, item['md5Hash'] as String);
+  // Fetch all the objects (probably should throttle this)
+  await Future.wait(objects.where((object) {
+    // Filter objects for any that are lexically equal to or greater than
+    // the CSVs we last downloaded. If we have never checked before, we
+    // should fetch everything for the last three weeks
+    var lastCheck = user.lastCheck;
+    if (lastCheck == null) {
+      lastCheck = DateTime.now().subtract(Duration(days: 21));
+    }
 
-      // Parse and compare with local locations.
-      var fileCsv = await fileHandle.readAsString();
-      var parsedRows = CsvToListConverter(shouldParseNumbers: false, eol: '\n')
-          .convert(fileCsv);
+    // Strip off geo prefix for lexical comparison
+    var name = object['name'] as String;
+    var nameParts = name.split('/');
+    if (nameParts.length != 2) {
+      return false;
+    }
 
-      // Iterate through rows and search for matching locations
-      await Future.forEach(parsedRows, (parsedRow) async {
-        var timestamp = roundedDateTime(DateTime.fromMillisecondsSinceEpoch(
-            int.parse(parsedRow[0]) * 1000));
+    // Perform lexical comparison
+    var unixCsv = nameParts[1];
+    var lastCsv = '${(lastCheck.millisecondsSinceEpoch / 1000).round()}.csv';
+    return unixCsv.compareTo(lastCsv) >= 0;
+  }).map((object) async {
+    // Sync file to local storage
+    var fileHandle = await syncObject(dir.path, publishedBucket,
+        object['name'] as String, object['md5Hash'] as String);
 
-        // Note: aggregate CSVs look like
-        // [timestamp, cellID.parent(compareLevel), cellID.parent(localLevel), ...]
-        // so let's take the cellID at compareLevel
-        String compareCellID = parsedRow[1];
+    // Parse and compare with local locations.
+    var fileCsv = await fileHandle.readAsString();
+    var parsedRows = CsvToListConverter(shouldParseNumbers: false, eol: '\n')
+        .convert(fileCsv);
 
-        var locationsbyTimestamp = geoLookup[compareCellID];
-        if (locationsbyTimestamp != null) {
-          var exposures = locationsbyTimestamp[timestamp];
+    // Iterate through rows and search for matching locations
+    await Future.forEach(parsedRows, (parsedRow) async {
+      var timestamp = roundedDateTime(
+          DateTime.fromMillisecondsSinceEpoch(int.parse(parsedRow[0]) * 1000));
 
-          if (exposures != null) {
-            exposed = exposures.last;
-            await Future.forEach(exposures, (location) async {
-              location.exposure = true;
-              await location.save();
-            });
-          }
+      // Note: aggregate CSVs look like
+      // [timestamp, cellID.parent(compareLevel), cellID.parent(localLevel), ...]
+      // so let's take the cellID at compareLevel
+      String compareCellID = parsedRow[1];
+
+      var locationsbyTimestamp = geoCompareLookup[compareCellID];
+      if (locationsbyTimestamp != null) {
+        var exposures = locationsbyTimestamp[timestamp];
+
+        if (exposures != null) {
+          exposed = exposures.last;
+          await Future.forEach(exposures, (location) async {
+            location.exposure = true;
+            await location.save();
+          });
         }
-      });
-    }));
-  });
+      }
+    });
+  }));
 
   user.lastCheck = DateTime.now();
   await user.save();

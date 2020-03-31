@@ -4,6 +4,11 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
+Future<bool> objectExists(String bucket, String object) async {
+  var resp = await http.get('https://storage.googleapis.com/$bucket/$object');
+  return resp.statusCode == 200;
+}
+
 Future<List<dynamic>> getPrefixMatches(String bucket, String prefix) async {
   var objects = new List<dynamic>();
 
