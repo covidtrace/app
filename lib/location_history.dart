@@ -6,7 +6,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
 import 'storage/location.dart';
 import 'storage/user.dart';
-import 'package:latlong/latlong.dart' as lt;
+import 'package:flutter_sticky_header/flutter_sticky_header.dart';
 
 final Map<String, Icon> activities = {
   'unknown': Icon(Icons.not_listed_location),
@@ -66,20 +66,7 @@ class LocationHistoryState extends State {
     var locations = await LocationModel.findAll(
         where: 'sample = 0', orderBy: 'timestamp DESC');
 
-    // bucket locations by day and hour
-    Map<String, Map<int, List<LocationModel>>> locationsIndex = Map();
-    locations.forEach((l) {
-      var timestamp = l.timestamp.toLocal();
-      var dayHour = DateFormat.yMd().format(timestamp);
-      locationsIndex[dayHour] =
-          locationsIndex[dayHour] ?? Map<int, List<LocationModel>>();
-      locationsIndex[dayHour][timestamp.hour] =
-          locationsIndex[dayHour][timestamp.hour] ?? List<LocationModel>();
-      locationsIndex[dayHour][timestamp.hour].add(l);
-    });
-
     setState(() {
-      _locationsIndex = locationsIndex;
       _locations = locations;
     });
     setFilter(_filter);
@@ -90,14 +77,26 @@ class LocationHistoryState extends State {
         ? _locations.where((l) => l.exposure).toList()
         : _locations;
 
+    // bucket locations by day and hour
+    Map<String, Map<int, List<LocationModel>>> locationsIndex = Map();
+    locations.forEach((l) {
+      var timestamp = l.timestamp.toLocal();
+      var dayHour = DateFormat.EEEE().add_MMMd().format(timestamp);
+      locationsIndex[dayHour] =
+          locationsIndex[dayHour] ?? Map<int, List<LocationModel>>();
+      locationsIndex[dayHour][timestamp.hour] =
+          locationsIndex[dayHour][timestamp.hour] ?? List<LocationModel>();
+      locationsIndex[dayHour][timestamp.hour].add(l);
+    });
+
     setState(() {
+      _locationsIndex = locationsIndex;
       _filter = value;
       _display = locations;
     });
 
     setLocation(_display.length > 0 ? _display.first : null);
-    _scroller.animateTo(0.0,
-        duration: Duration(milliseconds: 200), curve: Curves.easeOut);
+    // _scroller.animateTo(0.0, duration: Duration(milliseconds: 200), curve: Curves.easeOut);
   }
 
   setLocation(LocationModel item, {bool open = false}) async {
@@ -127,10 +126,6 @@ class LocationHistoryState extends State {
     if (open && Theme.of(context).platform == TargetPlatform.iOS) {
       launchMapsApp(loc);
     }
-  }
-
-  lt.LatLng toLtLatLng(LatLng loc) {
-    return lt.LatLng(loc.latitude, loc.longitude);
   }
 
   @override
@@ -211,128 +206,173 @@ class LocationHistoryState extends State {
               flex: 3,
               child: RefreshIndicator(
                   onRefresh: loadLocations,
-                  child: ListView.builder(
-                    controller: _scroller,
-                    physics: AlwaysScrollableScrollPhysics(),
-                    itemCount: _display.length,
-                    itemBuilder: (context, i) {
-                      var item = _display[i];
-                      var timestamp = item.timestamp.toLocal();
-                      var hour = timestamp.hour;
-                      var dayHour = DateFormat.yMd().format(timestamp);
-                      var hourMap = _locationsIndex[dayHour];
-                      var selected = _selected.id == item.id;
+                  child: CustomScrollView(
+                      controller: _scroller,
+                      physics: AlwaysScrollableScrollPhysics(),
+                      slivers: _locationsIndex.entries
+                          .map((MapEntry entry) {
+                            return MapEntry(
+                                entry.key,
+                                SliverStickyHeader(
+                                  header: Container(
+                                    decoration: BoxDecoration(
+                                        color: Colors.white.withOpacity(0.8),
+                                        border: Border(
+                                            bottom: BorderSide(
+                                                color: Colors.grey.shade200,
+                                                width: 1))),
+                                    padding: EdgeInsets.symmetric(
+                                        horizontal: 15, vertical: 10),
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
+                                      entry.key,
+                                      style:
+                                          Theme.of(context).textTheme.subtitle,
+                                    ),
+                                  ),
+                                  sliver: SliverList(
+                                    delegate: SliverChildBuilderDelegate(
+                                      (context, i) {
+                                        var item = _display[i];
+                                        var timestamp =
+                                            item.timestamp.toLocal();
+                                        var hour = timestamp.hour;
+                                        var dayHour = DateFormat.EEEE()
+                                            .add_MMMd()
+                                            .format(timestamp);
+                                        var hourMap = _locationsIndex[dayHour];
+                                        var selected = _selected.id == item.id;
 
-                      return Column(children: [
-                        InkWell(
-                            onTap: () => setLocation(item),
-                            child: Container(
-                              padding: EdgeInsets.all(15),
-                              color: selected
-                                  ? Colors.grey[200]
-                                  : Colors.transparent,
-                              child: Row(children: [
-                                Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(DateFormat.Md().format(timestamp)),
-                                      Text(
-                                        DateFormat.jm().format(timestamp),
-                                        style: TextStyle(color: Colors.grey),
-                                      ),
-                                    ]),
-                                SizedBox(width: 20),
-                                Stack(children: [
-                                  SizedBox(width: 25, height: 25),
-                                  AnimatedPositioned(
-                                    top: selected ? 0 : 20,
-                                    curve: Curves.fastOutSlowIn,
-                                    duration: Duration(milliseconds: 250),
-                                    child: AnimatedOpacity(
-                                        opacity: selected ? 1 : 0,
-                                        duration: Duration(milliseconds: 200),
-                                        child: Image.asset(
-                                            'assets/sun_icon.png',
-                                            width: 25,
-                                            color: selected
-                                                ? Colors.orangeAccent
-                                                : Colors.grey)),
-                                  )
-                                ]),
-                                SizedBox(width: 5),
-                                Expanded(
-                                    child: Row(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.end,
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceEvenly,
-                                        children: List.generate(
-                                          24,
-                                          (i) {
-                                            return Flexible(
-                                                flex: 1,
+                                        return Column(children: [
+                                          InkWell(
+                                              onTap: () => setLocation(item),
+                                              child: Container(
+                                                padding: EdgeInsets.all(15),
+                                                color: selected
+                                                    ? Colors.grey[200]
+                                                    : Colors.transparent,
                                                 child: Row(children: [
+                                                  Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        Text(
+                                                            DateFormat.jm()
+                                                                .format(
+                                                                    timestamp)
+                                                                .toLowerCase(),
+                                                            style: Theme.of(
+                                                                    context)
+                                                                .textTheme
+                                                                .subhead),
+                                                      ]),
+                                                  SizedBox(width: 20),
+                                                  Stack(children: [
+                                                    SizedBox(
+                                                        width: 25, height: 25),
+                                                    AnimatedPositioned(
+                                                      top: selected ? 1 : 20,
+                                                      curve:
+                                                          Curves.fastOutSlowIn,
+                                                      duration: Duration(
+                                                          milliseconds: 250),
+                                                      child: AnimatedOpacity(
+                                                          opacity:
+                                                              selected ? 1 : 0,
+                                                          duration: Duration(
+                                                              milliseconds:
+                                                                  200),
+                                                          child: Image.asset(
+                                                              'assets/sun_icon.png',
+                                                              width: 25,
+                                                              color: selected
+                                                                  ? Colors
+                                                                      .orangeAccent
+                                                                  : Colors
+                                                                      .grey)),
+                                                    )
+                                                  ]),
+                                                  SizedBox(width: 5),
                                                   Expanded(
-                                                      child: Container(
-                                                    decoration: BoxDecoration(
-                                                        borderRadius:
-                                                            BorderRadius.vertical(
-                                                                top: Radius
-                                                                    .circular(
-                                                                        5),
-                                                                bottom: Radius
-                                                                    .circular(
-                                                                        5)),
-                                                        color: i == hour
-                                                            ? item.exposure
-                                                                ? Colors.red
-                                                                : Colors
-                                                                    .grey[600]
-                                                            : Colors.grey[
-                                                                selected
-                                                                    ? 400
-                                                                    : 300]),
-                                                    height: hourMap != null &&
-                                                            hourMap
-                                                                .containsKey(i)
-                                                        ? 25
-                                                        : 5,
-                                                  )),
-                                                  SizedBox(width: 3)
-                                                ]));
-                                          },
-                                        ))),
-                                SizedBox(width: 5),
-                                Stack(children: [
-                                  SizedBox(width: 25, height: 25),
-                                  AnimatedPositioned(
-                                    bottom: selected ? 0 : 20,
-                                    duration: Duration(milliseconds: 250),
-                                    curve: Curves.fastOutSlowIn,
-                                    child: AnimatedOpacity(
-                                        opacity: selected ? 1 : 0,
-                                        duration: Duration(milliseconds: 200),
-                                        child: Image.asset(
-                                            'assets/moon_icon.png',
-                                            width: 25,
-                                            color: selected
-                                                ? Colors.blueGrey
-                                                : Colors.grey)),
-                                  )
-                                ]),
-                                SizedBox(width: 20),
-                                Icon(
-                                    item.exposure ? Icons.warning : Icons.place,
-                                    color: item.exposure
-                                        ? Colors.orange
-                                        : Colors.grey)
-                              ]),
-                            )),
-                        Divider(height: 0),
-                      ]);
-                    },
-                  )))
+                                                      child: Row(
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .end,
+                                                          mainAxisAlignment:
+                                                              MainAxisAlignment
+                                                                  .spaceEvenly,
+                                                          children:
+                                                              List.generate(
+                                                            24,
+                                                            (i) {
+                                                              return Flexible(
+                                                                  flex: 1,
+                                                                  child: Row(
+                                                                      children: [
+                                                                        Expanded(
+                                                                            child:
+                                                                                Container(
+                                                                          decoration: BoxDecoration(
+                                                                              borderRadius: BorderRadius.vertical(top: Radius.circular(5), bottom: Radius.circular(5)),
+                                                                              color: i == hour ? item.exposure ? Colors.red : Colors.grey[600] : Colors.grey[selected ? 400 : 300]),
+                                                                          height: hourMap != null && hourMap.containsKey(i)
+                                                                              ? 18
+                                                                              : 5,
+                                                                        )),
+                                                                        SizedBox(
+                                                                            width:
+                                                                                3)
+                                                                      ]));
+                                                            },
+                                                          ))),
+                                                  SizedBox(width: 5),
+                                                  Stack(children: [
+                                                    SizedBox(
+                                                        width: 25, height: 25),
+                                                    AnimatedPositioned(
+                                                      bottom: selected ? 2 : 20,
+                                                      duration: Duration(
+                                                          milliseconds: 250),
+                                                      curve:
+                                                          Curves.fastOutSlowIn,
+                                                      child: AnimatedOpacity(
+                                                          opacity:
+                                                              selected ? 1 : 0,
+                                                          duration: Duration(
+                                                              milliseconds:
+                                                                  200),
+                                                          child: Image.asset(
+                                                              'assets/moon_icon.png',
+                                                              width: 25,
+                                                              color: selected
+                                                                  ? Colors
+                                                                      .blueGrey
+                                                                  : Colors
+                                                                      .grey)),
+                                                    )
+                                                  ]),
+                                                  SizedBox(width: 20),
+                                                  Icon(
+                                                      item.exposure
+                                                          ? Icons.warning
+                                                          : null,
+                                                      color: item.exposure
+                                                          ? Colors.orange
+                                                          : Colors.grey)
+                                                ]),
+                                              )),
+                                          Divider(height: 0),
+                                        ]);
+                                      },
+                                      childCount: _display.length,
+                                    ),
+                                  ),
+                                ));
+                          })
+                          .toList()
+                          .map((e) => e.value)
+                          .toList()))),
         ]));
   }
 }
