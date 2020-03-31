@@ -207,7 +207,12 @@ class LocationHistoryState extends State {
                   child: CustomScrollView(
                       physics: AlwaysScrollableScrollPhysics(),
                       slivers: _locationsIndex.entries
-                          .map((MapEntry entry) {
+                          .map((MapEntry<String, Map<int, List<LocationModel>>>
+                              entry) {
+                            List<LocationModel> locations = [];
+                            entry.value.values
+                                .forEach((list) => locations.addAll(list));
+
                             return MapEntry(
                                 entry.key,
                                 SliverStickyHeader(
@@ -230,7 +235,7 @@ class LocationHistoryState extends State {
                                   sliver: SliverList(
                                     delegate: SliverChildBuilderDelegate(
                                       (context, i) {
-                                        var item = _display[i];
+                                        var item = locations[i];
                                         var timestamp =
                                             item.timestamp.toLocal();
                                         var hour = timestamp.hour;
@@ -362,7 +367,7 @@ class LocationHistoryState extends State {
                                           Divider(height: 0),
                                         ]);
                                       },
-                                      childCount: _display.length,
+                                      childCount: locations.length,
                                     ),
                                   ),
                                 ));
