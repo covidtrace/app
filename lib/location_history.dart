@@ -32,7 +32,6 @@ class LocationHistoryState extends State {
   LatLng _currentLocation;
   bool _nearHome;
   Completer<GoogleMapController> _controller = Completer();
-  ScrollController _scroller = ScrollController();
   List<Marker> _markers = [];
   UserModel _user;
 
@@ -96,7 +95,6 @@ class LocationHistoryState extends State {
     });
 
     setLocation(_display.length > 0 ? _display.first : null);
-    // _scroller.animateTo(0.0, duration: Duration(milliseconds: 200), curve: Curves.easeOut);
   }
 
   setLocation(LocationModel item, {bool open = false}) async {
@@ -207,7 +205,6 @@ class LocationHistoryState extends State {
               child: RefreshIndicator(
                   onRefresh: loadLocations,
                   child: CustomScrollView(
-                      controller: _scroller,
                       physics: AlwaysScrollableScrollPhysics(),
                       slivers: _locationsIndex.entries
                           .map((MapEntry entry) {
@@ -223,7 +220,7 @@ class LocationHistoryState extends State {
                                                 width: 1))),
                                     padding: EdgeInsets.symmetric(
                                         horizontal: 15, vertical: 10),
-                                    alignment: Alignment.centerLeft,
+                                    alignment: Alignment.center,
                                     child: Text(
                                       entry.key,
                                       style:
