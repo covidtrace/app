@@ -9,7 +9,7 @@ Future<List<dynamic>> getPrefixMatches(String bucket, String prefix) async {
 
   var queryParameters = {
     'delimiter': '/',
-    'maxResults': '5',
+    'maxResults': '500',
     'prefix': prefix,
   };
 

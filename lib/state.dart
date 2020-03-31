@@ -1,12 +1,12 @@
 import 'dart:convert';
 
+import 'config.dart';
+import 'helper/signed_upload.dart';
 import 'package:covidtrace/storage/report.dart';
 import 'package:csv/csv.dart';
 import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
-import 'config.dart';
-import 'helper/signed_upload.dart';
 import 'storage/location.dart';
 import 'storage/user.dart';
 
@@ -76,13 +76,14 @@ class AppState with ChangeNotifier {
       var config = await getConfig();
       var user = await UserModel.find();
 
-      var bucket = config['exposureBucket'];
+      int level = config['exposureS2Level'];
+      String bucket = config['exposureBucket'];
       if (bucket == null) {
         bucket = 'covidtrace-exposures';
       }
 
       var contentType = 'application/json; charset=utf-8';
-      var uploadSuccess = await signedUpload(config,
+      var uploadSuccess = await signedUpload(config, user.token,
           query: {
             'bucket': bucket,
             'contentType': contentType,
@@ -90,13 +91,16 @@ class AppState with ChangeNotifier {
           },
           headers: {'Content-Type': contentType},
           body: jsonEncode({
-            'cellID': _exposure.cellID.parent(10).toToken(),
+            'cellID': _exposure.cellID.parent(level).toToken(),
             'timestamp': DateFormat('yyyy-MM-dd').format(DateTime.now())
           }));
 
       if (!uploadSuccess) {
         return false;
       }
+
+      _exposure.reported = true;
+      await _exposure.save();
 
       success = true;
     } catch (err) {
@@ -114,6 +118,7 @@ class AppState with ChangeNotifier {
     try {
       var config = await getConfig();
       var user = await UserModel.find();
+      int compareLevel = config['compareS2Level'];
 
       var symptomBucket = config['symptomBucket'];
       if (symptomBucket == null) {
@@ -121,7 +126,7 @@ class AppState with ChangeNotifier {
       }
 
       var contentType = 'application/json; charset=utf-8';
-      var symptomSuccess = await signedUpload(config,
+      var symptomSuccess = await signedUpload(config, user.token,
           query: {
             'bucket': symptomBucket,
             'contentType': contentType,
@@ -158,7 +163,7 @@ class AppState with ChangeNotifier {
       }
 
       contentType = 'text/csv; charset=utf-8';
-      var uploadSuccess = await signedUpload(config,
+      var uploadSuccess = await signedUpload(config, user.token,
           query: {
             'bucket': holdingBucket,
             'contentType': contentType,
@@ -167,8 +172,8 @@ class AppState with ChangeNotifier {
           headers: {
             'Content-Type': contentType,
           },
-          body: ListToCsvConverter()
-              .convert(headers + locations.map((l) => l.toCSV()).toList()));
+          body: ListToCsvConverter().convert(
+              headers + locations.map((l) => l.toCSV(compareLevel)).toList()));
 
       if (!uploadSuccess) {
         return false;

@@ -1,3 +1,4 @@
+import 'package:covidtrace/operator.dart';
 import 'package:covidtrace/verify_phone.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -22,20 +23,14 @@ class SendReportState extends State<SendReport> {
   var _step = 0;
 
   void onSubmit(context, AppState state) async {
-    String token;
-    bool verified = state.user.verified;
-
-    if (!verified) {
-      token = await verifyPhone();
-      verified = token != null;
-
-      if (verified) {
-        state.user.verifyToken = token;
+    if (!state.user.verified) {
+      state.user.token = await verifyPhone();
+      if (state.user.verified) {
         await state.saveUser(state.user);
       }
     }
 
-    if (!verified) {
+    if (!state.user.verified) {
       return;
     }
 
@@ -62,7 +57,7 @@ class SendReportState extends State<SendReport> {
     return success;
   }
 
-  Future<String> verifyPhone() {
+  Future<Token> verifyPhone() {
     return showModalBottomSheet(
       context: context,
       builder: (context) => VerifyPhone(),

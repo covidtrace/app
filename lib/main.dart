@@ -64,8 +64,11 @@ void main() async {
 
   bg.BackgroundGeolocation.ready(bg.Config(
       desiredAccuracy: bg.Config.DESIRED_ACCURACY_HIGH,
+      enableHeadless: true,
       stopOnTerminate: false,
       startOnBoot: true,
+      fastestLocationUpdateInterval: 1000 * 60 * 5,
+      useSignificantChangesOnly: true,
       persistMode: bg.Config.PERSIST_MODE_NONE,
       logLevel: bg.Config.LOG_LEVEL_OFF));
 }
@@ -235,7 +238,7 @@ class MainPageState extends State<MainPage> {
   resetVerified(AppState state) async {
     Navigator.of(context).pop();
     var user = state.user;
-    user.verifyToken = null;
+    user.token = null;
     await state.saveUser(user);
   }
 
@@ -288,7 +291,8 @@ class MainPageState extends State<MainPage> {
                 ListTile(
                     leading: Icon(Icons.lock),
                     title: Text('Privacy Policy'),
-                    onTap: () => launch('https://covidtrace.com/privacy')),
+                    onTap: () =>
+                        launch('https://covidtrace.com/privacy-policy')),
                 ListTile(
                     leading: Icon(Icons.info),
                     title: Text('About COVID Trace'),

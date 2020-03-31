@@ -26,7 +26,7 @@
 	<string>COVID Trace needs access to your location history to monitor for potential exposures</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string>COVID Trace needs access to your location history to monitor for potential exposures</string>
-	<key>NSMotionUsageDescription</key>
+	<key>NSMotionUsageDescription</key>	
 	<string>Motion detection is used to save battery life while recording location history</string>
 	<key>UIBackgroundModes</key>
 	<array>

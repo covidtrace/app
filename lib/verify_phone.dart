@@ -1,7 +1,6 @@
+import 'package:covidtrace/operator.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 
 class VerifyPhone extends StatefulWidget {
   VerifyPhone({Key key}) : super(key: key);
@@ -20,7 +19,6 @@ class VerifyPhoneState extends State with SingleTickerProviderStateMixin {
   var animation;
   String _phoneToken;
   String _phoneError;
-  String _codeToken;
   String _codeError;
   bool _loading = false;
 
@@ -44,39 +42,32 @@ class VerifyPhoneState extends State with SingleTickerProviderStateMixin {
 
   Future<void> requestCode(String number) async {
     setState(() => _loading = true);
-    var uri = Uri.parse('https://operator-k3cimrd2pq-uc.a.run.app/init');
-    var resp = await http.post(uri, body: jsonEncode({'phone': number}));
+    var token = await Operator.init(number);
     setState(() => _loading = false);
 
-    if (resp.statusCode != 200) {
+    if (token == null) {
       setState(() => _phoneError = 'There was an error requesting a code');
-      return false;
+      return;
     }
 
-    var result = jsonDecode(resp.body);
-    _phoneToken = result['token'];
-
+    _phoneToken = token;
     slideController.forward();
     codeFocus.requestFocus();
   }
 
   Future<void> verifyCode(String code) async {
     setState(() => _loading = true);
-    var uri = Uri.parse('https://operator-k3cimrd2pq-uc.a.run.app/verify');
-    var resp = await http.post(uri,
-        body: jsonEncode({'token': _phoneToken, 'code': code}));
+    var token = await Operator.verify(_phoneToken, code);
     setState(() => _loading = false);
 
-    if (resp.statusCode != 200) {
+    if (token == null) {
       setState(() => _codeError = 'The code provided was incorrect');
       codeController.text = '';
-      return false;
+      return;
     }
 
-    var result = jsonDecode(resp.body);
-    _codeToken = result['token'];
-    if (_codeToken.isNotEmpty) {
-      Navigator.pop(context, _codeToken);
+    if (token.valid) {
+      Navigator.pop(context, token);
     } else {
       setState(() => _codeError = 'Something went wrong');
       codeController.text = '';
@@ -108,7 +99,7 @@ class VerifyPhoneState extends State with SingleTickerProviderStateMixin {
                       key: _phoneForm,
                       child: Column(children: [
                         Text(
-                            'We need to verify your app the first time you submit data. Enter your phone number to receive a confirmation code.',
+                            'We need to verify your app the first time you submit data. Enter your phone number to receive a verification code.',
                             style: bodyText),
                         TextFormField(
                             autofocus: true,
@@ -125,6 +116,10 @@ class VerifyPhoneState extends State with SingleTickerProviderStateMixin {
                               }
                               return null;
                             }),
+                        SizedBox(height: 10),
+                        Text(
+                            'Your phone number is never saved or associated with any data you submit.',
+                            style: textTheme.caption),
                         SizedBox(height: 20),
                         RaisedButton(
                             onPressed: () {
@@ -154,8 +149,13 @@ class VerifyPhoneState extends State with SingleTickerProviderStateMixin {
                                         errorText: _codeError),
                                     controller: codeController,
                                     keyboardType: TextInputType.number,
-                                    onChanged: (value) =>
-                                        setState(() => _codeError = null),
+                                    onChanged: (value) {
+                                      setState(() => _codeError = null);
+                                      if (value.length == 6 &&
+                                          _codeForm.currentState.validate()) {
+                                        verifyCode(codeController.text);
+                                      }
+                                    },
                                     validator: (String value) {
                                       if (value.isEmpty) {
                                         return 'Please enter a valid code';
