@@ -19,6 +19,9 @@ doc/api/
 *.js.map
 
 .flutter-plugins*
+flutter_*.log
+
+key.properties
 
 *.code-workspace
 android/.idea

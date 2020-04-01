@@ -1,17 +1,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    package="com.example.covidtrace">
-    <!-- io.flutter.app.FlutterApplication is an android.app.Application that
-         calls FlutterMain.startInitialization(this); in its onCreate method.
-         In most cases you can leave this as-is, but you if you want to provide
-         additional functionality it is fine to subclass or reimplement
-         FlutterApplication and put your custom class here. -->
+    package="com.covidtrace.app">
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
         tools:replace="android:label"
         android:name="io.flutter.app.FlutterApplication"
         android:label="COVID Trace"
         android:icon="@mipmap/ic_launcher">
-        <meta-data android:name="com.transistorsoft.locationmanager.license" android:value="93d6676804d4e0059d4342774f61d0fbbb01d27d6c0c2a10a5ed4b7715df3c14" />
+        <meta-data android:name="com.transistorsoft.locationmanager.license" android:value="747ff7ed7f8436d176796af3f90e0eb924b7b6aeb4d71ba002dcdce811e241dc" />
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyAPrVanVPxAlZOGgRecnNUew_zAneh8guw"/>
