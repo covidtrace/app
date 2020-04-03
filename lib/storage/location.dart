@@ -10,7 +10,7 @@ import 'package:latlong/latlong.dart' as lt;
 const int FIVE_MINUTES = 1000 * 60 * 5;
 
 class LocationModel {
-  static final List<String> csvHeaders = ['timestamp', 's2geo', 'verified'];
+  static final List<dynamic> csvHeaders = ['timestamp', 's2geo', 'verified'];
 
   final int id;
   final double longitude;
