@@ -10,6 +10,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'storage/location.dart';
 import 'verify_phone.dart';
 
 class Dashboard extends StatefulWidget {
@@ -22,6 +23,7 @@ class DashboardState extends State with TickerProviderStateMixin {
   bool _expandHeader = false;
   bool _sendingExposure = false;
   bool _hideReport = true;
+  LocationModel _oldest;
   Completer<GoogleMapController> _mapController = Completer();
   AnimationController reportController;
   CurvedAnimation reportAnimation;
@@ -41,12 +43,22 @@ class DashboardState extends State with TickerProviderStateMixin {
         CurvedAnimation(parent: reportController, curve: Curves.fastOutSlowIn);
 
     Provider.of<AppState>(context, listen: false).addListener(onStateChange);
+
+    loadOldest();
   }
 
   @override
   void dispose() {
     expandController.dispose();
     super.dispose();
+  }
+
+  void loadOldest() async {
+    var locations =
+        await LocationModel.findAll(limit: 1, orderBy: 'timestamp ASC');
+    if (locations.length > 0) {
+      setState(() => _oldest = locations.first);
+    }
   }
 
   void onStateChange() async {
@@ -240,6 +252,14 @@ class DashboardState extends State with TickerProviderStateMixin {
 
       var location = state.exposure;
       if (location == null) {
+        int days = 0;
+        int hours = 0;
+        if (_oldest != null) {
+          var diff = DateTime.now().difference(_oldest.timestamp);
+          days = diff.inDays;
+          hours = diff.inHours;
+        }
+
         return Padding(
             padding: EdgeInsets.all(15),
             child: RefreshIndicator(
@@ -270,7 +290,10 @@ class DashboardState extends State with TickerProviderStateMixin {
                                                 .textTheme
                                                 .title
                                                 .merge(alertText)),
-                                        Text('In the last 7 days',
+                                        Text(
+                                            days >= 1
+                                                ? 'In the last ${days > 1 ? '$days days' : 'day'}'
+                                                : 'In the last ${hours > 1 ? '$hours hours' : 'hour'}',
                                             style: alertText)
                                       ])),
                                   Image.asset('assets/people_arrows_icon.png',

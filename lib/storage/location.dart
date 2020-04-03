@@ -7,6 +7,8 @@ import 'package:sqflite/sqflite.dart';
 import '../helper/datetime.dart';
 import 'package:latlong/latlong.dart' as lt;
 
+const int FIVE_MINUTES = 1000 * 60 * 5;
+
 class LocationModel {
   final int id;
   final double longitude;
@@ -35,6 +37,11 @@ class LocationModel {
   }
 
   Map<String, dynamic> toMap() {
+    // Round time to nearest 5 minute to prevent duplicate insertions since
+    // onLocation callbacks are not serial
+    var time = DateTime.fromMillisecondsSinceEpoch(
+        timestamp.millisecondsSinceEpoch ~/ FIVE_MINUTES * FIVE_MINUTES);
+
     return {
       'id': id,
       'longitude': longitude,
@@ -43,7 +50,7 @@ class LocationModel {
       'activity': activity,
       'sample': sample,
       'speed': speed,
-      'timestamp': timestamp.toIso8601String(),
+      'timestamp': time.toIso8601String(),
       'exposure': exposure == true ? 1 : 0,
       'reported': reported == true ? 1 : 0,
     };
@@ -64,7 +71,8 @@ class LocationModel {
 
   Future<void> insert() async {
     final Database db = await Storage.db;
-    await db.insert('location', toMap());
+    await db.insert('location', toMap(),
+        conflictAlgorithm: ConflictAlgorithm.replace);
     print('inserted location ${toMap()}');
   }
 

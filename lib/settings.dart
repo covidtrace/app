@@ -1,8 +1,9 @@
 import 'dart:async';
 import 'package:covidtrace/storage/user.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_background_geolocation/flutter_background_geolocation.dart'
+    as bg;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-
 import 'helper/location.dart';
 import 'storage/location.dart';
 
@@ -24,9 +25,16 @@ class SettingsViewState extends State {
 
   Future<void> loadUser() async {
     _user = await UserModel.find();
+    var home = _user.home;
+
+    if (home == null) {
+      var loc = await bg.BackgroundGeolocation.getCurrentPosition();
+      home = LatLng(loc.coords.latitude, loc.coords.longitude);
+    }
+
     setState(() {
       _radius = _user.homeRadius;
-      _home = _user.home;
+      _home = home;
     });
   }
 
@@ -65,8 +73,8 @@ class SettingsViewState extends State {
             circleId: CircleId('home'),
             center: _home,
             radius: _radius,
-            fillColor: Colors.red.withOpacity(.2),
-            strokeColor: Colors.red,
+            fillColor: Colors.blueGrey.withOpacity(.3),
+            strokeColor: Colors.blueGrey,
             strokeWidth: 2)
       ];
     }
@@ -78,8 +86,7 @@ class SettingsViewState extends State {
                 Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                   SizedBox(
                       height: 250,
-                      child: circles
-                              .isNotEmpty // TODO(wes): Need to load current position if no home is defined
+                      child: circles.isNotEmpty || _home != null
                           ? GoogleMap(
                               mapType: MapType.normal,
                               myLocationEnabled: true,
@@ -97,8 +104,13 @@ class SettingsViewState extends State {
                             )
                           : Container()),
                   SizedBox(height: 10),
-                  Slider.adaptive(
-                      min: 0, max: 300, value: _radius, onChanged: setRadius),
+                  Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 20),
+                      child: Slider.adaptive(
+                          min: 0,
+                          max: 300,
+                          value: _radius,
+                          onChanged: setRadius)),
                   Padding(
                       padding: EdgeInsets.only(top: 10, left: 20, right: 20),
                       child: Text(
