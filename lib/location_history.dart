@@ -171,8 +171,8 @@ class LocationHistoryState extends State {
                                     circleId: CircleId('home'),
                                     center: _user.home,
                                     radius: _user.homeRadius,
-                                    fillColor: Colors.red.withOpacity(.2),
-                                    strokeColor: Colors.red,
+                                    fillColor: Colors.blueGrey.withOpacity(.2),
+                                    strokeColor: Colors.blueGrey,
                                     strokeWidth: 2)
                               ].toSet()
                             : Set(),

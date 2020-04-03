@@ -106,7 +106,6 @@ class OnboardingState extends State {
     }
   }
 
-  // TODO(wes): Don't need to do this on Android
   void requestNotifications(bool selected) async {
     var plugin = FlutterLocalNotificationsPlugin();
     bool allowed = await plugin
