@@ -46,17 +46,6 @@ void main() async {
       return;
     }
 
-    // Record only 1 location per five minute window.
-    var locations =
-        await LocationModel.findAll(limit: 1, orderBy: 'timestamp DESC');
-    if (locations.isNotEmpty) {
-      var latest = locations.first;
-      var diff = DateTime.parse(l.timestamp).difference(latest.timestamp);
-      if (diff.inMinutes < 5) {
-        return;
-      }
-    }
-
     await LocationModel(
             longitude: coords.longitude,
             latitude: coords.latitude,

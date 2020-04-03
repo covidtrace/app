@@ -7,6 +7,8 @@ import 'package:sqflite/sqflite.dart';
 import '../helper/datetime.dart';
 import 'package:latlong/latlong.dart' as lt;
 
+const int FIVE_MINUTES = 1000 * 60 * 5;
+
 class LocationModel {
   final int id;
   final double longitude;
@@ -35,10 +37,10 @@ class LocationModel {
   }
 
   Map<String, dynamic> toMap() {
-    // Round time to nearest minute to prevent duplicate insertions since
+    // Round time to nearest 5 minute to prevent duplicate insertions since
     // onLocation callbacks are not serial
     var time = DateTime.fromMillisecondsSinceEpoch(
-        timestamp.millisecondsSinceEpoch ~/ 60000 * 60000);
+        timestamp.millisecondsSinceEpoch ~/ FIVE_MINUTES * FIVE_MINUTES);
 
     return {
       'id': id,
