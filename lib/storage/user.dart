@@ -8,8 +8,6 @@ import 'package:sqflite/sqflite.dart';
 class UserModel {
   final int id;
   final String uuid;
-  String gender;
-  int age;
   double latitude;
   double longitude;
   double homeRadius;
@@ -21,8 +19,6 @@ class UserModel {
   UserModel(
       {this.id,
       this.uuid,
-      this.gender,
-      this.age,
       this.trackLocation,
       this.latitude,
       this.longitude,
@@ -41,8 +37,6 @@ class UserModel {
     return UserModel(
       id: rows[0]['id'],
       uuid: rows[0]['uuid'],
-      age: rows[0]['age'],
-      gender: rows[0]['gender'],
       trackLocation: rows[0]['track_location'] == 1,
       latitude: rows[0]['latitude'],
       longitude: rows[0]['longitude'],
@@ -88,8 +82,6 @@ class UserModel {
     return db.update(
         'user',
         {
-          'age': age,
-          'gender': gender,
           'track_location': trackLocation ? 1 : 0,
           'latitude': latitude,
           'longitude': longitude,
