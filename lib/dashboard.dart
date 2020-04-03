@@ -79,7 +79,7 @@ class DashboardState extends State with TickerProviderStateMixin {
   Future<void> refreshExposures(AppState state) async {
     var currentExposed = state.exposure != null;
     var found = await state.checkExposures();
-    var location = await state.checkExposure();
+    var location = state.exposure;
 
     if (location != null) {
       var controller = await _mapController.future;

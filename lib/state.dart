@@ -30,6 +30,12 @@ class AppState with ChangeNotifier {
     notifyListeners();
   }
 
+  bool get ready => _ready;
+
+  LocationModel get exposure => _exposure;
+
+  UserModel get user => _user;
+
   Future<LocationModel> getExposure() async {
     var date = DateTime.now().subtract(Duration(days: 7));
     var timestamp = DateFormat('yyyy-MM-dd').format(date);
@@ -43,20 +49,13 @@ class AppState with ChangeNotifier {
     return locations.isEmpty ? null : locations.first;
   }
 
-  Future<LocationModel> checkExposure() async {
+  Future<bool> checkExposures() async {
+    var found = await bg.checkExposures();
+    _user = await UserModel.find();
     _exposure = await getExposure();
     notifyListeners();
-
-    return _exposure;
+    return found;
   }
-
-  bool get ready {
-    return _ready;
-  }
-
-  LocationModel get exposure => _exposure;
-
-  UserModel get user => _user;
 
   Future<void> saveUser(user) async {
     _user = user;
@@ -195,12 +194,5 @@ class AppState with ChangeNotifier {
     await ReportModel.destroyAll();
     _report = null;
     notifyListeners();
-  }
-
-  Future<bool> checkExposures() async {
-    var found = await bg.checkExposures();
-    _user = await UserModel.find();
-    notifyListeners();
-    return found;
   }
 }
