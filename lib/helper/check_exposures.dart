@@ -102,7 +102,7 @@ Future<bool> checkExposures() async {
   // the CSVs we last downloaded. If we have never checked before, we
   // should fetch everything for the last three weeks
   var lastCheck = user.lastCheck;
-  if (lastCheck != null) {
+  if (lastCheck == null) {
     lastCheck = threeWeeksAgo;
   }
   var lastCsv = '${(lastCheck.millisecondsSinceEpoch / 1000).floor()}.csv';
