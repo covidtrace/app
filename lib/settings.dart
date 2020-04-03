@@ -97,8 +97,13 @@ class SettingsViewState extends State {
                             )
                           : Container()),
                   SizedBox(height: 10),
-                  Slider.adaptive(
-                      min: 0, max: 300, value: _radius, onChanged: setRadius),
+                  Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 20),
+                      child: Slider.adaptive(
+                          min: 0,
+                          max: 300,
+                          value: _radius,
+                          onChanged: setRadius)),
                   Padding(
                       padding: EdgeInsets.only(top: 10, left: 20, right: 20),
                       child: Text(

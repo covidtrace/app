@@ -35,6 +35,11 @@ class LocationModel {
   }
 
   Map<String, dynamic> toMap() {
+    // Round time to nearest minute to prevent duplicate insertions since
+    // onLocation callbacks are not serial
+    var time = DateTime.fromMillisecondsSinceEpoch(
+        timestamp.millisecondsSinceEpoch ~/ 60000 * 60000);
+
     return {
       'id': id,
       'longitude': longitude,
@@ -43,7 +48,7 @@ class LocationModel {
       'activity': activity,
       'sample': sample,
       'speed': speed,
-      'timestamp': timestamp.toIso8601String(),
+      'timestamp': time.toIso8601String(),
       'exposure': exposure == true ? 1 : 0,
       'reported': reported == true ? 1 : 0,
     };
@@ -64,7 +69,8 @@ class LocationModel {
 
   Future<void> insert() async {
     final Database db = await Storage.db;
-    await db.insert('location', toMap());
+    await db.insert('location', toMap(),
+        conflictAlgorithm: ConflictAlgorithm.replace);
     print('inserted location ${toMap()}');
   }
 

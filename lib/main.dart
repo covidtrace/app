@@ -46,6 +46,17 @@ void main() async {
       return;
     }
 
+    // Record only 1 location per five minute window.
+    var locations =
+        await LocationModel.findAll(limit: 1, orderBy: 'timestamp DESC');
+    if (locations.isNotEmpty) {
+      var latest = locations.first;
+      var diff = DateTime.parse(l.timestamp).difference(latest.timestamp);
+      if (diff.inMinutes < 5) {
+        return;
+      }
+    }
+
     await LocationModel(
             longitude: coords.longitude,
             latitude: coords.latitude,
@@ -68,7 +79,6 @@ void main() async {
       stopOnTerminate: false,
       startOnBoot: true,
       fastestLocationUpdateInterval: 1000 * 60 * 5,
-      useSignificantChangesOnly: true,
       persistMode: bg.Config.PERSIST_MODE_NONE,
       logLevel: bg.Config.LOG_LEVEL_OFF));
 }
@@ -291,8 +301,10 @@ class MainPageState extends State<MainPage> {
                 ListTile(
                     leading: Icon(Icons.lock),
                     title: Text('Privacy Policy'),
-                    onTap: () =>
-                        launch('https://covidtrace.com/privacy-policy')),
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      launch('https://covidtrace.com/privacy-policy');
+                    }),
                 ListTile(
                     leading: Icon(Icons.info),
                     title: Text('About COVID Trace'),
