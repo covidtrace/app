@@ -153,10 +153,6 @@ class AppState with ChangeNotifier {
       List<LocationModel> locations = await LocationModel.findAll(
           orderBy: 'id ASC', where: where, whereArgs: whereArgs);
 
-      List<List<dynamic>> headers = [
-        ['timestamp', 's2geo', 'status']
-      ];
-
       var holdingBucket = config['holdingBucket'];
       if (holdingBucket == null) {
         holdingBucket = 'covidtrace-holding';
@@ -172,8 +168,8 @@ class AppState with ChangeNotifier {
           headers: {
             'Content-Type': contentType,
           },
-          body: ListToCsvConverter().convert(
-              headers + locations.map((l) => l.toCSV(level)).toList()));
+          body: ListToCsvConverter().convert([LocationModel.csvHeaders] +
+              locations.map((l) => l.toCSV(level)).toList()));
 
       if (!uploadSuccess) {
         return false;
