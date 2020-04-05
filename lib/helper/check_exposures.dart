@@ -109,19 +109,35 @@ Future<bool> checkExposures() async {
 
   await Future.wait(objects.where((object) {
     // Strip off geo prefix for lexical comparison
-    var name = object['name'] as String;
-    var nameParts = name.split('/');
-    if (nameParts.length != 2) {
+    var objectName = object['name'] as String;
+    var objectNameParts = objectName.split('/');
+    if (objectNameParts.length != 2) {
       return false;
     }
 
-    // Perform lexical comparison
-    var unixCsv = nameParts[1];
-    return unixCsv.compareTo(lastCsv) >= 0;
+    // Perform lexical comparison. Object names look like: '$UNIX_TS.$TYPE.csv'
+    // where $TYPE is one of `points` or `tokens`. We want to compare
+    // '$UNIX_TS.csv' to `lastCsv`
+    var fileName = objectNameParts[1];
+    var fileNameParts = fileName.split('.');
+    if (fileNameParts.length < 1) {
+      return false;
+    }
+    var unixTs = fileNameParts[0];
+
+    //  Lexical comparison
+    return '$unixTs.csv'.compareTo(lastCsv) >= 0;
   }).map((object) async {
+    var objectName = object['name'] as String;
+
+    // For now, ignore `token` csvs
+    if (objectName.contains(".tokens.csv")) {
+      return;
+    }
+
     // Sync file to local storage
-    var fileHandle = await syncObject(dir.path, publishedBucket,
-        object['name'] as String, object['md5Hash'] as String);
+    var fileHandle = await syncObject(
+        dir.path, publishedBucket, objectName, object['md5Hash'] as String);
 
     // Parse and compare with local locations.
     var fileCsv = await fileHandle.readAsString();
@@ -133,7 +149,7 @@ Future<bool> checkExposures() async {
       var timestamp = roundedDateTime(
           DateTime.fromMillisecondsSinceEpoch(int.parse(parsedRow[0]) * 1000));
 
-      // Note: aggregate CSVs look like [timestamp, cellID, verified]
+      // Note: aggregate point CSVs look like [timestamp, cellID, verified]
       String cellID = parsedRow[1];
 
       var locationsbyTimestamp = geoLevelsTimestamp[cellID];
