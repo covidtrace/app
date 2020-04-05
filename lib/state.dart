@@ -1,13 +1,15 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'config.dart';
+import 'helper/check_exposures.dart' as bg;
 import 'helper/signed_upload.dart';
-import 'package:covidtrace/storage/report.dart';
 import 'package:csv/csv.dart';
 import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
 import 'storage/location.dart';
+import 'storage/report.dart';
 import 'storage/user.dart';
 
 class AppState with ChangeNotifier {
@@ -23,12 +25,18 @@ class AppState with ChangeNotifier {
   initState() async {
     _user = await UserModel.find();
     _report = await ReportModel.findLatest();
-    _exposure = await loadExposure();
+    _exposure = await getExposure();
     _ready = true;
     notifyListeners();
   }
 
-  Future<LocationModel> loadExposure() async {
+  bool get ready => _ready;
+
+  LocationModel get exposure => _exposure;
+
+  UserModel get user => _user;
+
+  Future<LocationModel> getExposure() async {
     var date = DateTime.now().subtract(Duration(days: 7));
     var timestamp = DateFormat('yyyy-MM-dd').format(date);
 
@@ -41,20 +49,13 @@ class AppState with ChangeNotifier {
     return locations.isEmpty ? null : locations.first;
   }
 
-  Future<LocationModel> checkExposure() async {
-    _exposure = await loadExposure();
+  Future<bool> checkExposures() async {
+    var found = await bg.checkExposures();
+    _user = await UserModel.find();
+    _exposure = await getExposure();
     notifyListeners();
-
-    return _exposure;
+    return found;
   }
-
-  bool get ready {
-    return _ready;
-  }
-
-  LocationModel get exposure => _exposure;
-
-  UserModel get user => _user;
 
   Future<void> saveUser(user) async {
     _user = user;

@@ -1,8 +1,7 @@
 import 'dart:async';
 import 'helper/check_exposures.dart';
 import 'helper/location.dart';
-import 'package:covidtrace/operator.dart';
-import 'package:covidtrace/state.dart';
+import 'operator.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -10,6 +9,7 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'state.dart';
 import 'storage/location.dart';
 import 'verify_phone.dart';
 
@@ -78,8 +78,8 @@ class DashboardState extends State with TickerProviderStateMixin {
 
   Future<void> refreshExposures(AppState state) async {
     var currentExposed = state.exposure != null;
-    var found = await checkExposures();
-    var location = await state.checkExposure();
+    var found = await state.checkExposures();
+    var location = state.exposure;
 
     if (location != null) {
       var controller = await _mapController.future;
@@ -250,6 +250,7 @@ class DashboardState extends State with TickerProviderStateMixin {
         );
       }
 
+      var lastCheck = state.user.lastCheck;
       var location = state.exposure;
       if (location == null) {
         int days = 0;
@@ -311,7 +312,14 @@ class DashboardState extends State with TickerProviderStateMixin {
                                     axisAlignment: 1.0,
                                     sizeFactor: animation),
                               ])))),
-                  SizedBox(height: 40),
+                  Padding(
+                    padding: EdgeInsets.only(top: 5),
+                    child: Center(
+                        child: Text(
+                            'LAST CHECKED: ${DateFormat.jm().format(lastCheck ?? DateTime.now())}',
+                            style: Theme.of(context).textTheme.caption)),
+                  ),
+                  SizedBox(height: 30),
                   Center(child: Text('TIPS & RESOURCES', style: subhead)),
                   SizedBox(height: 10),
                   Card(
