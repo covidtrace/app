@@ -46,6 +46,24 @@ CREATE TABLE report (
   FOREIGN KEY (last_location_id) REFERENCES location (id) ON DELETE CASCADE
 )
   ''',
+  '''
+CREATE TABLE user_beacon (
+  major INTEGER,
+  minor INTEGER,
+  timestamp TEXT,
+  PRIMARY KEY (major, minor)
+)
+  ''',
+  '''
+CREATE TABLE beacon (
+  id INTEGER PRIMARY KEY,
+  major INTEGER,
+  minor INTEGER,
+  start TEXT,
+  last_seen TEXT,
+  end TEXT
+)
+  ''',
 ];
 
 List<String> migrationScripts = [];

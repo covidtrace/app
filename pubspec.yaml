@@ -14,33 +14,36 @@ description: Digital Contact Tracing for COVID-19
 version: 1.0.1+2
 
 environment:
-  sdk: ">=2.2.2 <3.0.0"
+  sdk: ">=2.6.0 <3.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
   app_settings: 3.0.1
-  flutter_local_notifications: ^1.3.0
   background_fetch: ^0.5.3
+  beacon_broadcast: ^0.2.1
+  crypto: ^2.1.3
+  csv: ^4.0.3
   flutter_background_geolocation: ^1.7.0
+  flutter_beacon: ^0.3.0
+  flutter_local_notifications: ^1.3.0
+  flutter_sticky_header: "^0.4.2"
   google_maps_flutter: ^0.5.24+1
-  latlong: ^0.6.1
   http:
   intl:
+  jaguar_jwt: ^2.1.6
+  latlong: ^0.6.1
   path:
+  path_provider: ^1.6.5
   provider: ^4.0.4
+  s2geometry: ^0.1.1
   shared_preferences: 0.5.6+3
   sqflite:
-  url_launcher: ^5.4.2
-  s2geometry: ^0.1.1
-  csv: ^4.0.3
-  uuid: ^2.0.4
-  path_provider: ^1.6.5
-  crypto: ^2.1.3
-  jaguar_jwt: ^2.1.6
-  flutter_sticky_header: "^0.4.2"
-  tuple: ^1.0.3
   sqflite_migration: ^0.1.2
+  tuple: ^1.0.3
+  url_launcher: ^5.4.2
+  uuid: ^2.0.4
+  wakelock: ^0.1.4+1
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
