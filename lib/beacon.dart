@@ -140,7 +140,7 @@ class BeaconState extends State {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Beacon'),
+        title: Text('Beacons'),
         centerTitle: true,
       ),
       body: Column(children: [
