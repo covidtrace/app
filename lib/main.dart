@@ -298,8 +298,8 @@ class MainPageState extends State<MainPage> {
                     onTap: () => Navigator.of(context)
                         .popAndPushNamed('/location_history')),
                 ListTile(
-                    leading: Icon(Icons.phonelink_ring),
-                    title: Text('Beacon'),
+                    leading: Icon(Icons.bluetooth_searching),
+                    title: Text('Beacons'),
                     onTap: () =>
                         Navigator.of(context).popAndPushNamed('/beacon')),
                 ListTile(

@@ -97,7 +97,6 @@ class BeaconState extends State {
     super.initState();
 
     initBroadcast();
-    BeaconModel.destroyAll();
   }
 
   void initBroadcast() async {
