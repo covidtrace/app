@@ -97,6 +97,7 @@ class BeaconState extends State {
     super.initState();
 
     initBroadcast();
+    refreshBeacons();
   }
 
   void initBroadcast() async {
