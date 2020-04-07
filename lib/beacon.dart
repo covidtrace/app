@@ -89,6 +89,7 @@ class BeaconState extends State {
   BeaconBroadcastModel _broadcast;
   bool _broadcasting = false;
   List<BeaconModel> _beacons = [];
+  Timer timer;
 
   @override
   void initState() {
@@ -96,7 +97,16 @@ class BeaconState extends State {
 
     setupBeaconScanning();
     initBroadcast();
-    refreshBeacons();
+
+    timer = Timer.periodic(Duration(seconds: 1), (timer) {
+      refreshBeacons();
+    });
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    timer.cancel();
   }
 
   void initBroadcast() async {
