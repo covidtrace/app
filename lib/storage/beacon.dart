@@ -3,6 +3,8 @@ import 'dart:async';
 import 'db.dart';
 import 'package:sqflite/sqflite.dart';
 
+const int MIN_TIME_INTERVAL = 1000 * 15;
+
 class BeaconModel {
   final int id;
   final int major;
@@ -20,11 +22,15 @@ class BeaconModel {
   Duration get duration => lastSeen.difference(start);
 
   Map<String, dynamic> toMap() {
+    // Round time to nearest interval to prevent duplicate insertions
+    var startTime = DateTime.fromMillisecondsSinceEpoch(
+        start.millisecondsSinceEpoch ~/ MIN_TIME_INTERVAL * MIN_TIME_INTERVAL);
+
     return {
       'id': id,
       'major': major,
       'minor': minor,
-      'start': start.toIso8601String(),
+      'start': startTime.toIso8601String(),
       'end': end?.toIso8601String(),
       'last_seen': lastSeen.toIso8601String(),
     };

@@ -61,7 +61,8 @@ CREATE TABLE beacon (
   minor INTEGER,
   start TEXT,
   last_seen TEXT,
-  end TEXT
+  end TEXT,
+  UNIQUE (major, minor, start)
 )
   ''',
 ];
