@@ -73,8 +73,6 @@ void main() async {
       fastestLocationUpdateInterval: 1000 * 60 * 5,
       persistMode: bg.Config.PERSIST_MODE_NONE,
       logLevel: bg.Config.LOG_LEVEL_OFF));
-
-  setupBeaconScanning();
 }
 
 class CovidTraceApp extends StatefulWidget {

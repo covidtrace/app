@@ -20,9 +20,7 @@ final BeaconBroadcast beaconBroadcast = BeaconBroadcast();
 StreamSubscription<RangingResult> _streamRanging;
 
 Future<void> setupBeaconScanning() async {
-  print('initScan');
   try {
-    // TODO(wes): initializeAndCheckScanning will never return on iOS if already have permissions
     var success = await flutterBeacon.initializeScanning;
     print('initScan $success');
   } catch (err) {
@@ -38,15 +36,13 @@ Future<void> setupBeaconScanning() async {
 
     switch (result.monitoringState) {
       case MonitoringState.inside:
-        showBeaconNotification(result.monitoringState);
+        showBeaconNotification();
         startRegionRange();
         break;
       case MonitoringState.outside:
-        showBeaconNotification(result.monitoringState);
         stopRegionRange();
         break;
       case MonitoringState.unknown:
-        showBeaconNotification(result.monitoringState);
         break;
     }
   });
@@ -71,14 +67,18 @@ Future<void> stopRegionRange() {
   return _streamRanging.cancel();
 }
 
-void showBeaconNotification(MonitoringState state) async {
+void showBeaconNotification() async {
   var notificationPlugin = FlutterLocalNotificationsPlugin();
   var androidSpec = AndroidNotificationDetails(
       '1', 'COVID Trace', 'Beacon notification',
       importance: Importance.Max, priority: Priority.High, ticker: 'ticker');
   var iosSpecs = IOSNotificationDetails();
-  await notificationPlugin.show(1, 'COVID Trace Beacon Alert', '$state',
-      NotificationDetails(androidSpec, iosSpecs));
+  await notificationPlugin.show(
+      1,
+      'COVID Trace Monitoring Alert',
+      'Keep the app open to get accurate monitoring while indoors.',
+      NotificationDetails(androidSpec, iosSpecs),
+      payload: 'Default_Sound');
 }
 
 class Beacon extends StatefulWidget {
@@ -96,6 +96,7 @@ class BeaconState extends State {
   void initState() {
     super.initState();
 
+    setupBeaconScanning();
     initBroadcast();
     refreshBeacons();
   }
@@ -167,7 +168,8 @@ class BeaconState extends State {
                       title: Text(
                           '${DateFormat.jm().format(b.start).toLowerCase()}'),
                       subtitle: Text('${b.major}:${b.minor}'),
-                      trailing: Text(mins > 0 ? '$mins m $secs s' : '$secs s'),
+                      trailing:
+                          Text(mins > 0 ? '${mins}m ${secs}s' : '${secs}s'),
                     );
                   },
                 ))),

@@ -29,9 +29,9 @@
 	<key>NSMotionUsageDescription</key>	
 	<string>Motion detection is used to save battery life while recording location history</string>
 	<key>NSBluetoothAlwaysUsageDescription</key>
-	<string>Need BLE permission</string>
+	<string>COVID Trace needs access to Bluetooth to provide better monitoring indoors.</string>
 	<key>NSBluetoothPeripheralUsageDescription</key>
-	<string>Need BLE permission</string>
+	<string>COVID Trace needs access to Bluetooth to provide better monitoring indoors.</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>

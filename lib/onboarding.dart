@@ -111,7 +111,7 @@ class OnboardingState extends State {
     bool allowed = await plugin
         .resolvePlatformSpecificImplementation<
             IOSFlutterLocalNotificationsPlugin>()
-        .requestPermissions(alert: true);
+        .requestPermissions(alert: true, sound: true);
 
     setState(() => _requestNotification = allowed);
     var user = await UserModel.find();
