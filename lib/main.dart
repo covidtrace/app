@@ -73,6 +73,11 @@ void main() async {
       fastestLocationUpdateInterval: 1000 * 60 * 5,
       persistMode: bg.Config.PERSIST_MODE_NONE,
       logLevel: bg.Config.LOG_LEVEL_OFF));
+
+  var user = await UserModel.find();
+  if (!user.onboarding) {
+    setupBeaconScanning();
+  }
 }
 
 class CovidTraceApp extends StatefulWidget {

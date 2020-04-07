@@ -95,8 +95,8 @@ class BeaconState extends State {
   void initState() {
     super.initState();
 
-    setupBeaconScanning();
     initBroadcast();
+    refreshBeacons();
 
     timer = Timer.periodic(Duration(seconds: 1), (timer) {
       refreshBeacons();

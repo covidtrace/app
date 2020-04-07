@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:covidtrace/beacon.dart';
 import 'package:covidtrace/storage/user.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -97,6 +98,9 @@ class OnboardingState extends State {
 
       if (allowed) {
         bg.BackgroundGeolocation.start();
+        // TODO(wes): This will immediately prompt for bluetooth.
+        // Should we move this somewhere else?
+        setupBeaconScanning();
       } else {
         setState(() => _linkToSettings = true);
       }
