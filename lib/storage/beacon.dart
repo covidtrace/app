@@ -43,7 +43,8 @@ class BeaconModel {
 
   Future<void> insert() async {
     final Database db = await Storage.db;
-    await db.insert('beacon', toMap());
+    await db.insert('beacon', toMap(),
+        conflictAlgorithm: ConflictAlgorithm.ignore);
     print('inserted beacon ${toMap()}');
   }
 
@@ -66,7 +67,7 @@ class BeaconModel {
   }
 
   static Future<void> endUnseen() async {
-    var threshold = DateTime.now().subtract(Duration(seconds: 10));
+    var threshold = DateTime.now().subtract(Duration(seconds: 15));
 
     final Database db = await Storage.db;
     var count = await db.update(

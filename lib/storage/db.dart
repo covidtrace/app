@@ -47,11 +47,12 @@ CREATE TABLE report (
 )
   ''',
   '''
-CREATE TABLE user_beacon (
+CREATE TABLE beacon_broadcast (
+  id INTEGER PRIMARY KEY,
   major INTEGER,
   minor INTEGER,
   timestamp TEXT,
-  PRIMARY KEY (major, minor)
+  UNIQUE (major, minor)
 )
   ''',
   '''

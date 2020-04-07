@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:beacon_broadcast/beacon_broadcast.dart';
 import 'package:flutter/material.dart';
@@ -8,10 +7,10 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:intl/intl.dart';
 
 import 'storage/beacon.dart';
+import 'storage/beacon_broadcast.dart';
 
 // COVID Trace Beacon UUID
 const String UUID = '9F9D2C7D-5022-4052-A36B-B225DBC5E6D2';
-
 List<Region> regions = [
   Region(identifier: 'com.covidtrace.app', proximityUUID: UUID)
 ];
@@ -87,8 +86,7 @@ class Beacon extends StatefulWidget {
 }
 
 class BeaconState extends State {
-  int _major = Random().nextInt(pow(2, 16));
-  int _minor = Random().nextInt(pow(2, 16));
+  BeaconBroadcastModel _broadcast;
   bool _broadcasting = false;
   List<BeaconModel> _beacons = [];
 
@@ -110,23 +108,26 @@ class BeaconState extends State {
 
     beaconBroadcast
         .setUUID(UUID)
-        .setMajorId(_major)
-        .setMinorId(_minor)
         .setIdentifier('com.covidtrace.app')
         .setLayout('m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24') // iBeacon
         .setManufacturerId(0x004C); // Apple
 
     if (!await beaconBroadcast.isAdvertising()) {
       print('starting beacon broadcasting');
-      beaconBroadcast.start();
+      onBroadcastChange(true);
     } else {
       setState(() => _broadcasting = true);
     }
   }
 
-  void onBroadcastChange(bool value) {
+  void onBroadcastChange(bool value) async {
     if (value) {
-      beaconBroadcast.start();
+      var broadcast = await BeaconBroadcastModel.get();
+      beaconBroadcast
+          .setMajorId(broadcast.major)
+          .setMinorId(broadcast.minor)
+          .start();
+      setState(() => _broadcast = broadcast);
     } else {
       beaconBroadcast.stop();
     }
@@ -148,7 +149,9 @@ class BeaconState extends State {
         Container(
             child: ListTile(
                 title: Text('Broadcasting'),
-                subtitle: Text('ID: $_major:$_minor'),
+                subtitle: _broadcast != null
+                    ? Text('ID: ${_broadcast.major}:${_broadcast.minor}')
+                    : null,
                 trailing: Switch.adaptive(
                     value: _broadcasting, onChanged: onBroadcastChange))),
         Divider(),
