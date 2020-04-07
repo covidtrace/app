@@ -52,8 +52,9 @@ void startRegionRange() {
   _streamRanging =
       flutterBeacon.ranging(regions).listen((RangingResult result) {
     result.beacons.forEach((b) {
-      // TODO(wes): Possible filter beacons based on proximity
-      BeaconModel.seen(b.major, b.minor);
+      if (b.proximity == Proximity.immediate || b.proximity == Proximity.near) {
+        BeaconModel.seen(b.major, b.minor);
+      }
     });
 
     BeaconModel.endUnseen();
