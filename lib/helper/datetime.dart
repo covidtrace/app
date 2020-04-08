@@ -4,5 +4,5 @@ double _sampleUnixSeconds(DateTime d, int minutes) =>
 int ceilUnixSeconds(DateTime d, int minutes) =>
     _sampleUnixSeconds(d, minutes).ceil() * minutes * 60;
 
-int roundedUnixSeconds(DateTime d, int minutes) =>
-    _sampleUnixSeconds(d, minutes).round() * minutes * 60;
+int floorUnixSeconds(DateTime d, int minutes) =>
+    _sampleUnixSeconds(d, minutes).floor() * minutes * 60;

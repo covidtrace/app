@@ -38,7 +38,7 @@ class LocationModel {
     // Round time to nearest 5 minute to prevent duplicate insertions since
     // onLocation callbacks are not serial
     var time = DateTime.fromMillisecondsSinceEpoch(
-        roundedUnixSeconds(timestamp, 5) * 1000);
+        floorUnixSeconds(timestamp, 5) * 1000);
 
     return {
       'id': id,
