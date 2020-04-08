@@ -4,7 +4,6 @@ import 'dart:convert';
 import 'config.dart';
 import 'helper/check_exposures.dart' as bg;
 import 'helper/signed_upload.dart';
-import 'package:csv/csv.dart';
 import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
@@ -169,8 +168,7 @@ class AppState with ChangeNotifier {
           headers: {
             'Content-Type': contentType,
           },
-          body: ListToCsvConverter().convert([LocationModel.csvHeaders] +
-              locations.map((l) => l.toCSV(level)).toList()));
+          body: LocationModel.toCSV(locations, level));
 
       if (!uploadSuccess) {
         return false;

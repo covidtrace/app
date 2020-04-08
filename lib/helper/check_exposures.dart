@@ -1,16 +1,13 @@
+import 'dart:async';
+import 'package:covidtrace/config.dart';
+import 'package:covidtrace/exposure/location.dart';
 import 'package:covidtrace/helper/cloud_storage.dart';
-import 'package:covidtrace/helper/datetime.dart';
+import 'package:covidtrace/storage/location.dart';
 import 'package:covidtrace/storage/user.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:intl/intl.dart';
-import 'package:tuple/tuple.dart';
-
-import '../config.dart';
-import '../storage/location.dart';
-import '../storage/user.dart';
-import 'dart:async';
-import 'package:csv/csv.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:tuple/tuple.dart';
 
 Future<bool> checkExposures() async {
   print('Checking exposures...');
@@ -36,43 +33,14 @@ Future<bool> checkExposures() async {
   String publishedBucket = config['publishedBucket'];
   int compareLevel = config['compareS2Level'];
   List<dynamic> aggLevels = config['aggS2Levels'];
+
+  // Structures for location exposure
   LocationModel exposed;
+  var locationExposure = new LocationExposure(locations, compareLevel);
 
   // Set of all top level geo prefixes to begin querying
-  var geoPrefixes = Set<String>();
-
-  // S2 cell ID to locations at each aggregation level
-  var geoLevels = Map<String, List<LocationModel>>();
-
-  // S2 cell ID at compare level -> locations grouped by unix timestamp
-  var geoLevelsTimestamp = new Map<String, Map<int, List<LocationModel>>>();
-
-  // Build all structures by iterating over locations only once
-  locations.forEach((location) {
-    // Populate `geoPrefixes` with least precise S2 geo
-    geoPrefixes.add(location.cellID.parent(aggLevels.first as int).toToken());
-
-    // Populate `geoLevels` at each aggregation level
-    aggLevels.forEach((level) {
-      var cellID = location.cellID.parent(level).toToken();
-
-      if (geoLevels[cellID] == null) {
-        geoLevels[cellID] = [];
-      }
-      geoLevels[cellID].add(location);
-    });
-
-    // Populate `geoLevelsTimestamp` object at each aggregation level
-    var timestamp = roundedDateTime(location.timestamp);
-    var cellID = location.cellID.parent(compareLevel).toToken();
-    if (geoLevelsTimestamp[cellID] == null) {
-      geoLevelsTimestamp[cellID] = new Map();
-    }
-    if (geoLevelsTimestamp[cellID][timestamp] == null) {
-      geoLevelsTimestamp[cellID][timestamp] = [];
-    }
-    geoLevelsTimestamp[cellID][timestamp].add(location);
-  });
+  var geoPrefixes = Set<String>.from(locations.map(
+      (location) => location.cellID.parent(aggLevels.first as int).toToken()));
 
   // Build a queue of geos to fetch
   List<Tuple2<String, int>> geoPrefixQueue =
@@ -128,42 +96,28 @@ Future<bool> checkExposures() async {
     //  Lexical comparison
     return '$unixTs.csv'.compareTo(lastCsv) >= 0;
   }).map((object) async {
-    var objectName = object['name'] as String;
-
     // For now, ignore `token` csvs
+    var objectName = object['name'] as String;
     if (objectName.contains(".tokens.csv")) {
       return;
     }
 
     // Sync file to local storage
-    var fileHandle = await syncObject(
+    var file = await syncObject(
         dir.path, publishedBucket, objectName, object['md5Hash'] as String);
 
-    // Parse and compare with local locations.
-    var fileCsv = await fileHandle.readAsString();
-    var parsedRows = CsvToListConverter(shouldParseNumbers: false, eol: '\n')
-        .convert(fileCsv);
+    // Find exposures and update!
+    var exposures =
+        await locationExposure.getExposures(await file.readAsString());
 
-    // Iterate through rows and search for matching locations
-    await Future.forEach(parsedRows, (parsedRow) async {
-      var timestamp = roundedDateTime(
-          DateTime.fromMillisecondsSinceEpoch(int.parse(parsedRow[0]) * 1000));
-
-      // Note: aggregate point CSVs look like [timestamp, cellID, verified]
-      String cellID = parsedRow[1];
-
-      var locationsbyTimestamp = geoLevelsTimestamp[cellID];
-      if (locationsbyTimestamp != null) {
-        var exposures = locationsbyTimestamp[timestamp];
-        if (exposures != null) {
-          exposed = exposures.last;
-          await Future.forEach(exposures, (location) async {
-            location.exposure = true;
-            await location.save();
-          });
-        }
-      }
-    });
+    if (exposures.length > 0) {
+      exposures.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+      exposed = exposures.last;
+      await Future.wait(exposures.map((location) async {
+        location.exposure = true;
+        await location.save();
+      }));
+    }
   }));
 
   user.lastCheck = DateTime.now();
