@@ -7,7 +7,6 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:intl/intl.dart';
 
 import 'storage/beacon.dart';
-import 'storage/beacon_broadcast.dart';
 
 // COVID Trace Beacon UUID
 const String UUID = '9F9D2C7D-5022-4052-A36B-B225DBC5E6D2';
@@ -50,21 +49,22 @@ Future<void> setupBeaconScanning() async {
 void startRegionRange() {
   print('starting region range');
   _streamRanging =
-      flutterBeacon.ranging(regions).listen((RangingResult result) {
-    result.beacons.forEach((b) {
-      if (b.proximity == Proximity.immediate || b.proximity == Proximity.near) {
-        BeaconModel.seen(b.major, b.minor);
-      }
-    });
+      flutterBeacon.ranging(regions).listen((RangingResult result) async {
+    Future.wait(result.beacons.map((b) {
+      return BeaconTransmission.seen(b.major, b.minor);
+    }));
 
-    BeaconModel.endUnseen();
+    var count = await BeaconTransmission.endUnseen();
+    if (count > 0) {
+      // TODO(wes): Combine transmissions into a beacon
+    }
   });
 }
 
-Future<void> stopRegionRange() {
+Future<void> stopRegionRange() async {
   print('stopping region range');
-  BeaconModel.endUnseen();
-  return _streamRanging.cancel();
+  await BeaconTransmission.endUnseen();
+  return _streamRanging?.cancel();
 }
 
 void showBeaconNotification() async {
@@ -81,16 +81,18 @@ void showBeaconNotification() async {
       payload: 'Default_Sound');
 }
 
-class Beacon extends StatefulWidget {
+class BeaconHistory extends StatefulWidget {
   @override
   State<StatefulWidget> createState() => BeaconState();
 }
 
 class BeaconState extends State {
-  BeaconBroadcastModel _broadcast;
+  BeaconUuid _beacon;
   bool _broadcasting = false;
-  List<BeaconModel> _beacons = [];
-  Timer timer;
+  bool _advertising = false;
+  List<BeaconTransmission> _beacons = [];
+  Timer refreshTimer;
+  Timer sequenceTimer;
 
   @override
   void initState() {
@@ -99,7 +101,7 @@ class BeaconState extends State {
     initBroadcast();
     refreshBeacons();
 
-    timer = Timer.periodic(Duration(seconds: 1), (timer) {
+    refreshTimer = Timer.periodic(Duration(seconds: 1), (timer) {
       refreshBeacons();
     });
   }
@@ -107,13 +109,14 @@ class BeaconState extends State {
   @override
   void dispose() {
     super.dispose();
-    timer.cancel();
+    refreshTimer.cancel();
+    stopAdvertising();
   }
 
-  void initBroadcast() async {
+  void initBroadcast() {
     beaconBroadcast.getAdvertisingStateChange().listen((isAdvertising) {
       if (mounted) {
-        setState(() => _broadcasting = isAdvertising);
+        setState(() => _advertising = isAdvertising);
       }
     });
 
@@ -122,35 +125,57 @@ class BeaconState extends State {
         .setIdentifier('com.covidtrace.app')
         .setLayout('m:2-3=0215,i:4-19,i:20-21,i:22-23,p:24-24') // iBeacon
         .setManufacturerId(0x004C); // Apple
-
-    if (!await beaconBroadcast.isAdvertising()) {
-      print('starting beacon broadcasting');
-      onBroadcastChange(true);
-    } else {
-      setState(() => _broadcasting = true);
-    }
   }
 
   void onBroadcastChange(bool value) async {
+    setState(() => _broadcasting = value);
     if (value) {
-      var broadcast = await BeaconBroadcastModel.get();
-      beaconBroadcast
-          .setMajorId(broadcast.major)
-          .setMinorId(broadcast.minor)
-          .start();
-      setState(() => _broadcast = broadcast);
+      await startAdvertising();
     } else {
-      beaconBroadcast.stop();
+      stopAdvertising();
     }
   }
 
+  Future<void> startAdvertising() async {
+    if (sequenceTimer != null) {
+      sequenceTimer.cancel();
+    }
+
+    var beacon = await BeaconUuid.get();
+    setState(() => _beacon = beacon);
+
+    sequenceTimer = Timer.periodic(Duration(seconds: 11), (timer) async {
+      if (_advertising) {
+        beaconBroadcast.stop();
+        await Future.delayed(Duration(seconds: 5));
+      }
+
+      _beacon.next();
+      beaconBroadcast.setMajorId(_beacon.major);
+      beaconBroadcast.setMinorId(_beacon.minor);
+      beaconBroadcast.start();
+    });
+  }
+
+  void stopAdvertising() {
+    sequenceTimer?.cancel();
+    beaconBroadcast.stop();
+  }
+
   Future<void> refreshBeacons() async {
-    var beacons = await BeaconModel.findAll(orderBy: 'last_seen DESC');
+    var beacons = await BeaconTransmission.findAll(orderBy: 'start DESC');
     setState(() => _beacons = beacons);
   }
 
   @override
   Widget build(BuildContext context) {
+    Map<String, List<BeaconTransmission>> clientMap = Map();
+    _beacons.forEach((b) {
+      clientMap['${b.clientId}-${b.lastSeen}'] ??= [];
+      clientMap['${b.clientId}-${b.lastSeen}'].add(b);
+    });
+    var clients = clientMap.values.toList();
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Beacons'),
@@ -160,8 +185,8 @@ class BeaconState extends State {
         Container(
             child: ListTile(
                 title: Text('Broadcasting'),
-                subtitle: _broadcast != null
-                    ? Text('ID: ${_broadcast.major}:${_broadcast.minor}')
+                subtitle: _beacon != null
+                    ? Text('ID: ${_beacon.major}:${_beacon.minor}')
                     : null,
                 trailing: Switch.adaptive(
                     value: _broadcasting, onChanged: onBroadcastChange))),
@@ -170,21 +195,51 @@ class BeaconState extends State {
             child: RefreshIndicator(
                 onRefresh: refreshBeacons,
                 child: ListView.separated(
-                  itemCount: _beacons.length,
+                  itemCount: clients.length,
                   separatorBuilder: (context, index) => Divider(),
                   itemBuilder: (context, index) {
-                    var b = _beacons[index];
-                    var time = b.duration;
-                    var mins = time.inMinutes;
-                    var secs = time.inSeconds % 60;
+                    var transmissions = clients[index];
+                    var complete = transmissions.length >= 8;
+                    transmissions
+                        .sort((a, b) => a.duration.compareTo(b.duration));
 
-                    return ListTile(
-                      title: Text(
-                          '${DateFormat.jm().format(b.start).toLowerCase()}'),
-                      subtitle: Text('${b.major}:${b.minor}'),
-                      trailing:
-                          Text(mins > 0 ? '${mins}m ${secs}s' : '${secs}s'),
-                    );
+                    if (complete) {
+                      var b = BeaconModel.fromTransmissions(transmissions);
+                      var time = b.duration;
+                      var mins = time.inMinutes;
+                      var secs = time.inSeconds % 60;
+
+                      return ListTile(
+                        leading: Icon(Icons.check_circle,
+                            size: 30, color: Theme.of(context).primaryColor),
+                        title: Text(
+                            '${DateFormat.jm().format(b.start).toLowerCase()}'),
+                        subtitle: Text(b.uuid),
+                        trailing:
+                            Text(mins > 0 ? '${mins}m ${secs}s' : '${secs}s'),
+                      );
+                    } else {
+                      var b = transmissions.last;
+                      var time = b.duration;
+                      var mins = time.inMinutes;
+                      var secs = time.inSeconds % 60;
+
+                      return ListTile(
+                        leading: Padding(
+                            padding: EdgeInsets.only(top: 10, left: 5),
+                            child: SizedBox(
+                                width: 22,
+                                height: 22,
+                                child: CircularProgressIndicator(
+                                    strokeWidth: 3,
+                                    value: transmissions.length / 8))),
+                        title: Text(
+                            '${DateFormat.jm().format(b.start).toLowerCase()}'),
+                        subtitle: Text('${b.clientId}:${b.offset}:${b.token}'),
+                        trailing:
+                            Text(mins > 0 ? '${mins}m ${secs}s' : '${secs}s'),
+                      );
+                    }
                   },
                 ))),
       ]),

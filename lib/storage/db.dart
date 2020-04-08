@@ -49,21 +49,30 @@ CREATE TABLE report (
   '''
 CREATE TABLE beacon_broadcast (
   id INTEGER PRIMARY KEY,
-  major INTEGER,
-  minor INTEGER,
-  timestamp TEXT,
-  UNIQUE (major, minor)
+  uuid STRING UNIQUE,
+  clientId INTEGER,
+  timestamp TEXT
 )
   ''',
   '''
 CREATE TABLE beacon (
   id INTEGER PRIMARY KEY,
-  major INTEGER,
-  minor INTEGER,
+  uuid TEXT,
+  start TEXT,
+  end TEXT,
+  UNIQUE (uuid, start)
+)
+  ''',
+  '''
+CREATE TABLE beacon_transmission (
+  id INTEGER PRIMARY KEY,
+  clientId INTEGER,
+  offset INTEGER,
+  token INTEGER,
   start TEXT,
   last_seen TEXT,
   end TEXT,
-  UNIQUE (major, minor, start)
+  UNIQUE (clientId, offset, token, start)
 )
   ''',
 ];

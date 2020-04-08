@@ -1,20 +1,69 @@
 import 'dart:async';
+import 'dart:math';
+import 'package:uuid/uuid.dart';
 
 import 'db.dart';
 import 'package:sqflite/sqflite.dart';
 
 const int MIN_TIME_INTERVAL = 1000 * 15;
 
+int decodeClientId(int minor) => minor >> 3;
+int decodeOffset(int minor) => minor & 7;
+
 class BeaconModel {
+  int id;
+  final String uuid;
+  final DateTime start;
+  final DateTime end;
+
+  BeaconModel({this.id, this.uuid, this.start, this.end});
+
+  static BeaconModel fromTransmissions(List<BeaconTransmission> transmissions) {
+    var sorted = [...transmissions];
+    sorted.sort((a, b) => a.duration.compareTo(b.duration));
+    var last = sorted.last;
+
+    return BeaconModel(
+        uuid: unparseUuid(transmissions.map((t) => t.token).toList()),
+        start: last.start,
+        end: last.lastSeen);
+  }
+
+  Duration get duration => end.difference(start);
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'uuid': uuid,
+      'start': start.toIso8601String(),
+      'end': end.toIso8601String(),
+    };
+  }
+
+  Future<void> insert() async {
+    final Database db = await Storage.db;
+    await db.insert('beacon', toMap());
+    print('inserted beacon ${toMap()}');
+  }
+}
+
+class BeaconTransmission {
   final int id;
-  final int major;
-  final int minor;
+  final int clientId;
+  final int offset;
+  final int token;
   DateTime start;
   DateTime end;
   DateTime lastSeen;
 
-  BeaconModel(
-      {this.id, this.major, this.minor, this.start, this.end, this.lastSeen}) {
+  BeaconTransmission(
+      {this.id,
+      this.clientId,
+      this.offset,
+      this.token,
+      this.start,
+      this.end,
+      this.lastSeen}) {
     start ??= DateTime.now();
     lastSeen ??= start;
   }
@@ -28,8 +77,9 @@ class BeaconModel {
 
     return {
       'id': id,
-      'major': major,
-      'minor': minor,
+      'clientId': clientId,
+      'offset': offset,
+      'token': token,
       'start': startTime.toIso8601String(),
       'end': end?.toIso8601String(),
       'last_seen': lastSeen.toIso8601String(),
@@ -38,50 +88,61 @@ class BeaconModel {
 
   Future<int> save() async {
     final Database db = await Storage.db;
-    return db.update('beacon', toMap(), where: 'id = ?', whereArgs: [id]);
+    return db.update('beacon_transmission', toMap(),
+        where: 'id = ?', whereArgs: [id]);
   }
 
   Future<void> insert() async {
     final Database db = await Storage.db;
-    await db.insert('beacon', toMap(),
+    await db.insert('beacon_transmission', toMap(),
         conflictAlgorithm: ConflictAlgorithm.ignore);
-    print('inserted beacon ${toMap()}');
+    print('inserted beacon transmission ${toMap()}');
   }
 
   static Future<void> seen(major, minor) async {
-    // Find a beacon that is in proximity
+    var clientId = decodeClientId(minor);
+    var offset = decodeOffset(minor);
+    var token = major;
+
+    print('SEEN $major:$minor  $clientId:$offset:$token');
+
+    // Find transmissions that were recently seen
     var found = await findAll(
         limit: 1,
         orderBy: 'last_seen DESC',
-        where: 'major =  ? AND minor = ? AND end is NULL',
-        whereArgs: [major, minor]);
+        where: 'clientId = ? AND offset = ? AND token = ? AND end is NULL',
+        whereArgs: [clientId, offset, token]);
 
-    // Create a new one if it doesn't exist, otherwise update it's lastSeen
+    // Create a new one if it doesn't exist
     if (found.isEmpty) {
-      await BeaconModel(major: major, minor: minor).insert();
-    } else {
-      var first = found.first;
-      first.lastSeen = DateTime.now();
-      await first.save();
+      await BeaconTransmission(clientId: clientId, offset: offset, token: token)
+          .insert();
     }
+
+    // Update last seen for any other matching clients
+    final Database db = await Storage.db;
+    await db.update(
+        'beacon_transmission', {'last_seen': DateTime.now().toIso8601String()},
+        where: 'clientId = ? and END is NULL', whereArgs: [clientId]);
   }
 
-  static Future<void> endUnseen() async {
-    var threshold = DateTime.now().subtract(Duration(seconds: 15));
+  static Future<int> endUnseen() async {
+    var threshold = DateTime.now().subtract(Duration(seconds: 20));
 
     final Database db = await Storage.db;
     var count = await db.update(
-        'beacon', {'end': DateTime.now().toIso8601String()},
+        'beacon_transmission', {'end': DateTime.now().toIso8601String()},
         where: 'end is NULL AND DATETIME(last_seen) < DATETIME(?)',
         whereArgs: [threshold.toIso8601String()]);
 
     if (count > 0) {
-      print('ended $count beacons');
+      print('ended $count beacons transmission');
     }
-    return;
+
+    return count;
   }
 
-  static Future<List<BeaconModel>> findAll(
+  static Future<List<BeaconTransmission>> findAll(
       {int limit,
       String orderBy,
       String where,
@@ -89,7 +150,7 @@ class BeaconModel {
       String groupBy}) async {
     final Database db = await Storage.db;
 
-    var rows = await db.query('beacon',
+    var rows = await db.query('beacon_transmission',
         limit: limit,
         orderBy: orderBy,
         where: where,
@@ -98,10 +159,11 @@ class BeaconModel {
 
     return List.generate(
         rows.length,
-        (i) => BeaconModel(
+        (i) => BeaconTransmission(
               id: rows[i]['id'],
-              major: rows[i]['major'],
-              minor: rows[i]['minor'],
+              clientId: rows[i]['clientId'],
+              offset: rows[i]['offset'],
+              token: rows[i]['token'],
               start: DateTime.parse(rows[i]['start']),
               end: rows[i]['end'] != null
                   ? DateTime.parse(rows[i]['end'])
@@ -114,6 +176,104 @@ class BeaconModel {
 
   static Future<void> destroyAll() async {
     final Database db = await Storage.db;
-    await db.delete('beacon');
+    await db.delete('beacon_transmission');
+  }
+}
+
+const int MASK_3_BITS = 7;
+const int MASK_8_BITS = 255;
+const int MASK_13_BITS = 8191;
+
+const int MAX_CLIENT_ID = 8191;
+const int MAX_OFFSET = 7;
+
+// Converts 16bit buffer into 8bit buffer and unparses into String Uuid.
+String unparseUuid(List<int> buffer16Bit) {
+  var buffer8Bit = new List<int>(16);
+  for (var i = 0; i < 8; i++) {
+    buffer8Bit[i * 2] = buffer16Bit[i] >> 8;
+    buffer8Bit[i * 2 + 1] = buffer16Bit[i] & MASK_8_BITS;
+  }
+
+  var uuid = Uuid();
+  return uuid.unparse(buffer8Bit);
+}
+
+// Represent a UUID that can be transmitted as a sequence of Beacon major/minor payloads
+class BeaconUuid {
+  int id;
+  int clientId;
+  DateTime timestamp;
+  List<int> uuidBuffer = List(16); // 16 8bit integers
+  int offset = 0;
+
+  BeaconUuid({this.id, String uuid, this.clientId, this.timestamp}) {
+    if (uuid != null) {
+      Uuid().parse(uuid, buffer: uuidBuffer);
+    } else {
+      Uuid().v4buffer(uuidBuffer);
+    }
+
+    clientId ??= Random().nextInt(MAX_CLIENT_ID);
+    timestamp ??= DateTime.now();
+  }
+
+  // TODO(wes): This should commit to the DB
+  void rotate() async {
+    clientId = Random().nextInt(MAX_CLIENT_ID);
+    offset = 0;
+  }
+
+  void next() {
+    offset = offset < MAX_OFFSET ? offset + 1 : 0;
+  }
+
+  String get uuid => Uuid().unparse(uuidBuffer);
+
+  int get major {
+    var firstByte = uuidBuffer[offset * 2];
+    var secondByte = uuidBuffer[offset * 2 + 1];
+
+    return firstByte << 8 | secondByte;
+  }
+
+  int get minor => (clientId << 3) | offset;
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'uuid': uuid,
+      'clientId': clientId,
+      'timestamp': timestamp.toIso8601String(),
+    };
+  }
+
+  static Future<BeaconUuid> get() async {
+    var cutoff = DateTime.now().subtract(Duration(hours: 1));
+    final Database db = await Storage.db;
+
+    var rows = await db.query('beacon_broadcast',
+        limit: 1,
+        orderBy: 'timestamp DESC',
+        where: 'DATETIME(timestamp) > DATETIME(?)',
+        whereArgs: [cutoff.toIso8601String()]);
+
+    if (rows.isNotEmpty) {
+      var first = rows.first;
+      return BeaconUuid(
+          id: first['id'],
+          uuid: first['uuid'],
+          clientId: first['clientId'],
+          timestamp: DateTime.parse(first['timestamp']));
+    } else {
+      var beacon = BeaconUuid();
+      await beacon.insert();
+      return beacon;
+    }
+  }
+
+  Future<void> insert() async {
+    final Database db = await Storage.db;
+    await db.insert('beacon_broadcast', toMap());
   }
 }

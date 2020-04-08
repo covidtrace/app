@@ -118,7 +118,7 @@ class CovidTraceAppState extends State {
             '/home': (context) => MainPage(),
             '/settings': (context) => SettingsView(),
             '/location_history': (context) => LocationHistory(),
-            '/beacon': (context) => Beacon()
+            '/beacon': (context) => BeaconHistory()
           },
         );
       } else {
