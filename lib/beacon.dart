@@ -187,14 +187,24 @@ class BeaconState extends State {
       ),
       body: Column(children: [
         Container(
-            child: ListTile(
-                title: Text('Broadcasting'),
-                subtitle: _beacon != null
-                    ? Text('ID: ${_beacon.major}:${_beacon.minor}')
-                    : null,
-                trailing: Switch.adaptive(
-                    value: _broadcasting, onChanged: onBroadcastChange))),
-        Divider(),
+            color: Colors.blueGrey,
+            child: ListTileTheme(
+                textColor: Colors.white,
+                iconColor: Colors.white,
+                child: ListTile(
+                    title: Text('Broadcasting'),
+                    subtitle: _beacon != null && _broadcasting
+                        ? Text(
+                            '${_beacon.clientId}.${_beacon.offset}.${_beacon.major}')
+                        : Text('is turned off'),
+                    trailing: Row(mainAxisSize: MainAxisSize.min, children: [
+                      Switch(
+                          value: _broadcasting, onChanged: onBroadcastChange),
+                      Icon(_broadcasting
+                          ? Icons.bluetooth_searching
+                          : Icons.bluetooth_disabled),
+                    ])))),
+        Divider(height: 0),
         Flexible(
             child: RefreshIndicator(
                 onRefresh: refreshBeacons,
@@ -214,6 +224,7 @@ class BeaconState extends State {
                       var secs = time.inSeconds % 60;
 
                       return ListTile(
+                        isThreeLine: true,
                         leading: Icon(Icons.check_circle,
                             size: 30, color: Theme.of(context).primaryColor),
                         title: Text(
@@ -239,7 +250,7 @@ class BeaconState extends State {
                                     value: transmissions.length / 8))),
                         title: Text(
                             '${DateFormat.jm().format(b.start).toLowerCase()}'),
-                        subtitle: Text('${b.clientId}:${b.offset}:${b.token}'),
+                        subtitle: Text('${b.clientId}.${b.offset}.${b.token}'),
                         trailing:
                             Text(mins > 0 ? '${mins}m ${secs}s' : '${secs}s'),
                       );
