@@ -20,11 +20,14 @@ class BeaconModel {
 
   static BeaconModel fromTransmissions(List<BeaconTransmission> transmissions) {
     var sorted = [...transmissions];
+    // Get oldest transmissin for duration
     sorted.sort((a, b) => a.duration.compareTo(b.duration));
     var last = sorted.last;
+    // Sort by offset to construct UUID
+    sorted.sort((a, b) => a.offset.compareTo(b.offset));
 
     return BeaconModel(
-        uuid: unparseUuid(transmissions.map((t) => t.token).toList()),
+        uuid: unparseUuid(sorted.map((t) => t.token).toList()),
         start: last.start,
         end: last.lastSeen);
   }

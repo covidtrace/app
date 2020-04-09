@@ -137,23 +137,27 @@ class BeaconState extends State {
   }
 
   Future<void> startAdvertising() async {
-    if (sequenceTimer != null) {
-      sequenceTimer.cancel();
-    }
-
     var beacon = await BeaconUuid.get();
     setState(() => _beacon = beacon);
 
-    sequenceTimer = Timer.periodic(Duration(seconds: 11), (timer) async {
+    sequenceTimer?.cancel();
+    sequenceTimer = Timer.periodic(Duration(seconds: 4), (timer) async {
       if (_advertising) {
         beaconBroadcast.stop();
-        await Future.delayed(Duration(seconds: 5));
+        await Future.delayed(Duration(seconds: 2));
+      }
+
+      if (!timer.isActive) {
+        return;
       }
 
       _beacon.next();
       beaconBroadcast.setMajorId(_beacon.major);
       beaconBroadcast.setMinorId(_beacon.minor);
-      beaconBroadcast.start();
+
+      if (!_advertising) {
+        beaconBroadcast.start();
+      }
     });
   }
 
