@@ -1,18 +1,18 @@
 import 'dart:async';
-import 'package:covidtrace/beacon_history.dart';
-import 'package:covidtrace/storage/user.dart';
+import 'package:app_settings/app_settings.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_background_geolocation/flutter_background_geolocation.dart'
     as bg;
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:app_settings/app_settings.dart';
 
+import 'beacon_history.dart';
 import 'helper/location.dart';
 import 'storage/location.dart';
-import 'package:flutter/services.dart';
+import 'storage/user.dart';
 
 class BlockButton extends StatelessWidget {
   final onPressed;
