@@ -7,10 +7,10 @@
         android:name="io.flutter.app.FlutterApplication"
         android:label="COVID Trace"
         android:icon="@mipmap/ic_launcher">
-        <meta-data android:name="com.transistorsoft.locationmanager.license" android:value="747ff7ed7f8436d176796af3f90e0eb924b7b6aeb4d71ba002dcdce811e241dc" />
+        <meta-data android:name="com.transistorsoft.locationmanager.license" android:value="${locationManagerLicense}" />
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyAPrVanVPxAlZOGgRecnNUew_zAneh8guw"/>
+            android:value="${googleMapsApiKey}"/>
         <activity
             android:name=".MainActivity"
             android:launchMode="singleTop"
