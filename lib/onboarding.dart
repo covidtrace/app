@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:covidtrace/beacon.dart';
+import 'package:covidtrace/beacon_history.dart';
 import 'package:covidtrace/storage/user.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';

@@ -188,6 +188,15 @@ class BeaconState extends State {
     setState(() => _filter = value);
   }
 
+  Future<void> removeTransmissions(int clientId, DateTime lastSeen) async {
+    setState(() => _transmissions
+        .removeWhere((t) => t.clientId == clientId && t.lastSeen == lastSeen));
+
+    await BeaconTransmission.destroy(
+        where: 'clientId = ? AND last_seen = ? AND end IS NOT NULL',
+        whereArgs: [clientId, lastSeen.toIso8601String()]);
+  }
+
   @override
   Widget build(BuildContext context) {
     Map<String, List<BeaconTransmission>> clientMap = Map();
@@ -206,18 +215,32 @@ class BeaconState extends State {
       var mins = time.inMinutes;
       var secs = time.inSeconds % 60;
 
-      return ListTile(
-        leading: Padding(
-            padding: EdgeInsets.only(top: 10, left: 5),
-            child: SizedBox(
-                width: 22,
-                height: 22,
-                child: CircularProgressIndicator(
-                    strokeWidth: 3, value: transmissions.length / 8))),
-        title: Text('${DateFormat.jm().format(b.start).toLowerCase()}'),
-        subtitle: Text('${b.clientId}.${b.offset}.${b.token}'),
-        trailing: Text(mins > 0 ? '${mins}m ${secs}s' : '${secs}s'),
-      );
+      return Dismissible(
+          key: Key(b.clientId.toString()),
+          background: Container(
+              color: Theme.of(context).primaryColor,
+              alignment: Alignment.centerRight,
+              padding: EdgeInsets.only(right: 15),
+              child: Icon(
+                Icons.delete,
+                color: Colors.white,
+              )),
+          direction: DismissDirection.endToStart,
+          onDismissed: (direction) async {
+            await removeTransmissions(b.clientId, b.lastSeen);
+          },
+          child: ListTile(
+            leading: Padding(
+                padding: EdgeInsets.only(top: 10, left: 5),
+                child: SizedBox(
+                    width: 22,
+                    height: 22,
+                    child: CircularProgressIndicator(
+                        strokeWidth: 3, value: transmissions.length / 8))),
+            title: Text('${DateFormat.jm().format(b.start).toLowerCase()}'),
+            subtitle: Text('${b.clientId}.${b.offset}.${b.token}'),
+            trailing: Text(mins > 0 ? '${mins}m ${secs}s' : '${secs}s'),
+          ));
     };
 
     var completed = (context, index) {

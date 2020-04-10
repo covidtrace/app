@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 
-import 'beacon.dart';
+import 'beacon_history.dart';
 import 'dashboard.dart';
 import 'location_history.dart';
 import 'helper/check_exposures.dart';

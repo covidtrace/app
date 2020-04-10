@@ -247,6 +247,11 @@ class BeaconTransmission {
             ));
   }
 
+  static Future<void> destroy({String where, List<dynamic> whereArgs}) async {
+    final Database db = await Storage.db;
+    await db.delete('beacon_transmission', where: where, whereArgs: whereArgs);
+  }
+
   static Future<void> destroyAll() async {
     final Database db = await Storage.db;
     await db.delete('beacon_transmission');
