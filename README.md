@@ -14,7 +14,7 @@ GOOGLE_MAPS_API_KEY={INSERT_GOOGLE_API_KEY_HERE}
 
 ### For Android do the following:
 
-Modify `app/android/local.properties` and the following lines
+Modify `app/android/local.properties` and add the following lines
 
 ```
 app.googleMapsApiKey={INSERT_GOOGLE_API_KEY_HERE}
@@ -23,11 +23,11 @@ app.locationManagerLicense={INSERT_BACKGROUND_LOCATION_LICENSE_KEY_HERE}
 
 ## Troubleshooting
 
-- **Issue:** Flutter buils fails for iOS after building and running via Xcode.
+- **Issue:** Flutter build fails for iOS after building and running via Xcode.
 
   **Fix:** `rm -rf ios/Flutter/App.framework`
 
-* **Issue:** Flutter android build get stuck trying to launch debug .apk on to device.
+* **Issue:** Flutter Android build get stuck trying to install debug .apk on to a device.
 
   **Fix:** `/Path/to/adb uninstall com.covidtrace.app` On MacOS the `adb` tool is typically located at `~/Library/Android/sdk/platform-tools/adb`
 
