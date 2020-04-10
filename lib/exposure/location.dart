@@ -11,28 +11,24 @@ class LocationExposure extends Exposure<LocationModel> {
     locations.forEach((location) {
       var timestamp = ceilUnixSeconds(location.timestamp, 60);
       var cellID = location.cellID.parent(level).toToken();
-      if (_lookup[cellID] == null) {
-        _lookup[cellID] = new Map();
-      }
-      if (_lookup[cellID][timestamp] == null) {
-        _lookup[cellID][timestamp] = [];
-      }
+      _lookup[cellID] ??= new Map();
+      _lookup[cellID][timestamp] ??= [];
       _lookup[cellID][timestamp].add(location);
     });
   }
 
   @override
   Future<List<LocationModel>> getExposures(String data) async {
+    var exposures = List<LocationModel>();
+
     var rows =
         CsvToListConverter(shouldParseNumbers: false, eol: '\n').convert(data);
 
-    var exposures = List<LocationModel>();
-
-    await Future.forEach(rows, (row) async {
+    // Note: `row` looks like [timestamp, cellID, verified]
+    rows.forEach((row) async {
       var timestamp = ceilUnixSeconds(
           DateTime.fromMillisecondsSinceEpoch(int.parse(row[0]) * 1000), 60);
 
-      // Note: aggregate point CSVs look like [timestamp, cellID, verified]
       String cellID = row[1];
 
       var locationsbyTimestamp = _lookup[cellID];
