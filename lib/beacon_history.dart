@@ -27,7 +27,7 @@ Future<void> setupBeaconScanning() async {
   }
 
   // Start monitoring for entry/exit of a region
-  flutterBeacon.monitoring(regions).listen((MonitoringResult result) {
+  flutterBeacon.monitoring(regions).listen((MonitoringResult result) async {
     print('monitoring... $result');
     print(result.monitoringEventType);
     print(result.monitoringState);
@@ -35,7 +35,10 @@ Future<void> setupBeaconScanning() async {
 
     switch (result.monitoringState) {
       case MonitoringState.inside:
-        showBeaconNotification();
+        var advertising = await beaconBroadcast.isAdvertising();
+        if (!advertising) {
+          showBeaconNotification();
+        }
         startRegionRange();
         break;
       case MonitoringState.outside:
@@ -214,7 +217,7 @@ class BeaconState extends State {
       var time = b.duration;
       var mins = time.inMinutes;
       var secs = time.inSeconds % 60;
-      var done = transmissions.length == 8;
+      var allowDismiss = transmissions.length < 8 && b.end != null;
 
       var content = ListTile(
         leading: Padding(
@@ -229,7 +232,7 @@ class BeaconState extends State {
         trailing: Text(mins > 0 ? '${mins}m ${secs}s' : '${secs}s'),
       );
 
-      return done
+      return !allowDismiss
           ? content
           : Dismissible(
               key: Key(b.clientId.toString()),
