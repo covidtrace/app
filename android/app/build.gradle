@@ -28,6 +28,7 @@ if (flutterVersionName == null) {
 }
 
 def googleMapsApiKey = localProperties.getProperty('app.googleMapsApiKey')
+def locationManagerLicense = localProperties.getProperty('app.locationManagerLicense')
 
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
@@ -51,7 +52,7 @@ android {
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        manifestPlaceholders = [googleMapsApiKey:googleMapsApiKey]
+        manifestPlaceholders = [googleMapsApiKey:googleMapsApiKey, locationManagerLicense:locationManagerLicense]
     }
 
     signingConfigs {
