@@ -3,6 +3,8 @@ PODS:
     - Flutter
   - background_fetch (0.5.4):
     - Flutter
+  - beacon_broadcast (0.0.1):
+    - Flutter
   - CocoaLumberjack (3.6.1):
     - CocoaLumberjack/Core (= 3.6.1)
   - CocoaLumberjack/Core (3.6.1)
@@ -11,6 +13,8 @@ PODS:
   - Flutter (1.0.0)
   - flutter_background_geolocation (1.7.0):
     - CocoaLumberjack (~> 3.6.0)
+    - Flutter
+  - flutter_beacon (0.3.0):
     - Flutter
   - flutter_local_notifications (0.0.1):
     - Flutter
@@ -46,13 +50,17 @@ PODS:
     - Flutter
   - url_launcher_web (0.0.1):
     - Flutter
+  - wakelock (0.0.1):
+    - Flutter
 
 DEPENDENCIES:
   - app_settings (from `.symlinks/plugins/app_settings/ios`)
   - background_fetch (from `.symlinks/plugins/background_fetch/ios`)
+  - beacon_broadcast (from `.symlinks/plugins/beacon_broadcast/ios`)
   - e2e (from `.symlinks/plugins/e2e/ios`)
   - Flutter (from `Flutter`)
   - flutter_background_geolocation (from `.symlinks/plugins/flutter_background_geolocation/ios`)
+  - flutter_beacon (from `.symlinks/plugins/flutter_beacon/ios`)
   - flutter_local_notifications (from `.symlinks/plugins/flutter_local_notifications/ios`)
   - flutter_plugin_android_lifecycle (from `.symlinks/plugins/flutter_plugin_android_lifecycle/ios`)
   - google_maps_flutter (from `.symlinks/plugins/google_maps_flutter/ios`)
@@ -65,6 +73,7 @@ DEPENDENCIES:
   - url_launcher (from `.symlinks/plugins/url_launcher/ios`)
   - url_launcher_macos (from `.symlinks/plugins/url_launcher_macos/ios`)
   - url_launcher_web (from `.symlinks/plugins/url_launcher_web/ios`)
+  - wakelock (from `.symlinks/plugins/wakelock/ios`)
 
 SPEC REPOS:
   trunk:
@@ -77,12 +86,16 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/app_settings/ios"
   background_fetch:
     :path: ".symlinks/plugins/background_fetch/ios"
+  beacon_broadcast:
+    :path: ".symlinks/plugins/beacon_broadcast/ios"
   e2e:
     :path: ".symlinks/plugins/e2e/ios"
   Flutter:
     :path: Flutter
   flutter_background_geolocation:
     :path: ".symlinks/plugins/flutter_background_geolocation/ios"
+  flutter_beacon:
+    :path: ".symlinks/plugins/flutter_beacon/ios"
   flutter_local_notifications:
     :path: ".symlinks/plugins/flutter_local_notifications/ios"
   flutter_plugin_android_lifecycle:
@@ -107,14 +120,18 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/url_launcher_macos/ios"
   url_launcher_web:
     :path: ".symlinks/plugins/url_launcher_web/ios"
+  wakelock:
+    :path: ".symlinks/plugins/wakelock/ios"
 
 SPEC CHECKSUMS:
   app_settings: d103828c9f5d515c4df9ee754dabd443f7cedcf3
   background_fetch: c0d7c541f8495527ed7f167eb9ee2eeab0790703
+  beacon_broadcast: 2c2562111f7b7e0f1ab59487f6bc805805e3c9f3
   CocoaLumberjack: b17ae15142558d08bbacf69775fa10c4abbebcc9
   e2e: 967b9b1fc533b7636a3b7a719f840c27f301fe1f
   Flutter: 0e3d915762c693b495b44d77113d4970485de6ec
   flutter_background_geolocation: 5046073371cc210a1d128cfbc560533a51130293
+  flutter_beacon: 2525df9d96b904623f325968a73bac805e648119
   flutter_local_notifications: 9e4738ce2471c5af910d961a6b7eadcf57c50186
   flutter_plugin_android_lifecycle: 47de533a02850f070f5696a623995e93eddcdb9b
   FMDB: 2ce00b547f966261cd18927a3ddb07cb6f3db82a
@@ -129,6 +146,7 @@ SPEC CHECKSUMS:
   url_launcher: a1c0cc845906122c4784c542523d8cacbded5626
   url_launcher_macos: fd7894421cd39320dce5f292fc99ea9270b2a313
   url_launcher_web: e5527357f037c87560776e36436bf2b0288b965c
+  wakelock: 0d4a70faf8950410735e3f61fb15d517c8a6efc4
 
 PODFILE CHECKSUM: 1b66dae606f75376c5f2135a8290850eeb09ae83
 

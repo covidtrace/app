@@ -1,6 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 
+import 'beacon_history.dart';
 import 'dashboard.dart';
 import 'location_history.dart';
 import 'helper/check_exposures.dart';
@@ -16,6 +18,7 @@ import 'settings.dart';
 import 'state.dart';
 import 'storage/location.dart';
 import 'storage/user.dart';
+import 'package:wakelock/wakelock.dart';
 
 void main() async {
   runApp(ChangeNotifierProvider(
@@ -70,6 +73,11 @@ void main() async {
       fastestLocationUpdateInterval: 1000 * 60 * 5,
       persistMode: bg.Config.PERSIST_MODE_NONE,
       logLevel: bg.Config.LOG_LEVEL_OFF));
+
+  var user = await UserModel.find();
+  if (!user.onboarding) {
+    setupBeaconScanning();
+  }
 }
 
 class CovidTraceApp extends StatefulWidget {
@@ -110,6 +118,7 @@ class CovidTraceAppState extends State {
             '/home': (context) => MainPage(),
             '/settings': (context) => SettingsView(),
             '/location_history': (context) => LocationHistory(),
+            '/beacon': (context) => BeaconHistory()
           },
         );
       } else {
@@ -146,6 +155,10 @@ class MainPageState extends State<MainPage> {
   @override
   void initState() {
     super.initState();
+    if (!kReleaseMode) {
+      Wakelock.enable();
+    }
+
     initBackgroundFetch();
   }
 
@@ -287,6 +300,11 @@ class MainPageState extends State<MainPage> {
                     title: Text('Location History'),
                     onTap: () => Navigator.of(context)
                         .popAndPushNamed('/location_history')),
+                ListTile(
+                    leading: Icon(Icons.bluetooth_searching),
+                    title: Text('Beacons'),
+                    onTap: () =>
+                        Navigator.of(context).popAndPushNamed('/beacon')),
                 ListTile(
                     leading: Icon(Icons.lock),
                     title: Text('Privacy Policy'),

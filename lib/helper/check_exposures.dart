@@ -190,5 +190,6 @@ void showExposureNotification(LocationModel location) async {
       0,
       'COVID-19 Exposure Alert',
       'Your location history matched with a reported infection on ${DateFormat.Md().format(timestamp)} ${DateFormat('ha').format(timestamp).toLowerCase()} - ${DateFormat('ha').format(timestamp.add(Duration(hours: 1))).toLowerCase()}',
-      NotificationDetails(androidSpec, iosSpecs));
+      NotificationDetails(androidSpec, iosSpecs),
+      payload: 'Default_Sound');
 }

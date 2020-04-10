@@ -46,6 +46,35 @@ CREATE TABLE report (
   FOREIGN KEY (last_location_id) REFERENCES location (id) ON DELETE CASCADE
 )
   ''',
+  '''
+CREATE TABLE beacon_broadcast (
+  id INTEGER PRIMARY KEY,
+  uuid STRING UNIQUE,
+  clientId INTEGER,
+  timestamp TEXT
+)
+  ''',
+  '''
+CREATE TABLE beacon (
+  id INTEGER PRIMARY KEY,
+  uuid TEXT,
+  start TEXT,
+  end TEXT,
+  UNIQUE (uuid, start)
+)
+  ''',
+  '''
+CREATE TABLE beacon_transmission (
+  id INTEGER PRIMARY KEY,
+  clientId INTEGER,
+  offset INTEGER,
+  token INTEGER,
+  start TEXT,
+  last_seen TEXT,
+  end TEXT,
+  UNIQUE (clientId, offset, token, start)
+)
+  ''',
 ];
 
 List<String> migrationScripts = [];
