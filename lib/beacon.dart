@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:beacon_broadcast/beacon_broadcast.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_beacon/flutter_beacon.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -53,18 +54,22 @@ void startRegionRange() {
     Future.wait(result.beacons.map((b) {
       return BeaconTransmission.seen(b.major, b.minor);
     }));
-
-    var count = await BeaconTransmission.endUnseen();
-    if (count > 0) {
-      // TODO(wes): Combine transmissions into a beacon
-    }
+    await cleanupTransmissions();
   });
+}
+
+Future<void> cleanupTransmissions() async {
+  var count = await BeaconTransmission.endUnseen();
+  if (count > 0) {
+    await BeaconTransmission.convertCompleted();
+  }
 }
 
 Future<void> stopRegionRange() async {
   print('stopping region range');
-  await BeaconTransmission.endUnseen();
-  return _streamRanging?.cancel();
+  _streamRanging?.cancel();
+  await Future.delayed(BeaconTransmission.UNSEEN_TIMEOUT);
+  await cleanupTransmissions();
 }
 
 void showBeaconNotification() async {
@@ -90,9 +95,12 @@ class BeaconState extends State {
   BeaconUuid _beacon;
   bool _broadcasting = false;
   bool _advertising = false;
-  List<BeaconTransmission> _beacons = [];
+  List<BeaconTransmission> _transmissions = [];
+  List<BeaconModel> _beacons = [];
   Timer refreshTimer;
   Timer sequenceTimer;
+
+  String _filter = 'in_progress';
 
   @override
   void initState() {
@@ -147,7 +155,7 @@ class BeaconState extends State {
         await Future.delayed(Duration(seconds: 2));
       }
 
-      if (!timer.isActive) {
+      if (!timer.isActive || !_broadcasting) {
         return;
       }
 
@@ -167,18 +175,66 @@ class BeaconState extends State {
   }
 
   Future<void> refreshBeacons() async {
-    var beacons = await BeaconTransmission.findAll(orderBy: 'start DESC');
-    setState(() => _beacons = beacons);
+    var transmissions = await BeaconTransmission.findAll(orderBy: 'start DESC');
+    var beacons = await BeaconModel.findAll(orderBy: 'start DESC');
+
+    setState(() {
+      _beacons = beacons;
+      _transmissions = transmissions;
+    });
+  }
+
+  void setFilter(value) {
+    setState(() => _filter = value);
   }
 
   @override
   Widget build(BuildContext context) {
     Map<String, List<BeaconTransmission>> clientMap = Map();
-    _beacons.forEach((b) {
+    _transmissions.forEach((b) {
       clientMap['${b.clientId}-${b.lastSeen}'] ??= [];
       clientMap['${b.clientId}-${b.lastSeen}'].add(b);
     });
     var clients = clientMap.values.toList();
+
+    var inProgress = (context, index) {
+      var transmissions = clients[index];
+      transmissions.sort((a, b) => a.duration.compareTo(b.duration));
+
+      var b = transmissions.last;
+      var time = b.duration;
+      var mins = time.inMinutes;
+      var secs = time.inSeconds % 60;
+
+      return ListTile(
+        leading: Padding(
+            padding: EdgeInsets.only(top: 10, left: 5),
+            child: SizedBox(
+                width: 22,
+                height: 22,
+                child: CircularProgressIndicator(
+                    strokeWidth: 3, value: transmissions.length / 8))),
+        title: Text('${DateFormat.jm().format(b.start).toLowerCase()}'),
+        subtitle: Text('${b.clientId}.${b.offset}.${b.token}'),
+        trailing: Text(mins > 0 ? '${mins}m ${secs}s' : '${secs}s'),
+      );
+    };
+
+    var completed = (context, index) {
+      var b = _beacons[index];
+      var time = b.duration;
+      var mins = time.inMinutes;
+      var secs = time.inSeconds % 60;
+
+      return ListTile(
+        isThreeLine: true,
+        leading: Icon(Icons.check_circle,
+            size: 30, color: Theme.of(context).primaryColor),
+        title: Text('${DateFormat.jm().format(b.start).toLowerCase()}'),
+        subtitle: Text(b.uuid ?? ''),
+        trailing: Text(mins > 0 ? '${mins}m ${secs}s' : '${secs}s'),
+      );
+    };
 
     return Scaffold(
       appBar: AppBar(
@@ -204,58 +260,29 @@ class BeaconState extends State {
                           ? Icons.bluetooth_searching
                           : Icons.bluetooth_disabled),
                     ])))),
+        Padding(
+            padding: EdgeInsets.all(15),
+            child: CupertinoSlidingSegmentedControl(
+              backgroundColor: Color(0xCCCCCCCC),
+              padding: EdgeInsets.all(5),
+              groupValue: _filter,
+              children: {
+                'in_progress': Text('In Progress'),
+                'completed': Text('Completed'),
+              },
+              onValueChanged: setFilter,
+            )),
         Divider(height: 0),
         Flexible(
             child: RefreshIndicator(
                 onRefresh: refreshBeacons,
                 child: ListView.separated(
-                  itemCount: clients.length,
+                  itemCount: _filter == 'in_progress'
+                      ? clients.length
+                      : _beacons.length,
                   separatorBuilder: (context, index) => Divider(),
-                  itemBuilder: (context, index) {
-                    var transmissions = clients[index];
-                    var complete = transmissions.length >= 8;
-                    transmissions
-                        .sort((a, b) => a.duration.compareTo(b.duration));
-
-                    if (complete) {
-                      var b = BeaconModel.fromTransmissions(transmissions);
-                      var time = b.duration;
-                      var mins = time.inMinutes;
-                      var secs = time.inSeconds % 60;
-
-                      return ListTile(
-                        isThreeLine: true,
-                        leading: Icon(Icons.check_circle,
-                            size: 30, color: Theme.of(context).primaryColor),
-                        title: Text(
-                            '${DateFormat.jm().format(b.start).toLowerCase()}'),
-                        subtitle: Text(b.uuid),
-                        trailing:
-                            Text(mins > 0 ? '${mins}m ${secs}s' : '${secs}s'),
-                      );
-                    } else {
-                      var b = transmissions.last;
-                      var time = b.duration;
-                      var mins = time.inMinutes;
-                      var secs = time.inSeconds % 60;
-
-                      return ListTile(
-                        leading: Padding(
-                            padding: EdgeInsets.only(top: 10, left: 5),
-                            child: SizedBox(
-                                width: 22,
-                                height: 22,
-                                child: CircularProgressIndicator(
-                                    strokeWidth: 3,
-                                    value: transmissions.length / 8))),
-                        title: Text(
-                            '${DateFormat.jm().format(b.start).toLowerCase()}'),
-                        subtitle: Text('${b.clientId}.${b.offset}.${b.token}'),
-                        trailing:
-                            Text(mins > 0 ? '${mins}m ${secs}s' : '${secs}s'),
-                      );
-                    }
-                  },
+                  itemBuilder:
+                      _filter == 'in_progress' ? inProgress : completed,
                 ))),
       ]),
     );

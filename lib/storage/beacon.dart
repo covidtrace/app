@@ -48,9 +48,41 @@ class BeaconModel {
     await db.insert('beacon', toMap());
     print('inserted beacon ${toMap()}');
   }
+
+  static Future<List<BeaconModel>> findAll(
+      {int limit,
+      String orderBy,
+      String where,
+      List<dynamic> whereArgs,
+      String groupBy}) async {
+    final Database db = await Storage.db;
+
+    var rows = await db.query('beacon',
+        limit: limit,
+        orderBy: orderBy,
+        where: where,
+        whereArgs: whereArgs,
+        groupBy: groupBy);
+
+    return List.generate(
+        rows.length,
+        (i) => BeaconModel(
+              id: rows[i]['id'],
+              uuid: rows[i]['uuid'],
+              start: DateTime.parse(rows[i]['start']),
+              end: DateTime.parse(rows[i]['end']),
+            ));
+  }
+
+  static Future<void> destroyAll() async {
+    final Database db = await Storage.db;
+    await db.delete('beacon');
+  }
 }
 
 class BeaconTransmission {
+  static const UNSEEN_TIMEOUT = Duration(seconds: 20);
+
   final int id;
   final int clientId;
   final int offset;
@@ -130,7 +162,7 @@ class BeaconTransmission {
   }
 
   static Future<int> endUnseen() async {
-    var threshold = DateTime.now().subtract(Duration(seconds: 20));
+    var threshold = DateTime.now().subtract(UNSEEN_TIMEOUT);
 
     final Database db = await Storage.db;
     var count = await db.update(
@@ -143,6 +175,44 @@ class BeaconTransmission {
     }
 
     return count;
+  }
+
+  static Future<List<BeaconModel>> convertCompleted() async {
+    final Database db = await Storage.db;
+
+    var rows = await db.query('beacon_transmission',
+        columns: [
+          'clientId',
+          'GROUP_CONCAT(token) as tokens',
+          'MIN(start) as start',
+          'last_seen',
+        ],
+        orderBy: 'last_seen DESC, offset ASC',
+        where: 'end IS NOT NULL',
+        having: 'COUNT(offset) = 8',
+        groupBy: 'clientId, last_seen');
+
+    print(rows);
+
+    var beacons = rows.map((row) {
+      String tokens = row['tokens'];
+      return BeaconModel(
+        uuid: unparseUuid(
+            tokens.split(',').map((t) => int.parse(t, radix: 10)).toList()),
+        start: DateTime.parse(row['start']),
+        end: DateTime.parse(row['last_seen']),
+      );
+    }).toList();
+
+    // Insert converted beacons and remove completed transmissions
+    await Future.wait(beacons.map((b) => b.insert()));
+    await Future.wait(rows.map((row) => db.delete(
+          'beacon_transmission',
+          where: 'clientId = ? AND last_seen = ?',
+          whereArgs: [row['clientId'], row['last_seen']],
+        )));
+
+    return beacons;
   }
 
   static Future<List<BeaconTransmission>> findAll(
@@ -202,7 +272,7 @@ String unparseUuid(List<int> buffer16Bit) {
   return uuid.unparse(buffer8Bit);
 }
 
-// Represent a UUID that can be transmitted as a sequence of Beacon major/minor payloads
+// Represents a UUID that can be transmitted as a sequence of Beacon major/minor payloads
 class BeaconUuid {
   int id;
   int clientId;
