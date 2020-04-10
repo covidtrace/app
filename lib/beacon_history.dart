@@ -51,9 +51,9 @@ void startRegionRange() {
   print('starting region range');
   _streamRanging =
       flutterBeacon.ranging(regions).listen((RangingResult result) async {
-    Future.wait(result.beacons.map((b) {
-      return BeaconTransmission.seen(b.major, b.minor);
-    }));
+    // TODO(wes): Rotate clientId if there is a collision detected
+    Future.wait(
+        result.beacons.map((b) => BeaconTransmission.seen(b.major, b.minor)));
     await cleanupTransmissions();
   });
 }
@@ -214,33 +214,38 @@ class BeaconState extends State {
       var time = b.duration;
       var mins = time.inMinutes;
       var secs = time.inSeconds % 60;
+      var done = transmissions.length == 8;
 
-      return Dismissible(
-          key: Key(b.clientId.toString()),
-          background: Container(
-              color: Theme.of(context).primaryColor,
-              alignment: Alignment.centerRight,
-              padding: EdgeInsets.only(right: 15),
-              child: Icon(
-                Icons.delete,
-                color: Colors.white,
-              )),
-          direction: DismissDirection.endToStart,
-          onDismissed: (direction) async {
-            await removeTransmissions(b.clientId, b.lastSeen);
-          },
-          child: ListTile(
-            leading: Padding(
-                padding: EdgeInsets.only(top: 10, left: 5),
-                child: SizedBox(
-                    width: 22,
-                    height: 22,
-                    child: CircularProgressIndicator(
-                        strokeWidth: 3, value: transmissions.length / 8))),
-            title: Text('${DateFormat.jm().format(b.start).toLowerCase()}'),
-            subtitle: Text('${b.clientId}.${b.offset}.${b.token}'),
-            trailing: Text(mins > 0 ? '${mins}m ${secs}s' : '${secs}s'),
-          ));
+      var content = ListTile(
+        leading: Padding(
+            padding: EdgeInsets.only(top: 10, left: 5),
+            child: SizedBox(
+                width: 22,
+                height: 22,
+                child: CircularProgressIndicator(
+                    strokeWidth: 3, value: transmissions.length / 8))),
+        title: Text('${DateFormat.jm().format(b.start).toLowerCase()}'),
+        subtitle: Text('${b.clientId}.${b.offset}.${b.token}'),
+        trailing: Text(mins > 0 ? '${mins}m ${secs}s' : '${secs}s'),
+      );
+
+      return done
+          ? content
+          : Dismissible(
+              key: Key(b.clientId.toString()),
+              background: Container(
+                  color: Theme.of(context).primaryColor,
+                  alignment: Alignment.centerRight,
+                  padding: EdgeInsets.only(right: 15),
+                  child: Icon(
+                    Icons.delete,
+                    color: Colors.white,
+                  )),
+              direction: DismissDirection.endToStart,
+              onDismissed: (direction) async {
+                await removeTransmissions(b.clientId, b.lastSeen);
+              },
+              child: content);
     };
 
     var completed = (context, index) {

@@ -139,8 +139,6 @@ class BeaconTransmission {
     var offset = decodeOffset(minor);
     var token = major;
 
-    print('SEEN $major:$minor  $clientId:$offset:$token');
-
     // Find transmissions that were recently seen
     var found = await findAll(
         limit: 1,
@@ -296,10 +294,9 @@ class BeaconUuid {
     timestamp ??= DateTime.now();
   }
 
-  // TODO(wes): This should commit to the DB
-  void rotate() async {
+  Future<void> rotate() async {
     clientId = Random().nextInt(MAX_CLIENT_ID);
-    offset = 0;
+    await save();
   }
 
   void next() {
@@ -353,5 +350,11 @@ class BeaconUuid {
   Future<void> insert() async {
     final Database db = await Storage.db;
     await db.insert('beacon_broadcast', toMap());
+  }
+
+  Future<int> save() async {
+    final Database db = await Storage.db;
+    return db
+        .update('beacon_broadcast', toMap(), where: 'id = ?', whereArgs: [id]);
   }
 }

@@ -98,8 +98,7 @@ class OnboardingState extends State {
 
       if (allowed) {
         bg.BackgroundGeolocation.start();
-        // TODO(wes): This will immediately prompt for bluetooth.
-        // Should we move this somewhere else?
+        // TODO(wes): This will immediately prompt for bluetooth. Should we move this somewhere else?
         setupBeaconScanning();
       } else {
         setState(() => _linkToSettings = true);
