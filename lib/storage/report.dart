@@ -5,14 +5,17 @@ import 'package:sqflite/sqflite.dart';
 class ReportModel {
   final int id;
   final int lastLocationId;
+  final int lastBeaconId;
   final DateTime timestamp;
 
-  ReportModel({this.id, this.lastLocationId, this.timestamp});
+  ReportModel(
+      {this.id, this.lastLocationId, this.lastBeaconId, this.timestamp});
 
   create() async {
     final Database db = await Storage.db;
     await db.insert('report', {
       'last_location_id': lastLocationId,
+      'last_beacon_id': lastBeaconId,
       'timestamp': timestamp.toIso8601String()
     });
   }
@@ -29,6 +32,7 @@ class ReportModel {
     return ReportModel(
       id: rows[0]['id'],
       lastLocationId: rows[0]['last_location_id'],
+      lastBeaconId: rows[0]['last_beacon_id'],
       timestamp: DateTime.parse(rows[0]['timestamp']),
     );
   }

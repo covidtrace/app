@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'package:covidtrace/config.dart';
+import 'package:covidtrace/exposure/beacon.dart';
 import 'package:covidtrace/exposure/location.dart';
 import 'package:covidtrace/helper/cloud_storage.dart';
+import 'package:covidtrace/storage/beacon.dart';
 import 'package:covidtrace/storage/location.dart';
 import 'package:covidtrace/storage/user.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -23,20 +25,25 @@ Future<bool> checkExposures() async {
         whereArgs: [
           threeWeeksAgo.toIso8601String()
         ]), // no use searching already exposed locations or older than 3 weeks
+    Future.value([] as List<BeaconUuid>)
   ]);
 
   var user = results[0];
   var config = results[1];
   var dir = results[2];
   var locations = results[3];
+  var beacons = results[4];
 
   String publishedBucket = config['publishedBucket'];
   int compareLevel = config['compareS2Level'];
   List<dynamic> aggLevels = config['aggS2Levels'];
 
   // Structures for location exposure
-  LocationModel exposed;
+  LocationModel exposedLocation;
   var locationExposure = new LocationExposure(locations, compareLevel);
+
+  BeaconUuid exposedBeacon;
+  var beaconExposure = new BeaconExposure(beacons, compareLevel);
 
   // Set of all top level geo prefixes to begin querying
   var geoPrefixes = Set<String>.from(locations.map(
@@ -107,29 +114,42 @@ Future<bool> checkExposures() async {
         dir.path, publishedBucket, objectName, object['md5Hash'] as String);
 
     // Find exposures and update!
-    var exposures =
-        await locationExposure.getExposures(await file.readAsString());
+    if (objectName.contains(".tokens.csv")) {
+      var exposures =
+          await beaconExposure.getExposures(await file.readAsString());
 
-    if (exposures.length > 0) {
-      exposures.sort((a, b) => a.timestamp.compareTo(b.timestamp));
-      exposed = exposures.last;
-      await Future.wait(exposures.map((location) async {
-        location.exposure = true;
-        await location.save();
-      }));
+      if (exposures.length > 0) {
+        exposures.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+        exposedBeacon = exposures.last;
+        await Future.wait(exposures.map((beacon) async {
+          // TODO(Wes) save state
+        }));
+      }
+    } else {
+      var exposures =
+          await locationExposure.getExposures(await file.readAsString());
+
+      if (exposures.length > 0) {
+        exposures.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+        exposedLocation = exposures.last;
+        await Future.wait(exposures.map((location) async {
+          location.exposure = true;
+          await location.save();
+        }));
+      }
     }
   }));
 
   user.lastCheck = DateTime.now();
   await user.save();
 
-  if (exposed != null) {
+  if (exposedLocation != null) {
     print('Found new exposure!');
-    showExposureNotification(exposed);
+    showExposureNotification(exposedLocation);
   }
 
   print('Done checking exposures!');
-  return exposed != null;
+  return exposedLocation != null;
 }
 
 void showExposureNotification(LocationModel location) async {

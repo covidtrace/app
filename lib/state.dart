@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:covidtrace/storage/beacon.dart';
+
 import 'config.dart';
 import 'helper/check_exposures.dart' as bg;
 import 'helper/signed_upload.dart';
@@ -112,70 +114,99 @@ class AppState with ChangeNotifier {
     return success;
   }
 
+  Future<bool> _submitSymptoms(
+      Map<String, dynamic> config, Map<String, dynamic> symptoms) {
+    var bucket = config['symptomBucket'];
+    if (bucket == null) {
+      bucket = 'covidtrace-symptoms';
+    }
+
+    var contentType = 'application/json; charset=utf-8';
+    return signedUpload(config, user.token,
+        query: {
+          'bucket': bucket,
+          'contentType': contentType,
+          'object': '${Uuid().v4()}.json'
+        },
+        headers: {'Content-Type': contentType},
+        body: jsonEncode(symptoms));
+  }
+
+  Future<LocationModel> _submitLocations(
+      Map<String, dynamic> config, UserModel user, double days) async {
+    int level = config['reportS2Level'];
+
+    var where = 'sample != 1';
+    var whereArgs = [];
+
+    if (_report != null) {
+      where = '$where AND id > ${_report.lastLocationId}';
+    } else {
+      var date = DateTime.now().subtract(Duration(days: 8 + days.toInt()));
+      where = '$where AND DATE(timestamp) >= DATE(?)';
+      whereArgs = [DateFormat('yyyy-MM-dd').format(date)];
+    }
+
+    List<LocationModel> locations = await LocationModel.findAll(
+        orderBy: 'id ASC', where: where, whereArgs: whereArgs);
+
+    var bucket = config['holdingBucket'];
+    if (bucket == null) {
+      bucket = 'covidtrace-holding';
+    }
+
+    var contentType = 'text/csv; charset=utf-8';
+    var success = await signedUpload(config, user.token,
+        query: {
+          'bucket': bucket,
+          'contentType': contentType,
+          'object': '${user.uuid}.csv',
+        },
+        headers: {
+          'Content-Type': contentType,
+        },
+        body: LocationModel.toCSV(locations, level));
+
+    if (!success) {
+      return null;
+    }
+
+    return locations.last;
+  }
+
+  Future<BeaconUuid> _submitBeacons(
+      Map<String, dynamic> config, UserModel user, double days) async {
+    // TODO(Wes) this, should look roughly identical to the above method
+    return null;
+  }
+
   Future<bool> sendReport(Map<String, dynamic> symptoms) async {
     var success = false;
+    double days = symptoms['days'];
 
     try {
       var config = await getConfig();
-      var user = await UserModel.find();
-      int level = config['reportS2Level'];
-
-      var symptomBucket = config['symptomBucket'];
-      if (symptomBucket == null) {
-        symptomBucket = 'covidtrace-symptoms';
-      }
-
-      var contentType = 'application/json; charset=utf-8';
-      var symptomSuccess = await signedUpload(config, user.token,
-          query: {
-            'bucket': symptomBucket,
-            'contentType': contentType,
-            'object': '${Uuid().v4()}.json'
-          },
-          headers: {'Content-Type': contentType},
-          body: jsonEncode(symptoms));
-
-      if (!symptomSuccess) {
+      if (!await _submitSymptoms(config, symptoms)) {
         return false;
       }
 
-      String where = 'sample != 1';
-      List whereArgs = [];
-      if (_report != null) {
-        where = '$where AND id > ${_report.lastLocationId}';
-      } else {
-        double days = symptoms['days'];
-        var date = DateTime.now().subtract(Duration(days: 8 + days.toInt()));
-        where = '$where AND DATE(timestamp) >= DATE(?)';
-        whereArgs = [DateFormat('yyyy-MM-dd').format(date)];
-      }
+      var user = await UserModel.find();
+      var results = await Future.wait([
+        _submitLocations(config, user, days),
+        _submitBeacons(config, user, days)
+      ]);
 
-      List<LocationModel> locations = await LocationModel.findAll(
-          orderBy: 'id ASC', where: where, whereArgs: whereArgs);
+      var location = results[0] as LocationModel;
+      var beacon = results[1] as BeaconUuid;
 
-      var holdingBucket = config['holdingBucket'];
-      if (holdingBucket == null) {
-        holdingBucket = 'covidtrace-holding';
-      }
-
-      contentType = 'text/csv; charset=utf-8';
-      var uploadSuccess = await signedUpload(config, user.token,
-          query: {
-            'bucket': holdingBucket,
-            'contentType': contentType,
-            'object': '${user.uuid}.csv',
-          },
-          headers: {
-            'Content-Type': contentType,
-          },
-          body: LocationModel.toCSV(locations, level));
-
-      if (!uploadSuccess) {
+      if (location == null && beacon == null) {
         return false;
       }
 
       _report = ReportModel(
-          lastLocationId: locations.last.id, timestamp: DateTime.now());
+          lastLocationId: location != null ? location.id : null,
+          lastBeaconId: beacon != null ? beacon.id : null,
+          timestamp: DateTime.now());
       await report.create();
 
       success = true;
