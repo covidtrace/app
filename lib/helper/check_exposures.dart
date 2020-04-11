@@ -42,7 +42,7 @@ Future<bool> checkExposures() async {
   LocationModel exposedLocation;
   var locationExposure = new LocationExposure(locations, compareLevel);
 
-  BeaconUuid exposedBeacon;
+  BeaconModel exposedBeacon;
   var beaconExposure = new BeaconExposure(beacons, compareLevel);
 
   // Set of all top level geo prefixes to begin querying
@@ -119,7 +119,7 @@ Future<bool> checkExposures() async {
           await beaconExposure.getExposures(await file.readAsString());
 
       if (exposures.length > 0) {
-        exposures.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+        exposures.sort((a, b) => a.start.compareTo(b.start));
         exposedBeacon = exposures.last;
         await Future.wait(exposures.map((beacon) async {
           // TODO(Wes) save state
