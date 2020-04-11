@@ -3,11 +3,11 @@ import 'package:covidtrace/helper/datetime.dart';
 import 'package:covidtrace/storage/beacon.dart';
 import 'package:csv/csv.dart';
 
-class BeaconExposure extends Exposure<BeaconUuid> {
+class BeaconExposure extends Exposure<BeaconModel> {
   // Maps uuid => beacons
-  Map<String, List<BeaconUuid>> _lookup;
+  Map<String, List<BeaconModel>> _lookup;
 
-  BeaconExposure(List<BeaconUuid> beacons, int level) : super(beacons) {
+  BeaconExposure(List<BeaconModel> beacons, int level) : super(beacons) {
     beacons.forEach((beacon) {
       _lookup[beacon.uuid] ??= new List();
       _lookup[beacon.uuid].add(beacon);
@@ -15,8 +15,8 @@ class BeaconExposure extends Exposure<BeaconUuid> {
   }
 
   @override
-  Future<List<BeaconUuid>> getExposures(String data) async {
-    var exposures = List<BeaconUuid>();
+  Future<List<BeaconModel>> getExposures(String data) async {
+    var exposures = List<BeaconModel>();
 
     var rows =
         CsvToListConverter(shouldParseNumbers: false, eol: '\n').convert(data);
