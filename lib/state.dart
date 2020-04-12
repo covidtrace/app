@@ -78,31 +78,22 @@ class AppState with ChangeNotifier {
       var user = await UserModel.find();
 
       int level = config['exposureS2Level'];
-      String bucket = config['exposureBucket'];
-      if (bucket == null) {
-        bucket = 'covidtrace-exposures';
-      }
+      String bucket = config['exposureBucket'] ?? 'covidtrace-exposures';
+      var data = jsonEncode({
+        'cellID': _exposure.cellID.parent(level).toToken(),
+        'timestamp': DateFormat('yyyy-MM-dd').format(DateTime.now())
+      });
 
-      var contentType = 'application/json; charset=utf-8';
-      var uploadSuccess = await signedUpload(config, user.token,
-          query: {
-            'bucket': bucket,
-            'contentType': contentType,
-            'object': '${user.uuid}.json'
-          },
-          headers: {'Content-Type': contentType},
-          body: jsonEncode({
-            'cellID': _exposure.cellID.parent(level).toToken(),
-            'timestamp': DateFormat('yyyy-MM-dd').format(DateTime.now())
-          }));
-
-      if (!uploadSuccess) {
+      if (!await objectUpload(
+          config: config,
+          bucket: bucket,
+          object: '${user.uuid}.json',
+          data: data)) {
         return false;
       }
 
       _exposure.reported = true;
       await _exposure.save();
-
       success = true;
     } catch (err) {
       print(err);
@@ -113,74 +104,83 @@ class AppState with ChangeNotifier {
     return success;
   }
 
-  Future<bool> sendReport(Map<String, dynamic> symptoms) async {
-    var success = false;
+  Future<bool> objectUpload(
+      {@required Map<String, dynamic> config,
+      @required String bucket,
+      @required String object,
+      @required String data,
+      String contentType = 'application/json; charset=utf-8'}) async {
+    var user = await UserModel.find();
+
+    return signedUpload(config, user.token,
+        query: {'bucket': bucket, 'contentType': contentType, 'object': object},
+        headers: {'Content-Type': contentType},
+        body: data);
+  }
+
+  Future<bool> sendSymptoms(
+      {@required Map<String, dynamic> symptoms,
+      @required Map<String, dynamic> config}) {
+    var bucket = config['symptomBucket'] ?? 'covidtrace-symptoms';
+    return objectUpload(
+        config: config,
+        bucket: bucket,
+        object: '${Uuid().v4()}.json',
+        data: jsonEncode(symptoms));
+  }
+
+  Future<List<LocationModel>> sendLocations(
+      {@required Map<String, dynamic> config, DateTime date}) async {
+    String where = 'sample != 1';
+    List whereArgs = [];
+    if (report != null) {
+      where = '$where AND id > ${report.lastLocationId}';
+    } else {
+      where = '$where AND DATE(timestamp) >= DATE(?)';
+      whereArgs = [DateFormat('yyyy-MM-dd').format(date)];
+    }
+
+    List<LocationModel> locations = await LocationModel.findAll(
+        orderBy: 'id ASC', where: where, whereArgs: whereArgs);
+
+    int level = config['reportS2Level'];
+    var data = ListToCsvConverter().convert([LocationModel.csvHeaders] +
+        locations.map((l) => l.toCSV(level)).toList());
 
     try {
-      var config = await getConfig();
-      var user = await UserModel.find();
-      int level = config['reportS2Level'];
+      var success = await objectUpload(
+          config: config,
+          bucket: config['holdingBucket'] ?? 'covidtrace-holding',
+          object: '${user.uuid}.csv',
+          contentType: 'text/csv; charset=utf-8',
+          data: data);
+      return success ? locations : null;
+    } catch (err) {
+      print(err);
+      return null;
+    }
+  }
 
-      var symptomBucket = config['symptomBucket'];
-      if (symptomBucket == null) {
-        symptomBucket = 'covidtrace-symptoms';
+  Future<bool> sendReport(Map<String, dynamic> symptoms) async {
+    var success = false;
+    var config = await getConfig();
+
+    int days = symptoms['days'];
+    var date = DateTime.now().subtract(Duration(days: 8 + days));
+
+    try {
+      var results = await Future.wait([
+        sendSymptoms(symptoms: symptoms, config: config),
+        sendLocations(config: config, date: date)
+      ]);
+
+      List<LocationModel> locations = results[1];
+      if (locations != null) {
+        _report = ReportModel(
+            lastLocationId: locations.last.id, timestamp: DateTime.now());
+        await report.create();
+        success = true;
       }
-
-      var contentType = 'application/json; charset=utf-8';
-      var symptomSuccess = await signedUpload(config, user.token,
-          query: {
-            'bucket': symptomBucket,
-            'contentType': contentType,
-            'object': '${Uuid().v4()}.json'
-          },
-          headers: {'Content-Type': contentType},
-          body: jsonEncode(symptoms));
-
-      if (!symptomSuccess) {
-        return false;
-      }
-
-      String where = 'sample != 1';
-      List whereArgs = [];
-      if (_report != null) {
-        where = '$where AND id > ${_report.lastLocationId}';
-      } else {
-        double days = symptoms['days'];
-        var date = DateTime.now().subtract(Duration(days: 8 + days.toInt()));
-        where = '$where AND DATE(timestamp) >= DATE(?)';
-        whereArgs = [DateFormat('yyyy-MM-dd').format(date)];
-      }
-
-      List<LocationModel> locations = await LocationModel.findAll(
-          orderBy: 'id ASC', where: where, whereArgs: whereArgs);
-
-      var holdingBucket = config['holdingBucket'];
-      if (holdingBucket == null) {
-        holdingBucket = 'covidtrace-holding';
-      }
-
-      contentType = 'text/csv; charset=utf-8';
-      var uploadSuccess = await signedUpload(config, user.token,
-          query: {
-            'bucket': holdingBucket,
-            'contentType': contentType,
-            'object': '${user.uuid}.csv',
-          },
-          headers: {
-            'Content-Type': contentType,
-          },
-          body: ListToCsvConverter().convert([LocationModel.csvHeaders] +
-              locations.map((l) => l.toCSV(level)).toList()));
-
-      if (!uploadSuccess) {
-        return false;
-      }
-
-      _report = ReportModel(
-          lastLocationId: locations.last.id, timestamp: DateTime.now());
-      await report.create();
-
-      success = true;
     } catch (err) {
       print(err);
       success = false;
