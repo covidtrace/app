@@ -318,7 +318,9 @@ class BeaconUuid {
   Future<void> rotateUuid() async {
     Uuid().v4buffer(uuidBuffer);
     timestamp = DateTime.now();
-    await save();
+    // The clientId must be rotate anytime we change the uuid
+    // to avoid polluting an existing uuid broadcast.
+    await rotateClientId();
   }
 
   bool get isStale {
@@ -332,12 +334,10 @@ class BeaconUuid {
   }
 
   Future<void> next() async {
-    if (isClientIdStale) {
-      await rotateClientId();
-    }
-
     if (isStale) {
       await rotateUuid();
+    } else if (isClientIdStale) {
+      await rotateClientId();
     }
 
     offset = offset < MAX_OFFSET ? offset + 1 : 0;
