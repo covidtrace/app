@@ -186,14 +186,14 @@ class AppState with ChangeNotifier {
       return beacons;
     }
 
-    // We evaluate all locations from the day before the first beacon to account
-    // for midnight boundary crossing.
+    // We evaluate all locations from previous 2 days since location
+    // changes may be infrequent in worst case scenario.
     List<LocationModel> locations = await LocationModel.findAll(
         orderBy: 'id ASC',
         where: 'DATE(timestamp) >= DATE(?)',
         whereArgs: [
           DateFormat('yyyy-MM-dd')
-              .format(beacons.first.timestamp.subtract(Duration(days: 1)))
+              .format(beacons.first.timestamp.subtract(Duration(days: 2)))
         ]);
 
     // For each beacon find the closest location recorded based on timestamp
