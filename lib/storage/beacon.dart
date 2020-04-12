@@ -281,30 +281,65 @@ String unparseUuid(List<int> buffer16Bit) {
 class BeaconUuid {
   static final List<dynamic> csvHeaders = ['timestamp', 's2geo', 'uuid'];
 
+  static const UUID_ROTATE_INTERVAL = Duration(minutes: 60);
+  static const CLIENT_ID_ROTATE_INTERVAL = Duration(minutes: 20);
+
   int id;
-  int clientId;
   DateTime timestamp;
+  int clientId;
+  DateTime clientIdTimestamp;
   List<int> uuidBuffer = List(16); // 16 8bit integers
   int offset = 0;
   LocationModel location;
 
-  BeaconUuid({this.id, String uuid, this.clientId, this.timestamp}) {
+  BeaconUuid(
+      {this.id,
+      String uuid,
+      this.timestamp,
+      this.clientId,
+      this.clientIdTimestamp}) {
     if (uuid != null) {
       Uuid().parse(uuid, buffer: uuidBuffer);
     } else {
       Uuid().v4buffer(uuidBuffer);
     }
 
-    clientId ??= Random().nextInt(MAX_CLIENT_ID);
     timestamp ??= DateTime.now();
+    clientId ??= Random().nextInt(MAX_CLIENT_ID);
+    clientIdTimestamp ??= DateTime.now();
   }
 
-  Future<void> rotate() async {
+  Future<void> rotateClientId() async {
     clientId = Random().nextInt(MAX_CLIENT_ID);
+    clientIdTimestamp = DateTime.now();
     await save();
   }
 
-  void next() {
+  Future<void> rotateUuid() async {
+    Uuid().v4buffer(uuidBuffer);
+    timestamp = DateTime.now();
+    await save();
+  }
+
+  bool get isStale {
+    var diff = DateTime.now().difference(timestamp);
+    return diff.compareTo(UUID_ROTATE_INTERVAL) >= 0;
+  }
+
+  bool get isClientIdStale {
+    var diff = DateTime.now().difference(clientIdTimestamp);
+    return diff.compareTo(CLIENT_ID_ROTATE_INTERVAL) >= 0;
+  }
+
+  Future<void> next() async {
+    if (isClientIdStale) {
+      await rotateClientId();
+    }
+
+    if (isStale) {
+      await rotateUuid();
+    }
+
     offset = offset < MAX_OFFSET ? offset + 1 : 0;
   }
 
@@ -323,32 +358,34 @@ class BeaconUuid {
     return {
       'id': id,
       'uuid': uuid,
-      'clientId': clientId,
       'timestamp': timestamp.toIso8601String(),
+      'client_id': clientId,
+      'client_id_timestamp': clientIdTimestamp.toIso8601String(),
     };
   }
 
   static Future<BeaconUuid> get() async {
-    var cutoff = DateTime.now().subtract(Duration(hours: 1));
     final Database db = await Storage.db;
 
-    var rows = await db.query('beacon_broadcast',
-        limit: 1,
-        orderBy: 'timestamp DESC',
-        where: 'DATETIME(timestamp) > DATETIME(?)',
-        whereArgs: [cutoff.toIso8601String()]);
+    var rows = await db.query(
+      'beacon_broadcast',
+      limit: 1,
+      orderBy: 'timestamp DESC',
+    );
 
     if (rows.isNotEmpty) {
       var first = rows.first;
       return BeaconUuid(
-          id: first['id'],
-          uuid: first['uuid'],
-          clientId: first['clientId'],
-          timestamp: DateTime.parse(first['timestamp']));
+        id: first['id'],
+        uuid: first['uuid'],
+        timestamp: DateTime.parse(first['timestamp']),
+        clientId: first['client_id'],
+        clientIdTimestamp: DateTime.parse(first['client_id_timestamp']),
+      );
     } else {
       var beacon = BeaconUuid();
       await beacon.insert();
-      return beacon;
+      return get();
     }
   }
 
@@ -383,8 +420,9 @@ class BeaconUuid {
         (i) => BeaconUuid(
               id: rows[i]['id'],
               uuid: rows[i]['uuid'],
-              clientId: rows[i]['clientId'],
               timestamp: DateTime.parse(rows[i]['timestamp']),
+              clientId: rows[i]['client_id'],
+              clientIdTimestamp: DateTime.parse(rows[i]['client_id_timestamp']),
             ));
   }
 

@@ -162,7 +162,7 @@ class BeaconState extends State {
         return;
       }
 
-      _beacon.next();
+      await _beacon.next();
       beaconBroadcast.setMajorId(_beacon.major);
       beaconBroadcast.setMinorId(_beacon.minor);
 

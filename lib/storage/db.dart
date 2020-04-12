@@ -50,8 +50,9 @@ CREATE TABLE report (
 CREATE TABLE beacon_broadcast (
   id INTEGER PRIMARY KEY,
   uuid STRING UNIQUE,
-  clientId INTEGER,
-  timestamp TEXT
+  timestamp TEXT,
+  client_id INTEGER,
+  client_id_timestamp TEXT
 )
   ''',
   '''
