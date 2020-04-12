@@ -199,8 +199,10 @@ class AppState with ChangeNotifier {
     // For each beacon find the closest location recorded based on timestamp
     beacons.forEach((b) {
       var time = b.timestamp;
-      var before = locations.lastWhere((l) => l.timestamp.compareTo(time) < 0);
-      var after = locations.firstWhere((l) => l.timestamp.compareTo(time) >= 0);
+      var before = locations.lastWhere((l) => l.timestamp.compareTo(time) < 0,
+          orElse: () => null);
+      var after = locations.firstWhere((l) => l.timestamp.compareTo(time) >= 0,
+          orElse: () => null);
 
       if (before == null || after == null) {
         b.location = before ?? after;
@@ -243,13 +245,18 @@ class AppState with ChangeNotifier {
     try {
       var results = await Future.wait([
         sendSymptoms(symptoms: symptoms, config: config),
-        sendLocations(config: config, date: date)
+        sendLocations(config: config, date: date),
+        sendBeacons(config: config, date: date)
       ]);
 
-      List<LocationModel> locations = results[1];
-      if (locations != null) {
+      List<LocationModel> locations = results[1] ?? [];
+      List<BeaconUuid> beacons = results[2] ?? [];
+
+      if (locations.isNotEmpty) {
         _report = ReportModel(
-            lastLocationId: locations.last.id, timestamp: DateTime.now());
+            lastLocationId: locations.last.id,
+            lastBeaconId: beacons.isNotEmpty ? beacons.last.id : null,
+            timestamp: DateTime.now());
         await report.create();
         success = true;
       }
