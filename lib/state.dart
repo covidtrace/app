@@ -215,7 +215,7 @@ class AppState with ChangeNotifier {
 
     // TODO(wes): Although this is unlikely to ever occur we need to consider
     // how to report beacons without any rough location.
-    beacons = beacons.where((b) => b.location != null);
+    beacons = beacons.where((b) => b.location != null).toList();
 
     int level = config['reportS2Level'];
     var data = ListToCsvConverter().convert(
