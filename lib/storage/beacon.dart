@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'dart:math';
+import 'package:covidtrace/helper/datetime.dart';
+import 'package:covidtrace/storage/location.dart';
 import 'package:uuid/uuid.dart';
 
 import 'db.dart';
@@ -277,11 +279,14 @@ String unparseUuid(List<int> buffer16Bit) {
 
 // Represents a UUID that can be transmitted as a sequence of Beacon major/minor payloads
 class BeaconUuid {
+  static final List<dynamic> csvHeaders = ['timestamp', 's2geo', 'uuid'];
+
   int id;
   int clientId;
   DateTime timestamp;
   List<int> uuidBuffer = List(16); // 16 8bit integers
   int offset = 0;
+  LocationModel location;
 
   BeaconUuid({this.id, String uuid, this.clientId, this.timestamp}) {
     if (uuid != null) {
@@ -356,5 +361,38 @@ class BeaconUuid {
     final Database db = await Storage.db;
     return db
         .update('beacon_broadcast', toMap(), where: 'id = ?', whereArgs: [id]);
+  }
+
+  static Future<List<BeaconUuid>> findAll(
+      {int limit,
+      String orderBy,
+      String where,
+      List<dynamic> whereArgs,
+      String groupBy}) async {
+    final Database db = await Storage.db;
+
+    var rows = await db.query('beacon_broadcast',
+        limit: limit,
+        orderBy: orderBy,
+        where: where,
+        whereArgs: whereArgs,
+        groupBy: groupBy);
+
+    return List.generate(
+        rows.length,
+        (i) => BeaconUuid(
+              id: rows[i]['id'],
+              uuid: rows[i]['uuid'],
+              clientId: rows[i]['clientId'],
+              timestamp: DateTime.parse(rows[i]['timestamp']),
+            ));
+  }
+
+  List<dynamic> toCSV(int s2level) {
+    return [
+      roundedDateTime(timestamp),
+      location.cellID.parent(s2level).toToken(),
+      uuid,
+    ];
   }
 }
