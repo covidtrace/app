@@ -279,7 +279,7 @@ String unparseUuid(List<int> buffer16Bit) {
 
 // Represents a UUID that can be transmitted as a sequence of Beacon major/minor payloads
 class BeaconUuid {
-  static final List<dynamic> csvHeaders = ['timestamp', 's2geo', 'uuid'];
+  static final List<dynamic> csvHeaders = ['timestamp', 'uuid', 's2geo'];
 
   static const UUID_ROTATE_INTERVAL = Duration(minutes: 60);
   static const CLIENT_ID_ROTATE_INTERVAL = Duration(minutes: 20);
@@ -429,8 +429,8 @@ class BeaconUuid {
   List<dynamic> toCSV(int s2level) {
     return [
       roundedDateTime(timestamp),
-      location.cellID.parent(s2level).toToken(),
       uuid,
+      location.cellID.parent(s2level).toToken(),
     ];
   }
 }

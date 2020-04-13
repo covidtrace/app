@@ -78,7 +78,11 @@ CREATE TABLE beacon_transmission (
   ''',
 ];
 
-List<String> migrationScripts = [];
+List<String> migrationScripts = [
+  '''
+ALTER TABLE report ADD COLUMN last_beacon_id INTEGER REFERENCES beacon_broadcast (id) ON DELETE CASCADE
+  ''',
+];
 
 Future<String> _dataBasePath(String path) async {
   return join(await getDatabasesPath(), path);
