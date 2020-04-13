@@ -97,7 +97,7 @@ class LocationModel {
           area.isPointInside(lt.LatLng(l.latitude, l.longitude));
     });
 
-    await Future.forEach(remove, (LocationModel l) => l.destroy());
+    await Future.wait(remove.map((l) => l.destroy()));
     return;
   }
 

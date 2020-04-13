@@ -9,6 +9,7 @@ import 'helper/signed_upload.dart';
 import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
+import 'storage/beacon.dart';
 import 'storage/location.dart';
 import 'storage/report.dart';
 import 'storage/user.dart';
@@ -79,31 +80,22 @@ class AppState with ChangeNotifier {
       var user = await UserModel.find();
 
       int level = config['exposureS2Level'];
-      String bucket = config['exposureBucket'];
-      if (bucket == null) {
-        bucket = 'covidtrace-exposures';
-      }
+      String bucket = config['exposureBucket'] ?? 'covidtrace-exposures';
+      var data = jsonEncode({
+        'cellID': _exposure.cellID.parent(level).toToken(),
+        'timestamp': DateFormat('yyyy-MM-dd').format(DateTime.now())
+      });
 
-      var contentType = 'application/json; charset=utf-8';
-      var uploadSuccess = await signedUpload(config, user.token,
-          query: {
-            'bucket': bucket,
-            'contentType': contentType,
-            'object': '${user.uuid}.json'
-          },
-          headers: {'Content-Type': contentType},
-          body: jsonEncode({
-            'cellID': _exposure.cellID.parent(level).toToken(),
-            'timestamp': DateFormat('yyyy-MM-dd').format(DateTime.now())
-          }));
-
-      if (!uploadSuccess) {
+      if (!await objectUpload(
+          config: config,
+          bucket: bucket,
+          object: '${user.uuid}.json',
+          data: data)) {
         return false;
       }
 
       _exposure.reported = true;
       await _exposure.save();
-
       success = true;
     } catch (err) {
       print(err);
@@ -114,35 +106,39 @@ class AppState with ChangeNotifier {
     return success;
   }
 
-  Future<bool> _submitSymptoms(
-      Map<String, dynamic> config, Map<String, dynamic> symptoms) {
-    var bucket = config['symptomBucket'];
-    if (bucket == null) {
-      bucket = 'covidtrace-symptoms';
-    }
+  Future<bool> objectUpload(
+      {@required Map<String, dynamic> config,
+      @required String bucket,
+      @required String object,
+      @required String data,
+      String contentType = 'application/json; charset=utf-8'}) async {
+    var user = await UserModel.find();
 
-    var contentType = 'application/json; charset=utf-8';
     return signedUpload(config, user.token,
-        query: {
-          'bucket': bucket,
-          'contentType': contentType,
-          'object': '${Uuid().v4()}.json'
-        },
+        query: {'bucket': bucket, 'contentType': contentType, 'object': object},
         headers: {'Content-Type': contentType},
-        body: jsonEncode(symptoms));
+        body: data);
   }
 
-  Future<LocationModel> _submitLocations(
-      Map<String, dynamic> config, UserModel user, double days) async {
-    int level = config['reportS2Level'];
+  Future<bool> sendSymptoms(
+      {@required Map<String, dynamic> symptoms,
+      @required Map<String, dynamic> config}) {
+    var bucket = config['symptomBucket'] ?? 'covidtrace-symptoms';
+    return objectUpload(
+        config: config,
+        bucket: bucket,
+        object: '${Uuid().v4()}.json',
+        data: jsonEncode(symptoms));
+  }
 
-    var where = 'sample != 1';
-    var whereArgs = [];
-
-    if (_report != null) {
-      where = '$where AND id > ${_report.lastLocationId}';
+  Future<List<LocationModel>> sendLocations(
+      {@required Map<String, dynamic> config, DateTime date}) async {
+    String where = 'sample != 1';
+    List whereArgs = [];
+    if (report?.lastLocationId != null) {
+      where = '$where AND id > ?';
+      whereArgs = [report.lastLocationId];
     } else {
-      var date = DateTime.now().subtract(Duration(days: 8 + days.toInt()));
       where = '$where AND DATE(timestamp) >= DATE(?)';
       whereArgs = [DateFormat('yyyy-MM-dd').format(date)];
     }
@@ -150,66 +146,121 @@ class AppState with ChangeNotifier {
     List<LocationModel> locations = await LocationModel.findAll(
         orderBy: 'id ASC', where: where, whereArgs: whereArgs);
 
-    var bucket = config['holdingBucket'];
-    if (bucket == null) {
-      bucket = 'covidtrace-holding';
+    if (locations.isEmpty) {
+      return locations;
     }
 
-    var contentType = 'text/csv; charset=utf-8';
-    var success = await signedUpload(config, user.token,
-        query: {
-          'bucket': bucket,
-          'contentType': contentType,
-          'object': '${user.uuid}.csv',
-        },
-        headers: {
-          'Content-Type': contentType,
-        },
-        body: LocationModel.toCSV(locations, level));
+    int level = config['reportS2Level'];
+    var data = ListToCsvConverter().convert([LocationModel.csvHeaders] +
+        locations.map((l) => l.toCSV(level)).toList());
 
-    if (!success) {
+    try {
+      var success = await objectUpload(
+          config: config,
+          bucket: config['holdingBucket'] ?? 'covidtrace-holding',
+          object: '${user.uuid}.csv',
+          contentType: 'text/csv; charset=utf-8',
+          data: data);
+      return success ? locations : null;
+    } catch (err) {
+      print(err);
       return null;
     }
-
-    return locations.last;
   }
 
-  Future<BeaconUuid> _submitBeacons(
-      Map<String, dynamic> config, UserModel user, double days) async {
-    // TODO(Wes) this, should look roughly identical to the above method
-    return null;
+  Future<List<BeaconUuid>> sendBeacons(
+      {@required Map<String, dynamic> config, DateTime date}) async {
+    String where;
+    List whereArgs = [];
+    if (report?.lastBeaconId != null) {
+      where = 'id > ?';
+      whereArgs = [report.lastBeaconId];
+    } else {
+      where = 'DATE(timestamp) >= DATE(?)';
+      whereArgs = [DateFormat('yyyy-MM-dd').format(date)];
+    }
+
+    List<BeaconUuid> beacons = await BeaconUuid.findAll(
+        orderBy: 'id ASC', where: where, whereArgs: whereArgs);
+
+    if (beacons.isEmpty) {
+      return beacons;
+    }
+
+    // We evaluate all locations from previous 2 days since location
+    // changes may be infrequent in worst case scenario.
+    List<LocationModel> locations = await LocationModel.findAll(
+        orderBy: 'id ASC',
+        where: 'DATE(timestamp) >= DATE(?)',
+        whereArgs: [
+          DateFormat('yyyy-MM-dd')
+              .format(beacons.first.timestamp.subtract(Duration(days: 2)))
+        ]);
+
+    // For each beacon find the closest location recorded based on timestamp
+    beacons.forEach((b) {
+      var time = b.timestamp;
+      var before = locations.lastWhere((l) => l.timestamp.compareTo(time) < 0,
+          orElse: () => null);
+      var after = locations.firstWhere((l) => l.timestamp.compareTo(time) >= 0,
+          orElse: () => null);
+
+      if (before == null || after == null) {
+        b.location = before ?? after;
+      } else {
+        var beforeDiff = time.difference(before.timestamp);
+        var afterDiff = time.difference(after.timestamp);
+        b.location = beforeDiff.compareTo(afterDiff) < 0 ? before : after;
+      }
+    });
+
+    // TODO(wes): Although this is unlikely to ever occur we need to consider
+    // how to report beacons without any rough location.
+    beacons = beacons.where((b) => b.location != null).toList();
+
+    int level = config['reportS2Level'];
+    var data = ListToCsvConverter().convert(
+        [BeaconUuid.csvHeaders] + beacons.map((b) => b.toCSV(level)).toList());
+
+    try {
+      var success = await objectUpload(
+          config: config,
+          bucket: config['tokenBucket'] ?? 'covidtrace-tokens',
+          object: '${user.uuid}.csv',
+          contentType: 'text/csv; charset=utf-8',
+          data: data);
+      return success ? beacons : null;
+    } catch (err) {
+      print(err);
+      return null;
+    }
   }
 
   Future<bool> sendReport(Map<String, dynamic> symptoms) async {
     var success = false;
-    double days = symptoms['days'];
+    var config = await getConfig();
+
+    int days = symptoms['days'];
+    var date = DateTime.now().subtract(Duration(days: 8 + days));
 
     try {
-      var config = await getConfig();
-      if (!await _submitSymptoms(config, symptoms)) {
-        return false;
-      }
-
-      var user = await UserModel.find();
       var results = await Future.wait([
-        _submitLocations(config, user, days),
-        _submitBeacons(config, user, days)
+        sendSymptoms(symptoms: symptoms, config: config),
+        sendLocations(config: config, date: date),
+        sendBeacons(config: config, date: date)
       ]);
 
-      var location = results[0] as LocationModel;
-      var beacon = results[1] as BeaconUuid;
+      List<LocationModel> locations = results[1] ?? [];
+      List<BeaconUuid> beacons = results[2] ?? [];
 
-      if (location == null && beacon == null) {
-        return false;
+      if (locations.isNotEmpty) {
+        _report = ReportModel(
+            lastLocationId: locations.last.id,
+            lastBeaconId: beacons.isNotEmpty ? beacons.last.id : null,
+            timestamp: DateTime.now());
+        await report.create();
+        success = true;
       }
-
-      _report = ReportModel(
-          lastLocationId: location != null ? location.id : null,
-          lastBeaconId: beacon != null ? beacon.id : null,
-          timestamp: DateTime.now());
-      await report.create();
-
-      success = true;
     } catch (err) {
       print(err);
       success = false;

@@ -71,6 +71,11 @@ class LocationHistoryState extends State {
     setFilter(_filter);
   }
 
+  Future<void> removeLocation(LocationModel item) async {
+    await item.destroy();
+    await loadLocations();
+  }
+
   setFilter(String value) {
     var locations = value == 'exposed'
         ? _locations.where((l) => l.exposure).toList()
@@ -97,7 +102,7 @@ class LocationHistoryState extends State {
     setLocation(_display.length > 0 ? _display.first : null);
   }
 
-  setLocation(LocationModel item, {bool open = false}) async {
+  setLocation(LocationModel item) async {
     if (item == null) {
       setState(() {
         _selected = null;
@@ -120,10 +125,6 @@ class LocationHistoryState extends State {
 
     final GoogleMapController controller = await _controller.future;
     controller.animateCamera(CameraUpdate.newLatLng(loc));
-
-    if (open && Theme.of(context).platform == TargetPlatform.iOS) {
-      launchMapsApp(loc);
-    }
   }
 
   @override
@@ -243,9 +244,9 @@ class LocationHistoryState extends State {
                                             .add_MMMd()
                                             .format(timestamp);
                                         var hourMap = _locationsIndex[dayHour];
-                                        var selected = _selected.id == item.id;
+                                        var selected = _selected?.id == item.id;
 
-                                        return Column(children: [
+                                        var content = Column(children: [
                                           InkWell(
                                               onTap: () => setLocation(item),
                                               child: Container(
@@ -366,6 +367,29 @@ class LocationHistoryState extends State {
                                               )),
                                           Divider(height: 0),
                                         ]);
+
+                                        return !item.exposure
+                                            ? Dismissible(
+                                                key: Key(item.id.toString()),
+                                                background: Container(
+                                                    color: Theme.of(context)
+                                                        .primaryColor,
+                                                    alignment:
+                                                        Alignment.centerRight,
+                                                    padding: EdgeInsets.only(
+                                                        right: 15),
+                                                    child: Icon(
+                                                      Icons.delete,
+                                                      color: Colors.white,
+                                                    )),
+                                                direction:
+                                                    DismissDirection.endToStart,
+                                                onDismissed: (direction) async {
+                                                  await removeLocation(item);
+                                                },
+                                                child: content,
+                                              )
+                                            : content;
                                       },
                                       childCount: locations.length,
                                     ),

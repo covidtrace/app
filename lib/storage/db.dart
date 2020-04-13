@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
-import 'package:sqflite_migration/sqflite_migration.dart';
 import 'package:uuid/uuid.dart';
 
 final uuid = Uuid().v4();
@@ -50,8 +49,9 @@ CREATE TABLE report (
 CREATE TABLE beacon_broadcast (
   id INTEGER PRIMARY KEY,
   uuid STRING UNIQUE,
-  clientId INTEGER,
-  timestamp TEXT
+  timestamp TEXT,
+  client_id INTEGER,
+  client_id_timestamp TEXT
 )
   ''',
   '''
@@ -88,11 +88,12 @@ Future<String> _dataBasePath(String path) async {
 }
 
 Future<Database> _initDatabase() async {
-  return await openDatabaseWithMigration(
-      await _dataBasePath('locations.db'),
-      MigrationConfig(
-          initializationScript: initialScript,
-          migrationScripts: migrationScripts));
+  return await openDatabase(await _dataBasePath('locations.db'),
+      version: migrationScripts.length + 1, onCreate: (db, version) async {
+    initialScript.forEach((script) async => await db.execute(script));
+  }, onUpgrade: (db, oldVersion, newVersion) async {
+    migrationScripts.forEach((script) async => await db.execute(script));
+  });
 }
 
 class Storage {

@@ -48,7 +48,7 @@ class SendReportState extends State<SendReport> {
     var success = await state.sendReport({
       'breathing': _breathing,
       'cough': _cough,
-      'days': _days,
+      'days': _days.toInt(),
       'fever': _fever,
       'tested': _tested,
     });
