@@ -316,11 +316,15 @@ class BeaconUuid {
   }
 
   Future<void> rotateUuid() async {
-    Uuid().v4buffer(uuidBuffer);
-    timestamp = DateTime.now();
-    // The clientId must be rotate anytime we change the uuid
-    // to avoid polluting an existing uuid broadcast.
-    await rotateClientId();
+    var beacon = BeaconUuid();
+    await beacon.insert();
+    beacon = await get();
+    // Update existing instance to match newly created entry
+    id = beacon.id;
+    uuidBuffer = beacon.uuidBuffer;
+    timestamp = beacon.timestamp;
+    clientId = beacon.clientId;
+    clientIdTimestamp = beacon.clientIdTimestamp;
   }
 
   bool get isStale {
