@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 import 'package:covidtrace/helper/datetime.dart';
 import 'package:covidtrace/storage/location.dart';
+import 'package:csv/csv.dart';
 import 'package:uuid/uuid.dart';
 
 import 'db.dart';
@@ -279,8 +280,6 @@ String unparseUuid(List<int> buffer16Bit) {
 
 // Represents a UUID that can be transmitted as a sequence of Beacon major/minor payloads
 class BeaconUuid {
-  static final List<dynamic> csvHeaders = ['timestamp', 'uuid', 's2geo'];
-
   static const UUID_ROTATE_INTERVAL = Duration(minutes: 60);
   static const CLIENT_ID_ROTATE_INTERVAL = Duration(minutes: 20);
 
@@ -430,11 +429,14 @@ class BeaconUuid {
             ));
   }
 
-  List<dynamic> toCSV(int s2level) {
-    return [
-      roundedDateTime(timestamp),
-      uuid,
-      location.cellID.parent(s2level).toToken(),
-    ];
-  }
+  static final List<dynamic> _headers = ['timestamp', 'uuid', 's2geo'];
+  static String toCSV(Iterable<BeaconUuid> beacons, int level) =>
+      ListToCsvConverter().convert([_headers] +
+          beacons
+              .map((beacon) => [
+                    ceilUnixSeconds(beacon.timestamp, 60),
+                    beacon.uuid,
+                    beacon.location.cellID.parent(level).toToken(),
+                  ])
+              .toList());
 }

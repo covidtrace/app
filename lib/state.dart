@@ -1,8 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:covidtrace/storage/beacon.dart';
-
 import 'config.dart';
 import 'helper/check_exposures.dart' as bg;
 import 'helper/signed_upload.dart';
@@ -151,8 +149,7 @@ class AppState with ChangeNotifier {
     }
 
     int level = config['reportS2Level'];
-    var data = ListToCsvConverter().convert([LocationModel.csvHeaders] +
-        locations.map((l) => l.toCSV(level)).toList());
+    var data = LocationModel.toCSV(locations, level);
 
     try {
       var success = await objectUpload(
@@ -219,8 +216,7 @@ class AppState with ChangeNotifier {
     beacons = beacons.where((b) => b.location != null).toList();
 
     int level = config['reportS2Level'];
-    var data = ListToCsvConverter().convert(
-        [BeaconUuid.csvHeaders] + beacons.map((b) => b.toCSV(level)).toList());
+    var data = BeaconUuid.toCSV(beacons, level);
 
     try {
       var success = await objectUpload(
