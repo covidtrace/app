@@ -21,8 +21,10 @@ Future<bool> checkExposures() async {
     getConfig(),
     getApplicationSupportDirectory(),
     LocationModel.findAll(
-        where: 'DATE(timestamp) >= DATE(?)', whereArgs: whereArgs),
-    BeaconModel.findAll(where: 'DATE(start) >= DATE(?)', whereArgs: whereArgs),
+        where: 'exposure = 0 AND DATE(timestamp) >= DATE(?)',
+        whereArgs: whereArgs),
+    BeaconModel.findAll(
+        where: 'exposure = 0 AND DATE(start) >= DATE(?)', whereArgs: whereArgs),
   ]);
 
   var user = results[0];
@@ -73,10 +75,7 @@ Future<bool> checkExposures() async {
   // Filter objects for any that are lexically equal to or greater than
   // the CSVs we last downloaded. If we have never checked before, we
   // should fetch everything for the last three weeks
-  var lastCheck; // user.lastCheck;
-  if (lastCheck == null) {
-    lastCheck = threeWeeksAgo;
-  }
+  var lastCheck = user.lastCheck ?? threeWeeksAgo;
   var lastCsv = '${(lastCheck.millisecondsSinceEpoch / 1000).floor()}.csv';
 
   await Future.wait(objects.where((object) {
