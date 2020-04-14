@@ -4,7 +4,7 @@ import 'package:covidtrace/storage/location.dart';
 import 'package:csv/csv.dart';
 
 class LocationExposure extends Exposure<LocationModel> {
-  Map<String, Map<int, List<LocationModel>>> _lookup;
+  Map<String, Map<int, List<LocationModel>>> _lookup = {};
 
   LocationExposure(List<LocationModel> locations, int level)
       : super(locations) {
@@ -25,18 +25,15 @@ class LocationExposure extends Exposure<LocationModel> {
         CsvToListConverter(shouldParseNumbers: false, eol: '\n').convert(data);
 
     // Note: `row` looks like [timestamp, cellID, verified]
-    rows.forEach((row) async {
+    rows.forEach((row) {
       var timestamp = ceilUnixSeconds(
           DateTime.fromMillisecondsSinceEpoch(int.parse(row[0]) * 1000), 60);
-
       String cellID = row[1];
 
       var locationsbyTimestamp = _lookup[cellID];
       if (locationsbyTimestamp != null) {
         var locations = locationsbyTimestamp[timestamp];
-        if (locations != null) {
-          exposures.addAll(locations);
-        }
+        exposures.addAll(locations ?? []);
       }
     });
 

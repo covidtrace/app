@@ -1,11 +1,13 @@
 import 'package:covidtrace/exposure/exposure.dart';
-import 'package:covidtrace/helper/datetime.dart';
 import 'package:covidtrace/storage/beacon.dart';
 import 'package:csv/csv.dart';
 
 class BeaconExposure extends Exposure<BeaconModel> {
+  // TODO(wes): Make exposure duration configurable?
+  static const EXPOSURE_DURATION = Duration(minutes: 5);
+
   // Maps uuid => beacons
-  Map<String, List<BeaconModel>> _lookup;
+  Map<String, List<BeaconModel>> _lookup = {};
 
   BeaconExposure(List<BeaconModel> beacons, int level) : super(beacons) {
     beacons.forEach((beacon) {
@@ -22,20 +24,11 @@ class BeaconExposure extends Exposure<BeaconModel> {
         CsvToListConverter(shouldParseNumbers: false, eol: '\n').convert(data);
 
     // Note: `row` looks like [timestamp, uuid, cellID]
-    rows.forEach((row) async {
-      var timestamp = ceilUnixSeconds(
-          DateTime.fromMillisecondsSinceEpoch(int.parse(row[0]) * 1000), 60);
-
+    rows.forEach((row) {
       String uuid = row[1];
-      String cellID = row[2];
-
-      var beacons = _lookup[uuid];
-      if (beacons != null) {
-        exposures.addAll(beacons.where((beacon) {
-          // TODO(Wes) extra logic here to filter out dupes, etc.
-          return true;
-        }));
-      }
+      var beacons = _lookup[uuid] ?? [];
+      exposures.addAll(beacons.where(
+          (b) => b.end.difference(b.start).compareTo(EXPOSURE_DURATION) >= 0));
     });
 
     return exposures;

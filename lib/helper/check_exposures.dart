@@ -13,19 +13,16 @@ import 'package:tuple/tuple.dart';
 
 Future<bool> checkExposures() async {
   print('Checking exposures...');
-
   var threeWeeksAgo = DateTime.now().subtract(Duration(days: 21));
+  var whereArgs = [threeWeeksAgo.toIso8601String()];
 
   var results = await Future.wait([
     UserModel.find(),
     getConfig(),
     getApplicationSupportDirectory(),
     LocationModel.findAll(
-        where: 'exposure = 0 AND DATE(timestamp) >= DATE(?)',
-        whereArgs: [
-          threeWeeksAgo.toIso8601String()
-        ]), // no use searching already exposed locations or older than 3 weeks
-    Future.value([] as List<BeaconUuid>)
+        where: 'DATE(timestamp) >= DATE(?)', whereArgs: whereArgs),
+    BeaconModel.findAll(where: 'DATE(start) >= DATE(?)', whereArgs: whereArgs),
   ]);
 
   var user = results[0];
@@ -38,11 +35,11 @@ Future<bool> checkExposures() async {
   int compareLevel = config['compareS2Level'];
   List<dynamic> aggLevels = config['aggS2Levels'];
 
-  // Structures for location exposure
-  LocationModel exposedLocation;
+  // Structures for exposures
+  Map<int, LocationModel> exposedLocations = {};
   var locationExposure = new LocationExposure(locations, compareLevel);
 
-  BeaconModel exposedBeacon;
+  Map<int, BeaconModel> exposedBeacons = {};
   var beaconExposure = new BeaconExposure(beacons, compareLevel);
 
   // Set of all top level geo prefixes to begin querying
@@ -76,7 +73,7 @@ Future<bool> checkExposures() async {
   // Filter objects for any that are lexically equal to or greater than
   // the CSVs we last downloaded. If we have never checked before, we
   // should fetch everything for the last three weeks
-  var lastCheck = user.lastCheck;
+  var lastCheck; // user.lastCheck;
   if (lastCheck == null) {
     lastCheck = threeWeeksAgo;
   }
@@ -103,11 +100,8 @@ Future<bool> checkExposures() async {
     //  Lexical comparison
     return '$unixTs.csv'.compareTo(lastCsv) >= 0;
   }).map((object) async {
-    // For now, ignore `token` csvs
     var objectName = object['name'] as String;
-    if (objectName.contains(".tokens.csv")) {
-      return;
-    }
+    print('processing $objectName');
 
     // Sync file to local storage
     var file = await syncObject(
@@ -115,45 +109,99 @@ Future<bool> checkExposures() async {
 
     // Find exposures and update!
     if (objectName.contains(".tokens.csv")) {
-      var exposures =
+      var exposed =
           await beaconExposure.getExposures(await file.readAsString());
-
-      if (exposures.length > 0) {
-        exposures.sort((a, b) => a.start.compareTo(b.start));
-        exposedBeacon = exposures.last;
-        await Future.wait(exposures.map((beacon) async {
-          // TODO(Wes) save state
-        }));
-      }
+      exposed.forEach((e) => exposedBeacons[e.id] = e);
     } else {
-      var exposures =
+      var exposed =
           await locationExposure.getExposures(await file.readAsString());
-
-      if (exposures.length > 0) {
-        exposures.sort((a, b) => a.timestamp.compareTo(b.timestamp));
-        exposedLocation = exposures.last;
-        await Future.wait(exposures.map((location) async {
-          location.exposure = true;
-          await location.save();
-        }));
-      }
+      exposed.forEach((e) => exposedLocations[e.id] = e);
     }
   }));
 
   user.lastCheck = DateTime.now();
   await user.save();
 
-  if (exposedLocation != null) {
-    print('Found new exposure!');
-    showExposureNotification(exposedLocation);
+  if (exposedBeacons.isNotEmpty) {
+    print('Found new beacon exposures!');
+    var locations = await matchBeaconsAndLocations(exposedBeacons.values);
+    exposedLocations.addAll(locations);
+  }
+
+  // Save all exposed beacons and locations
+  await Future.wait([
+    ...exposedBeacons.values.map((e) {
+      e.exposure = true;
+      return e.save();
+    }),
+    ...exposedLocations.values.map((e) {
+      e.exposure = true;
+      return e.save();
+    })
+  ]);
+
+  if (exposedLocations.isNotEmpty) {
+    print('Found new location exposures!');
+    showExposureNotification(exposedLocations.values.last);
   }
 
   print('Done checking exposures!');
-  return exposedLocation != null;
+  return exposedBeacons.isNotEmpty || exposedLocations.isNotEmpty;
+}
+
+/// Takes a list of beacons and attempts to match them with a recored location within
+/// the provided duration window. This method sets the `location` property on each
+/// `BeaconModel` when a match is found. Additionally it returns the set of locations
+/// that matched against any of the provided beacons.
+///
+/// The default `window` Duration is 10 minutes.
+Future<Map<int, LocationModel>> matchBeaconsAndLocations(
+    Iterable<BeaconModel> beacons,
+    {Duration window}) async {
+  window ??= Duration(minutes: 10);
+  var start = beacons.first.start.subtract(window).toIso8601String();
+  var end = beacons.last.end.add(window).toIso8601String();
+
+  List<LocationModel> locations = await LocationModel.findAll(
+      orderBy: 'id ASC',
+      where:
+          'DATETIME(timestamp) >= DATETIME(?) AND DATETIME(timestamp) <= DATETIME(?)',
+      whereArgs: [start, end]);
+  Map<int, LocationModel> locationMatches = {};
+
+  /// For each Beacon do the following:
+  /// - Find all the locations that fall within the duration window if the Beacon time range.
+  /// - Associate the location closest to the midpoint of the Beacon time range to the Beacon.
+  /// - Mark any matching locations as exposures.
+  beacons.forEach((b) {
+    var start = b.start.subtract(window);
+    var end = b.end.add(window);
+    var midpoint = b.start
+        .add(Duration(milliseconds: end.difference(start).inMilliseconds ~/ 2));
+
+    var matches = locations
+        .where((l) => l.timestamp.isAfter(start) && l.timestamp.isBefore(end))
+        .toList();
+
+    matches.sort((a, b) {
+      var aDiff = midpoint.difference(a.timestamp);
+      var bDiff = midpoint.difference(b.timestamp);
+
+      return aDiff.compareTo(bDiff);
+    });
+
+    if (matches.isNotEmpty) {
+      b.location = matches.first;
+      matches.forEach((l) => locationMatches[l.id] = l);
+    }
+  });
+
+  return locationMatches;
 }
 
 void showExposureNotification(LocationModel location) async {
-  var timestamp = location.timestamp.toLocal();
+  var start = location.timestamp.toLocal();
+  var end = start.add(Duration(hours: 1));
 
   var notificationPlugin = FlutterLocalNotificationsPlugin();
   var androidSpec = AndroidNotificationDetails(
@@ -163,7 +211,7 @@ void showExposureNotification(LocationModel location) async {
   await notificationPlugin.show(
       0,
       'COVID-19 Exposure Alert',
-      'Your location history matched with a reported infection on ${DateFormat.Md().format(timestamp)} ${DateFormat('ha').format(timestamp).toLowerCase()} - ${DateFormat('ha').format(timestamp.add(Duration(hours: 1))).toLowerCase()}',
+      'Your location history matched with a reported infection on ${DateFormat.Md().format(start)} ${DateFormat('ha').format(start).toLowerCase()} - ${DateFormat('ha').format(end).toLowerCase()}',
       NotificationDetails(androidSpec, iosSpecs),
       payload: 'Default_Sound');
 }

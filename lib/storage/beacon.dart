@@ -14,28 +14,33 @@ int decodeClientId(int minor) => minor >> 3;
 int decodeOffset(int minor) => minor & 7;
 
 class BeaconModel {
-  int id;
+  final int id;
   final String uuid;
   final DateTime start;
   final DateTime end;
 
-  BeaconModel({this.id, this.uuid, this.start, this.end});
+  int locationId;
+  LocationModel _location;
+  bool exposure;
+  bool reported;
 
-  static BeaconModel fromTransmissions(List<BeaconTransmission> transmissions) {
-    var sorted = [...transmissions];
-    // Get oldest transmissin for duration
-    sorted.sort((a, b) => a.duration.compareTo(b.duration));
-    var last = sorted.last;
-    // Sort by offset to construct UUID
-    sorted.sort((a, b) => a.offset.compareTo(b.offset));
-
-    return BeaconModel(
-        uuid: unparseUuid(sorted.map((t) => t.token).toList()),
-        start: last.start,
-        end: last.lastSeen);
-  }
+  BeaconModel(
+      {this.id,
+      this.uuid,
+      this.start,
+      this.end,
+      this.exposure,
+      this.reported,
+      this.locationId});
 
   Duration get duration => end.difference(start);
+
+  LocationModel get location => _location;
+
+  set location(LocationModel loc) {
+    locationId = loc.id;
+    _location = loc;
+  }
 
   Map<String, dynamic> toMap() {
     return {
@@ -43,6 +48,9 @@ class BeaconModel {
       'uuid': uuid,
       'start': start.toIso8601String(),
       'end': end.toIso8601String(),
+      'exposure': exposure == true ? 1 : 0,
+      'reported': reported == true ? 1 : 0,
+      'location_id': locationId,
     };
   }
 
@@ -50,6 +58,11 @@ class BeaconModel {
     final Database db = await Storage.db;
     await db.insert('beacon', toMap());
     print('inserted beacon ${toMap()}');
+  }
+
+  Future<int> save() async {
+    final Database db = await Storage.db;
+    return db.update('beacon', toMap(), where: 'id = ?', whereArgs: [id]);
   }
 
   static Future<List<BeaconModel>> findAll(
@@ -74,6 +87,9 @@ class BeaconModel {
               uuid: rows[i]['uuid'],
               start: DateTime.parse(rows[i]['start']),
               end: DateTime.parse(rows[i]['end']),
+              exposure: rows[i]['exposure'] == 1,
+              reported: rows[i]['reported'] == 1,
+              locationId: rows[i]['location_id'],
             ));
   }
 
