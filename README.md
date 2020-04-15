@@ -1,4 +1,5 @@
 # COVID Trace
+![Screenshot of Mobile App](https://covidtrace.com/static/af9318332cf00e26c54221c56132e220/54967/preview.png)
 
 ## Local Setup
 
