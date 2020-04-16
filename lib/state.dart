@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:covidtrace/exposure.dart';
 import 'package:covidtrace/storage/db.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -19,7 +20,7 @@ class AppState with ChangeNotifier {
   static UserModel _user;
   static ReportModel _report;
   static bool _ready = false;
-  static LocationModel _exposure;
+  static Exposure _exposure;
 
   AppState() {
     initState();
@@ -35,29 +36,20 @@ class AppState with ChangeNotifier {
 
   bool get ready => _ready;
 
-  LocationModel get exposure => _exposure;
+  Exposure get exposure => _exposure;
 
   UserModel get user => _user;
 
-  Future<LocationModel> getExposure() async {
-    var date = DateTime.now().subtract(Duration(days: 7));
-    var timestamp = DateFormat('yyyy-MM-dd').format(date);
-
-    var locations = await LocationModel.findAll(
-        limit: 1,
-        where: 'DATE(timestamp) > DATE(?) AND exposure = 1',
-        whereArgs: [timestamp],
-        orderBy: 'timestamp DESC');
-
-    return locations.isEmpty ? null : locations.first;
+  Future<Exposure> getExposure() async {
+    return Exposure.newest;
   }
 
-  Future<bool> checkExposures() async {
-    var found = await bg.checkExposures();
+  Future<Exposure> checkExposures() async {
+    await bg.checkExposures();
     _user = await UserModel.find();
     _exposure = await getExposure();
     notifyListeners();
-    return found;
+    return _exposure;
   }
 
   Future<void> saveUser(user) async {

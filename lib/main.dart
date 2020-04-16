@@ -1,3 +1,4 @@
+import 'package:covidtrace/exposure.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
@@ -239,7 +240,9 @@ class MainPageState extends State<MainPage> {
   }
 
   void testNotification() async {
-    showExposureNotification((await LocationModel.findAll(limit: 1)).first);
+    Navigator.of(context).pop();
+    var exposure = await Exposure.getOne(newest: true, exposure: false);
+    showExposureNotification(exposure);
   }
 
   resetVerified(AppState state) async {
@@ -319,20 +322,12 @@ class MainPageState extends State<MainPage> {
             endDrawer: Drawer(
                 child: ListView(children: [
               ListTile(
-                  leading: Icon(Icons.location_on),
-                  title: Text('Start Tracking'),
-                  onTap: () => bg.BackgroundGeolocation.start()),
-              ListTile(
-                  leading: Icon(Icons.location_off),
-                  title: Text('Stop Tracking'),
-                  onTap: () => bg.BackgroundGeolocation.stop()),
-              ListTile(
                   leading: Icon(Icons.bug_report),
-                  title: Text('Test Infection'),
+                  title: Text('Test Exposure'),
                   onTap: testInfection),
               ListTile(
                   leading: Icon(Icons.restore),
-                  title: Text('Reset Infection'),
+                  title: Text('Reset Exposure'),
                   onTap: () => resetInfection(state)),
               ListTile(
                 leading: Icon(Icons.notifications),

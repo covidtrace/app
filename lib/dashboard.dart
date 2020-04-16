@@ -1,5 +1,6 @@
 import 'dart:async';
-import 'helper/check_exposures.dart';
+import 'package:covidtrace/exposure.dart';
+
 import 'helper/location.dart';
 import 'operator.dart';
 import 'package:flutter/foundation.dart';
@@ -10,7 +11,6 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'state.dart';
-import 'storage/location.dart';
 import 'verify_phone.dart';
 
 class Dashboard extends StatefulWidget {
@@ -19,11 +19,10 @@ class Dashboard extends StatefulWidget {
 }
 
 class DashboardState extends State with TickerProviderStateMixin {
-  bool _exposed;
   bool _expandHeader = false;
   bool _sendingExposure = false;
   bool _hideReport = true;
-  LocationModel _oldest;
+  Exposure _oldest;
   Completer<GoogleMapController> _mapController = Completer();
   AnimationController reportController;
   CurvedAnimation reportAnimation;
@@ -54,11 +53,8 @@ class DashboardState extends State with TickerProviderStateMixin {
   }
 
   void loadOldest() async {
-    var locations =
-        await LocationModel.findAll(limit: 1, orderBy: 'timestamp ASC');
-    if (locations.length > 0) {
-      setState(() => _oldest = locations.first);
-    }
+    var exposure = await Exposure.getOne(newest: false, exposure: false);
+    setState(() => _oldest = exposure);
   }
 
   void onStateChange() async {
@@ -77,22 +73,11 @@ class DashboardState extends State with TickerProviderStateMixin {
   }
 
   Future<void> refreshExposures(AppState state) async {
-    var currentExposed = state.exposure != null;
-    var found = await state.checkExposures();
-    var location = state.exposure;
-
-    if (location != null) {
+    await state.checkExposures();
+    var exposure = state.exposure;
+    if (exposure.location != null) {
       var controller = await _mapController.future;
-      controller.animateCamera(CameraUpdate.newLatLng(
-          LatLng(location.latitude, location.longitude)));
-    }
-
-    setState(() => _exposed = location != null);
-    // checkEposures also sends a notification if it found one.
-    // Since we have debug functionality for testing infections
-    // we special case showing a notice here.
-    if (_exposed && currentExposed != true && !found) {
-      showExposureNotification(location);
+      controller.animateCamera(CameraUpdate.newLatLng(exposure.latlng));
     }
   }
 
@@ -251,16 +236,16 @@ class DashboardState extends State with TickerProviderStateMixin {
       }
 
       var lastCheck = state.user.lastCheck;
-      var location = state.exposure;
-      if (location == null) {
-        int days = 0;
-        int hours = 0;
-        if (_oldest != null) {
-          var diff = DateTime.now().difference(_oldest.timestamp);
-          days = diff.inDays;
-          hours = diff.inHours;
-        }
+      int days = 0;
+      int hours = 0;
+      if (_oldest != null) {
+        var diff = DateTime.now().difference(_oldest.start);
+        days = diff.inDays;
+        hours = diff.inHours;
+      }
 
+      var exposure = state.exposure;
+      if (exposure == null) {
         return Padding(
             padding: EdgeInsets.all(15),
             child: RefreshIndicator(
@@ -363,8 +348,12 @@ class DashboardState extends State with TickerProviderStateMixin {
                 ])));
       }
 
-      var timestamp = location.timestamp.toLocal();
-      var loc = LatLng(location.latitude, location.longitude);
+      var start = exposure.start.toLocal();
+      var end = exposure.end.toLocal();
+      var timeFormat = DateFormat('ha');
+      if (exposure.duration.compareTo(Duration(hours: 1)) < 0) {
+        timeFormat = DateFormat.jm();
+      }
 
       return Padding(
           padding: EdgeInsets.all(15),
@@ -396,7 +385,10 @@ class DashboardState extends State with TickerProviderStateMixin {
                                               .textTheme
                                               .title
                                               .merge(alertText)),
-                                      Text('In the last 7 days',
+                                      Text(
+                                          days >= 1
+                                              ? 'In the last ${days > 1 ? '$days days' : 'day'}'
+                                              : 'In the last ${hours > 1 ? '$hours hours' : 'hour'}',
                                           style: alertText)
                                     ])),
                                 Image.asset('assets/shield_virus_icon.png',
@@ -417,77 +409,80 @@ class DashboardState extends State with TickerProviderStateMixin {
                 SizedBox(height: 10),
                 Card(
                     child: Column(children: [
-                  SizedBox(
-                      height: 150,
-                      child: GoogleMap(
-                        mapType: MapType.normal,
-                        myLocationEnabled: false,
-                        myLocationButtonEnabled: false,
-                        initialCameraPosition:
-                            CameraPosition(target: loc, zoom: 16),
-                        minMaxZoomPreference: MinMaxZoomPreference(10, 18),
-                        markers: [
-                          Marker(
-                              markerId: MarkerId('1'),
-                              position: loc,
-                              onTap: () => launchMapsApp(loc))
-                        ].toSet(),
-                        gestureRecognizers: [
-                          Factory(() => PanGestureRecognizer()),
-                          Factory(() => ScaleGestureRecognizer()),
-                          Factory(() => TapGestureRecognizer()),
-                        ].toSet(),
-                        onMapCreated: (controller) {
-                          if (!_mapController.isCompleted) {
-                            _mapController.complete(controller);
-                          }
-                        },
-                      )),
+                  if (exposure.latlng != null)
+                    SizedBox(
+                        height: 200,
+                        child: GoogleMap(
+                          mapType: MapType.normal,
+                          myLocationEnabled: false,
+                          myLocationButtonEnabled: false,
+                          initialCameraPosition:
+                              CameraPosition(target: exposure.latlng, zoom: 16),
+                          minMaxZoomPreference: MinMaxZoomPreference(10, 18),
+                          markers: [
+                            Marker(
+                                markerId: MarkerId('1'),
+                                position: exposure.latlng,
+                                onTap: () => launchMapsApp(exposure.latlng))
+                          ].toSet(),
+                          gestureRecognizers: [
+                            Factory(() => PanGestureRecognizer()),
+                            Factory(() => ScaleGestureRecognizer()),
+                            Factory(() => TapGestureRecognizer()),
+                          ].toSet(),
+                          onMapCreated: (controller) {
+                            if (!_mapController.isCompleted) {
+                              _mapController.complete(controller);
+                            }
+                          },
+                        )),
                   SizedBox(height: 10),
                   ListTile(
-                    onTap: () => launchMapsApp(loc),
+                    onTap: exposure.latlng != null
+                        ? () => launchMapsApp(exposure.latlng)
+                        : null,
                     isThreeLine: false,
                     title: Text(
-                        '${DateFormat.Md().format(timestamp)} ${DateFormat('ha').format(timestamp).toLowerCase()} - ${DateFormat('ha').format(timestamp.add(Duration(hours: 1))).toLowerCase()}'),
+                        '${DateFormat.Md().format(start)} ${timeFormat.format(start).toLowerCase()} - ${timeFormat.format(end).toLowerCase()}'),
                     subtitle: Text(
                         'Your location overlapped with someone who reported as having COVID-19.'),
                   ),
-                  location.reported && _hideReport
-                      ? Container()
-                      : SizeTransition(
-                          axisAlignment: 1,
-                          sizeFactor: reportAnimation,
-                          child: Row(children: [
-                            Expanded(
-                                child: Stack(children: [
-                              Center(
-                                  child: OutlineButton(
-                                child: _sendingExposure
-                                    ? SizedBox(
-                                        height: 20,
-                                        width: 20,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          value: null,
-                                          valueColor: AlwaysStoppedAnimation(
-                                              Theme.of(context)
-                                                  .textTheme
-                                                  .button
-                                                  .color),
-                                        ))
-                                    : Text(
-                                        'SEND REPORT',
-                                      ),
-                                onPressed: () => sendExposure(state),
-                              )),
-                              Positioned(
-                                  right: 0,
-                                  child: IconButton(
-                                      icon: Icon(Icons.info_outline,
-                                          color: Colors.grey),
-                                      onPressed: showExposureDialog)),
-                            ])),
+                  if (exposure.location != null &&
+                      (!exposure.reported || !_hideReport))
+                    SizeTransition(
+                        axisAlignment: 1,
+                        sizeFactor: reportAnimation,
+                        child: Row(children: [
+                          Expanded(
+                              child: Stack(children: [
+                            Center(
+                                child: OutlineButton(
+                              child: _sendingExposure
+                                  ? SizedBox(
+                                      height: 20,
+                                      width: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        value: null,
+                                        valueColor: AlwaysStoppedAnimation(
+                                            Theme.of(context)
+                                                .textTheme
+                                                .button
+                                                .color),
+                                      ))
+                                  : Text(
+                                      'SEND REPORT',
+                                    ),
+                              onPressed: () => sendExposure(state),
+                            )),
+                            Positioned(
+                                right: 0,
+                                child: IconButton(
+                                    icon: Icon(Icons.info_outline,
+                                        color: Colors.grey),
+                                    onPressed: showExposureDialog)),
                           ])),
+                        ])),
                   SizedBox(height: 8),
                 ])),
                 SizedBox(height: 20),

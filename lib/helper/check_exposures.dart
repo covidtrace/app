@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:covidtrace/config.dart';
+import 'package:covidtrace/exposure.dart';
 import 'package:covidtrace/exposure/beacon.dart';
 import 'package:covidtrace/exposure/location.dart';
 import 'package:covidtrace/helper/cloud_storage.dart';
@@ -11,7 +12,7 @@ import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:tuple/tuple.dart';
 
-Future<bool> checkExposures() async {
+Future<Exposure> checkExposures() async {
   print('Checking exposures...');
   var threeWeeksAgo = DateTime.now().subtract(Duration(days: 21));
   var whereArgs = [threeWeeksAgo.toIso8601String()];
@@ -128,24 +129,27 @@ Future<bool> checkExposures() async {
   }
 
   // Save all exposed beacons and locations
-  await Future.wait([
-    ...exposedBeacons.values.map((e) {
+  var exposures = [
+    ...exposedBeacons.values.map((b) => Exposure(b)),
+    ...exposedLocations.values.map((l) => Exposure(l)),
+  ];
+
+  await Future.wait(
+    exposures.map((e) {
       e.exposure = true;
       return e.save();
     }),
-    ...exposedLocations.values.map((e) {
-      e.exposure = true;
-      return e.save();
-    })
-  ]);
+  );
 
-  if (exposedLocations.isNotEmpty) {
-    print('Found new location exposures!');
-    showExposureNotification(exposedLocations.values.last);
+  exposures.sort((a, b) => a.end.compareTo(b.end));
+  var exposure = exposures.isNotEmpty ? exposures.last : null;
+
+  if (exposure != null) {
+    showExposureNotification(exposure);
   }
 
   print('Done checking exposures!');
-  return exposedBeacons.isNotEmpty || exposedLocations.isNotEmpty;
+  return exposure;
 }
 
 /// Takes a list of beacons and attempts to match them with a recored location within
@@ -198,9 +202,13 @@ Future<Map<int, LocationModel>> matchBeaconsAndLocations(
   return locationMatches;
 }
 
-void showExposureNotification(LocationModel location) async {
-  var start = location.timestamp.toLocal();
-  var end = start.add(Duration(hours: 1));
+void showExposureNotification(Exposure exposure) async {
+  var start = exposure.start.toLocal();
+  var end = exposure.end.toLocal();
+  var timeFormat = DateFormat('ha');
+  if (exposure.duration.compareTo(Duration(hours: 1)) < 0) {
+    timeFormat = DateFormat.jm();
+  }
 
   var notificationPlugin = FlutterLocalNotificationsPlugin();
   var androidSpec = AndroidNotificationDetails(
@@ -210,7 +218,7 @@ void showExposureNotification(LocationModel location) async {
   await notificationPlugin.show(
       0,
       'COVID-19 Exposure Alert',
-      'Your location history matched with a reported infection on ${DateFormat.Md().format(start)} ${DateFormat('ha').format(start).toLowerCase()} - ${DateFormat('ha').format(end).toLowerCase()}',
+      'Your location history matched with a reported infection on ${DateFormat.Md().format(start)} ${timeFormat.format(start).toLowerCase()} - ${timeFormat.format(end).toLowerCase()}',
       NotificationDetails(androidSpec, iosSpecs),
       payload: 'Default_Sound');
 }

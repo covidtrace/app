@@ -80,17 +80,35 @@ class BeaconModel {
         whereArgs: whereArgs,
         groupBy: groupBy);
 
-    return List.generate(
-        rows.length,
-        (i) => BeaconModel(
-              id: rows[i]['id'],
-              uuid: rows[i]['uuid'],
-              start: DateTime.parse(rows[i]['start']),
-              end: DateTime.parse(rows[i]['end']),
-              exposure: rows[i]['exposure'] == 1,
-              reported: rows[i]['reported'] == 1,
-              locationId: rows[i]['location_id'],
-            ));
+    // Associated LocationModels
+    // TODO(wes): Use a rawQuery to do a join instead of this separate query.
+    var locationIds = Set();
+    locationIds.addAll(rows
+        .where((r) => r['location_id'] != null)
+        .map((r) => r['location_id']));
+
+    var locations = await LocationModel.findAll(
+        where: 'id in (?)', whereArgs: [locationIds.toList().join(',')]);
+
+    return List.generate(rows.length, (i) {
+      var row = rows[i];
+      var beacon = BeaconModel(
+        id: row['id'],
+        uuid: row['uuid'],
+        start: DateTime.parse(row['start']),
+        end: DateTime.parse(row['end']),
+        exposure: row['exposure'] == 1,
+        reported: row['reported'] == 1,
+        locationId: row['location_id'],
+      );
+
+      if (beacon.locationId != null) {
+        beacon.location =
+            locations.firstWhere((l) => l.id == beacon.locationId);
+      }
+
+      return beacon;
+    });
   }
 
   static Future<void> destroyAll() async {
