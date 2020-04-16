@@ -24,6 +24,7 @@ void main() async {
   runApp(ChangeNotifierProvider(
       create: (context) => AppState(), child: CovidTraceApp()));
 
+  // TODO(wes): Only works on Android. Use onLocation instead to check for exposures on iOS
   BackgroundFetch.registerHeadlessTask((String id) async {
     await checkExposures();
     BackgroundFetch.finish(id);
@@ -220,15 +221,9 @@ class MainPageState extends State<MainPage> {
     }
   }
 
-  resetInfection() async {
+  resetInfection(AppState state) async {
     Navigator.of(context).pop();
-    var locs = await LocationModel.findAll(where: 'exposure = 1');
-    if (locs.length > 0) {
-      await Future.forEach(locs, (location) async {
-        location.exposure = false;
-        await location.save();
-      });
-    }
+    await state.resetInfections();
   }
 
   resetReport(AppState state) async {
@@ -338,7 +333,7 @@ class MainPageState extends State<MainPage> {
               ListTile(
                   leading: Icon(Icons.restore),
                   title: Text('Reset Infection'),
-                  onTap: resetInfection),
+                  onTap: () => resetInfection(state)),
               ListTile(
                 leading: Icon(Icons.notifications),
                 title: Text('Test Notification'),

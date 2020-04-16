@@ -1,6 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:covidtrace/storage/db.dart';
+import 'package:sqflite/sqflite.dart';
+
 import 'config.dart';
 import 'helper/check_exposures.dart' as bg;
 import 'helper/signed_upload.dart';
@@ -269,6 +272,16 @@ class AppState with ChangeNotifier {
   Future<void> clearReport() async {
     await ReportModel.destroyAll();
     _report = null;
+    notifyListeners();
+  }
+
+  Future<void> resetInfections() async {
+    final Database db = await Storage.db;
+    await Future.wait([
+      db.update('location', {'exposure': 0, 'reported': 0}),
+      db.update('beacon', {'exposure': 0, 'reported': 0, 'location_id': null}),
+    ]);
+    _exposure = null;
     notifyListeners();
   }
 }
