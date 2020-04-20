@@ -1,4 +1,5 @@
 import 'package:covidtrace/exposure.dart';
+import 'package:covidtrace/helper/beacon.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
@@ -79,6 +80,7 @@ void main() async {
   var user = await UserModel.find();
   if (!user.onboarding) {
     setupBeaconScanning();
+    setupBeaconBroadcast();
   }
 }
 
