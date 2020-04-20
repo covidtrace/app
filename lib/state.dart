@@ -1,10 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:covidtrace/exposure.dart';
+import 'package:covidtrace/storage/db.dart';
+import 'package:sqflite/sqflite.dart';
+
 import 'config.dart';
 import 'helper/check_exposures.dart' as bg;
 import 'helper/signed_upload.dart';
-import 'package:csv/csv.dart';
 import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
@@ -17,7 +20,7 @@ class AppState with ChangeNotifier {
   static UserModel _user;
   static ReportModel _report;
   static bool _ready = false;
-  static LocationModel _exposure;
+  static Exposure _exposure;
 
   AppState() {
     initState();
@@ -33,29 +36,20 @@ class AppState with ChangeNotifier {
 
   bool get ready => _ready;
 
-  LocationModel get exposure => _exposure;
+  Exposure get exposure => _exposure;
 
   UserModel get user => _user;
 
-  Future<LocationModel> getExposure() async {
-    var date = DateTime.now().subtract(Duration(days: 7));
-    var timestamp = DateFormat('yyyy-MM-dd').format(date);
-
-    var locations = await LocationModel.findAll(
-        limit: 1,
-        where: 'DATE(timestamp) > DATE(?) AND exposure = 1',
-        whereArgs: [timestamp],
-        orderBy: 'timestamp DESC');
-
-    return locations.isEmpty ? null : locations.first;
+  Future<Exposure> getExposure() async {
+    return Exposure.newest;
   }
 
-  Future<bool> checkExposures() async {
-    var found = await bg.checkExposures();
+  Future<Exposure> checkExposures() async {
+    await bg.checkExposures();
     _user = await UserModel.find();
     _exposure = await getExposure();
     notifyListeners();
-    return found;
+    return _exposure;
   }
 
   Future<void> saveUser(user) async {
@@ -150,8 +144,7 @@ class AppState with ChangeNotifier {
     }
 
     int level = config['reportS2Level'];
-    var data = ListToCsvConverter().convert([LocationModel.csvHeaders] +
-        locations.map((l) => l.toCSV(level)).toList());
+    var data = LocationModel.toCSV(locations, level);
 
     try {
       var success = await objectUpload(
@@ -218,8 +211,7 @@ class AppState with ChangeNotifier {
     beacons = beacons.where((b) => b.location != null).toList();
 
     int level = config['reportS2Level'];
-    var data = ListToCsvConverter().convert(
-        [BeaconUuid.csvHeaders] + beacons.map((b) => b.toCSV(level)).toList());
+    var data = BeaconUuid.toCSV(beacons, level);
 
     try {
       var success = await objectUpload(
@@ -272,6 +264,16 @@ class AppState with ChangeNotifier {
   Future<void> clearReport() async {
     await ReportModel.destroyAll();
     _report = null;
+    notifyListeners();
+  }
+
+  Future<void> resetInfections() async {
+    final Database db = await Storage.db;
+    await Future.wait([
+      db.update('location', {'exposure': 0, 'reported': 0}),
+      db.update('beacon', {'exposure': 0, 'reported': 0, 'location_id': null}),
+    ]);
+    _exposure = null;
     notifyListeners();
   }
 }

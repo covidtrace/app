@@ -1,21 +1,21 @@
+import 'dart:async';
+import 'package:covidtrace/config.dart';
+import 'package:covidtrace/exposure.dart';
+import 'package:covidtrace/exposure/beacon.dart';
+import 'package:covidtrace/exposure/location.dart';
 import 'package:covidtrace/helper/cloud_storage.dart';
-import 'package:covidtrace/helper/datetime.dart';
+import 'package:covidtrace/storage/beacon.dart';
+import 'package:covidtrace/storage/location.dart';
 import 'package:covidtrace/storage/user.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:tuple/tuple.dart';
 
-import '../config.dart';
-import '../storage/location.dart';
-import '../storage/user.dart';
-import 'dart:async';
-import 'package:csv/csv.dart';
-import 'package:path_provider/path_provider.dart';
-
-Future<bool> checkExposures() async {
+Future<Exposure> checkExposures() async {
   print('Checking exposures...');
-
   var threeWeeksAgo = DateTime.now().subtract(Duration(days: 21));
+  var whereArgs = [threeWeeksAgo.toIso8601String()];
 
   var results = await Future.wait([
     UserModel.find(),
@@ -23,56 +23,31 @@ Future<bool> checkExposures() async {
     getApplicationSupportDirectory(),
     LocationModel.findAll(
         where: 'exposure = 0 AND DATE(timestamp) >= DATE(?)',
-        whereArgs: [
-          threeWeeksAgo.toIso8601String()
-        ]), // no use searching already exposed locations or older than 3 weeks
+        whereArgs: whereArgs),
+    BeaconModel.findAll(
+        where: 'exposure = 0 AND DATE(start) >= DATE(?)', whereArgs: whereArgs),
   ]);
 
   var user = results[0];
   var config = results[1];
   var dir = results[2];
   var locations = results[3];
+  var beacons = results[4];
 
   String publishedBucket = config['publishedBucket'];
   int compareLevel = config['compareS2Level'];
   List<dynamic> aggLevels = config['aggS2Levels'];
-  LocationModel exposed;
+
+  // Structures for exposures
+  Map<int, LocationModel> exposedLocations = {};
+  var locationExposure = new LocationExposure(locations, compareLevel);
+
+  Map<int, BeaconModel> exposedBeacons = {};
+  var beaconExposure = new BeaconExposure(beacons, compareLevel);
 
   // Set of all top level geo prefixes to begin querying
-  var geoPrefixes = Set<String>();
-
-  // S2 cell ID to locations at each aggregation level
-  var geoLevels = Map<String, List<LocationModel>>();
-
-  // S2 cell ID at compare level -> locations grouped by unix timestamp
-  var geoLevelsTimestamp = new Map<String, Map<int, List<LocationModel>>>();
-
-  // Build all structures by iterating over locations only once
-  locations.forEach((location) {
-    // Populate `geoPrefixes` with least precise S2 geo
-    geoPrefixes.add(location.cellID.parent(aggLevels.first as int).toToken());
-
-    // Populate `geoLevels` at each aggregation level
-    aggLevels.forEach((level) {
-      var cellID = location.cellID.parent(level).toToken();
-
-      if (geoLevels[cellID] == null) {
-        geoLevels[cellID] = [];
-      }
-      geoLevels[cellID].add(location);
-    });
-
-    // Populate `geoLevelsTimestamp` object at each aggregation level
-    var timestamp = roundedDateTime(location.timestamp);
-    var cellID = location.cellID.parent(compareLevel).toToken();
-    if (geoLevelsTimestamp[cellID] == null) {
-      geoLevelsTimestamp[cellID] = new Map();
-    }
-    if (geoLevelsTimestamp[cellID][timestamp] == null) {
-      geoLevelsTimestamp[cellID][timestamp] = [];
-    }
-    geoLevelsTimestamp[cellID][timestamp].add(location);
-  });
+  var geoPrefixes = Set<String>.from(locations.map(
+      (location) => location.cellID.parent(aggLevels.first as int).toToken()));
 
   // Build a queue of geos to fetch
   List<Tuple2<String, int>> geoPrefixQueue =
@@ -101,10 +76,7 @@ Future<bool> checkExposures() async {
   // Filter objects for any that are lexically equal to or greater than
   // the CSVs we last downloaded. If we have never checked before, we
   // should fetch everything for the last three weeks
-  var lastCheck = user.lastCheck;
-  if (lastCheck == null) {
-    lastCheck = threeWeeksAgo;
-  }
+  var lastCheck = user.lastCheck ?? threeWeeksAgo;
   var lastCsv = '${(lastCheck.millisecondsSinceEpoch / 1000).floor()}.csv';
 
   await Future.wait(objects.where((object) {
@@ -129,57 +101,116 @@ Future<bool> checkExposures() async {
     return '$unixTs.csv'.compareTo(lastCsv) >= 0;
   }).map((object) async {
     var objectName = object['name'] as String;
-
-    // For now, ignore `token` csvs
-    if (objectName.contains(".tokens.csv")) {
-      return;
-    }
+    print('processing $objectName');
 
     // Sync file to local storage
-    var fileHandle = await syncObject(
+    var file = await syncObject(
         dir.path, publishedBucket, objectName, object['md5Hash'] as String);
 
-    // Parse and compare with local locations.
-    var fileCsv = await fileHandle.readAsString();
-    var parsedRows = CsvToListConverter(shouldParseNumbers: false, eol: '\n')
-        .convert(fileCsv);
-
-    // Iterate through rows and search for matching locations
-    await Future.forEach(parsedRows, (parsedRow) async {
-      var timestamp = roundedDateTime(
-          DateTime.fromMillisecondsSinceEpoch(int.parse(parsedRow[0]) * 1000));
-
-      // Note: aggregate point CSVs look like [timestamp, cellID, verified]
-      String cellID = parsedRow[1];
-
-      var locationsbyTimestamp = geoLevelsTimestamp[cellID];
-      if (locationsbyTimestamp != null) {
-        var exposures = locationsbyTimestamp[timestamp];
-        if (exposures != null) {
-          exposed = exposures.last;
-          await Future.forEach(exposures, (location) async {
-            location.exposure = true;
-            await location.save();
-          });
-        }
-      }
-    });
+    // Find exposures and update!
+    if (objectName.contains(".tokens.csv")) {
+      var exposed =
+          await beaconExposure.getExposures(await file.readAsString());
+      exposed.forEach((e) => exposedBeacons[e.id] = e);
+    } else {
+      var exposed =
+          await locationExposure.getExposures(await file.readAsString());
+      exposed.forEach((e) => exposedLocations[e.id] = e);
+    }
   }));
 
   user.lastCheck = DateTime.now();
   await user.save();
 
-  if (exposed != null) {
-    print('Found new exposure!');
-    showExposureNotification(exposed);
+  if (exposedBeacons.isNotEmpty) {
+    print('Found new beacon exposures!');
+    var locations = await matchBeaconsAndLocations(exposedBeacons.values);
+    exposedLocations.addAll(locations);
+  }
+
+  // Save all exposed beacons and locations
+  var exposures = [
+    ...exposedBeacons.values.map((b) => Exposure(b)),
+    ...exposedLocations.values.map((l) => Exposure(l)),
+  ];
+
+  await Future.wait(
+    exposures.map((e) {
+      e.exposure = true;
+      return e.save();
+    }),
+  );
+
+  exposures.sort((a, b) => a.end.compareTo(b.end));
+  var exposure = exposures.isNotEmpty ? exposures.last : null;
+
+  if (exposure != null) {
+    showExposureNotification(exposure);
   }
 
   print('Done checking exposures!');
-  return exposed != null;
+  return exposure;
 }
 
-void showExposureNotification(LocationModel location) async {
-  var timestamp = location.timestamp.toLocal();
+/// Takes a list of beacons and attempts to match them with a recored location within
+/// the provided duration window. This method sets the `location` property on each
+/// `BeaconModel` when a match is found. Additionally it returns the set of locations
+/// that matched against any of the provided beacons.
+///
+/// The default `window` Duration is 10 minutes.
+Future<Map<int, LocationModel>> matchBeaconsAndLocations(
+    Iterable<BeaconModel> beacons,
+    {Duration window}) async {
+  window ??= Duration(minutes: 10);
+  var sorted = List.from(beacons);
+  sorted.sort((a, b) => a.start.compareTo(b.start));
+  var start = sorted.first.start.subtract(window).toIso8601String();
+  var end = sorted.last.end.add(window).toIso8601String();
+
+  List<LocationModel> locations = await LocationModel.findAll(
+      orderBy: 'id ASC',
+      where:
+          'DATETIME(timestamp) >= DATETIME(?) AND DATETIME(timestamp) <= DATETIME(?)',
+      whereArgs: [start, end]);
+  Map<int, LocationModel> locationMatches = {};
+
+  /// For each Beacon do the following:
+  /// - Find all the locations that fall within the duration window of the Beacon time range.
+  /// - Associate the location closest to the midpoint of the Beacon time range to the Beacon.
+  /// - Mark any matching locations as exposures.
+  sorted.forEach((b) {
+    var start = b.start.subtract(window);
+    var end = b.end.add(window);
+    var midpoint = b.start
+        .add(Duration(milliseconds: end.difference(start).inMilliseconds ~/ 2));
+
+    var matches = locations
+        .where((l) => l.timestamp.isAfter(start) && l.timestamp.isBefore(end))
+        .toList();
+
+    matches.sort((a, b) {
+      var aDiff = midpoint.difference(a.timestamp);
+      var bDiff = midpoint.difference(b.timestamp);
+
+      return aDiff.compareTo(bDiff);
+    });
+
+    if (matches.isNotEmpty) {
+      b.location = matches.first;
+      matches.forEach((l) => locationMatches[l.id] = l);
+    }
+  });
+
+  return locationMatches;
+}
+
+void showExposureNotification(Exposure exposure) async {
+  var start = exposure.start.toLocal();
+  var end = exposure.end.toLocal();
+  var timeFormat = DateFormat('ha');
+  if (exposure.duration.compareTo(Duration(hours: 1)) < 0) {
+    timeFormat = DateFormat.jm();
+  }
 
   var notificationPlugin = FlutterLocalNotificationsPlugin();
   var androidSpec = AndroidNotificationDetails(
@@ -189,7 +220,7 @@ void showExposureNotification(LocationModel location) async {
   await notificationPlugin.show(
       0,
       'COVID-19 Exposure Alert',
-      'Your location history matched with a reported infection on ${DateFormat.Md().format(timestamp)} ${DateFormat('ha').format(timestamp).toLowerCase()} - ${DateFormat('ha').format(timestamp.add(Duration(hours: 1))).toLowerCase()}',
+      'Your location history matched with a reported infection on ${DateFormat.Md().format(start)} ${timeFormat.format(start).toLowerCase()} - ${timeFormat.format(end).toLowerCase()}',
       NotificationDetails(androidSpec, iosSpecs),
       payload: 'Default_Sound');
 }

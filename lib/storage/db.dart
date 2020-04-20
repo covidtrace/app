@@ -77,22 +77,40 @@ CREATE TABLE beacon_transmission (
   ''',
 ];
 
-List<String> migrationScripts = [
-  '''
+// Maps a DB version to migration scripts
+Map<int, List<String>> migrationScripts = {
+  2: [
+    '''
 ALTER TABLE report ADD COLUMN last_beacon_id INTEGER REFERENCES beacon_broadcast (id) ON DELETE CASCADE
   ''',
-];
+  ],
+  3: [
+    '''
+ALTER TABLE beacon ADD COLUMN exposure INTEGER DEFAULT 0
+  ''',
+    '''
+ALTER TABLE beacon ADD COLUMN reported INTEGER DEFAULT 0
+  ''',
+  ],
+  4: [
+    '''
+ALTER TABLE beacon ADD COLUMN location_id INTEGER REFERENCES location (id)
+  ''',
+  ]
+};
 
 Future<String> _dataBasePath(String path) async {
   return join(await getDatabasesPath(), path);
 }
 
 Future<Database> _initDatabase() async {
-  return await openDatabase(await _dataBasePath('locations.db'),
-      version: migrationScripts.length + 1, onCreate: (db, version) async {
+  return await openDatabase(await _dataBasePath('locations.db'), version: 4,
+      onCreate: (db, version) async {
     initialScript.forEach((script) async => await db.execute(script));
   }, onUpgrade: (db, oldVersion, newVersion) async {
-    migrationScripts.forEach((script) async => await db.execute(script));
+    for (var i = oldVersion + 1; i <= newVersion; i++) {
+      migrationScripts[i].forEach((script) async => await db.execute(script));
+    }
   });
 }
 

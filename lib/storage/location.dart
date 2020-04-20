@@ -1,17 +1,13 @@
 import 'dart:async';
+import 'package:covidtrace/helper/datetime.dart';
+import 'package:covidtrace/storage/db.dart';
+import 'package:csv/csv.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-
-import 'db.dart';
+import 'package:latlong/latlong.dart' as lt;
 import 'package:s2geometry/s2geometry.dart';
 import 'package:sqflite/sqflite.dart';
-import '../helper/datetime.dart';
-import 'package:latlong/latlong.dart' as lt;
-
-const int FIVE_MINUTES = 1000 * 60 * 5;
 
 class LocationModel {
-  static final List<dynamic> csvHeaders = ['timestamp', 's2geo', 'verified'];
-
   final int id;
   final double longitude;
   final double latitude;
@@ -42,7 +38,7 @@ class LocationModel {
     // Round time to nearest 5 minute to prevent duplicate insertions since
     // onLocation callbacks are not serial
     var time = DateTime.fromMillisecondsSinceEpoch(
-        timestamp.millisecondsSinceEpoch ~/ FIVE_MINUTES * FIVE_MINUTES);
+        floorUnixSeconds(timestamp, 5) * 1000);
 
     return {
       'id': id,
@@ -56,14 +52,6 @@ class LocationModel {
       'exposure': exposure == true ? 1 : 0,
       'reported': reported == true ? 1 : 0,
     };
-  }
-
-  List<dynamic> toCSV(int s2level) {
-    return [
-      roundedDateTime(timestamp),
-      cellID.parent(s2level).toToken(),
-      false // whether this is a verified submission, always false for now
-    ];
   }
 
   Future<int> save() async {
@@ -163,4 +151,15 @@ class LocationModel {
     final Database db = await Storage.db;
     await db.delete('location');
   }
+
+  static final List<dynamic> _headers = ['timestamp', 's2geo', 'verified'];
+  static String toCSV(Iterable<LocationModel> locations, int level) =>
+      ListToCsvConverter().convert([_headers] +
+          locations
+              .map((location) => [
+                    ceilUnixSeconds(location.timestamp, 60),
+                    location.cellID.parent(level).toToken(),
+                    false // whether this is a verified submission, always false for now
+                  ])
+              .toList());
 }

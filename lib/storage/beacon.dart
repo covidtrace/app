@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 import 'package:covidtrace/helper/datetime.dart';
 import 'package:covidtrace/storage/location.dart';
+import 'package:csv/csv.dart';
 import 'package:uuid/uuid.dart';
 
 import 'db.dart';
@@ -13,28 +14,33 @@ int decodeClientId(int minor) => minor >> 3;
 int decodeOffset(int minor) => minor & 7;
 
 class BeaconModel {
-  int id;
+  final int id;
   final String uuid;
   final DateTime start;
   final DateTime end;
 
-  BeaconModel({this.id, this.uuid, this.start, this.end});
+  int locationId;
+  LocationModel _location;
+  bool exposure;
+  bool reported;
 
-  static BeaconModel fromTransmissions(List<BeaconTransmission> transmissions) {
-    var sorted = [...transmissions];
-    // Get oldest transmissin for duration
-    sorted.sort((a, b) => a.duration.compareTo(b.duration));
-    var last = sorted.last;
-    // Sort by offset to construct UUID
-    sorted.sort((a, b) => a.offset.compareTo(b.offset));
-
-    return BeaconModel(
-        uuid: unparseUuid(sorted.map((t) => t.token).toList()),
-        start: last.start,
-        end: last.lastSeen);
-  }
+  BeaconModel(
+      {this.id,
+      this.uuid,
+      this.start,
+      this.end,
+      this.exposure,
+      this.reported,
+      this.locationId});
 
   Duration get duration => end.difference(start);
+
+  LocationModel get location => _location;
+
+  set location(LocationModel loc) {
+    locationId = loc.id;
+    _location = loc;
+  }
 
   Map<String, dynamic> toMap() {
     return {
@@ -42,6 +48,9 @@ class BeaconModel {
       'uuid': uuid,
       'start': start.toIso8601String(),
       'end': end.toIso8601String(),
+      'exposure': exposure == true ? 1 : 0,
+      'reported': reported == true ? 1 : 0,
+      'location_id': locationId,
     };
   }
 
@@ -49,6 +58,11 @@ class BeaconModel {
     final Database db = await Storage.db;
     await db.insert('beacon', toMap());
     print('inserted beacon ${toMap()}');
+  }
+
+  Future<int> save() async {
+    final Database db = await Storage.db;
+    return db.update('beacon', toMap(), where: 'id = ?', whereArgs: [id]);
   }
 
   static Future<List<BeaconModel>> findAll(
@@ -66,14 +80,35 @@ class BeaconModel {
         whereArgs: whereArgs,
         groupBy: groupBy);
 
-    return List.generate(
-        rows.length,
-        (i) => BeaconModel(
-              id: rows[i]['id'],
-              uuid: rows[i]['uuid'],
-              start: DateTime.parse(rows[i]['start']),
-              end: DateTime.parse(rows[i]['end']),
-            ));
+    // Associated LocationModels
+    // TODO(wes): Use a rawQuery to do a join instead of this separate query.
+    var locationIds = Set();
+    locationIds.addAll(rows
+        .where((r) => r['location_id'] != null)
+        .map((r) => r['location_id']));
+
+    var locations = await LocationModel.findAll(
+        where: 'id in (?)', whereArgs: [locationIds.toList().join(',')]);
+
+    return List.generate(rows.length, (i) {
+      var row = rows[i];
+      var beacon = BeaconModel(
+        id: row['id'],
+        uuid: row['uuid'],
+        start: DateTime.parse(row['start']),
+        end: DateTime.parse(row['end']),
+        exposure: row['exposure'] == 1,
+        reported: row['reported'] == 1,
+        locationId: row['location_id'],
+      );
+
+      if (beacon.locationId != null) {
+        beacon.location =
+            locations.firstWhere((l) => l.id == beacon.locationId);
+      }
+
+      return beacon;
+    });
   }
 
   static Future<void> destroyAll() async {
@@ -279,8 +314,6 @@ String unparseUuid(List<int> buffer16Bit) {
 
 // Represents a UUID that can be transmitted as a sequence of Beacon major/minor payloads
 class BeaconUuid {
-  static final List<dynamic> csvHeaders = ['timestamp', 'uuid', 's2geo'];
-
   static const UUID_ROTATE_INTERVAL = Duration(minutes: 60);
   static const CLIENT_ID_ROTATE_INTERVAL = Duration(minutes: 20);
 
@@ -430,11 +463,14 @@ class BeaconUuid {
             ));
   }
 
-  List<dynamic> toCSV(int s2level) {
-    return [
-      roundedDateTime(timestamp),
-      uuid,
-      location.cellID.parent(s2level).toToken(),
-    ];
-  }
+  static final List<dynamic> _headers = ['timestamp', 'uuid', 's2geo'];
+  static String toCSV(Iterable<BeaconUuid> beacons, int level) =>
+      ListToCsvConverter().convert([_headers] +
+          beacons
+              .map((beacon) => [
+                    ceilUnixSeconds(beacon.timestamp, 60),
+                    beacon.uuid,
+                    beacon.location.cellID.parent(level).toToken(),
+                  ])
+              .toList());
 }

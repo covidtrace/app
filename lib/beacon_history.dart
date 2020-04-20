@@ -181,6 +181,10 @@ class BeaconState extends State {
     var transmissions = await BeaconTransmission.findAll(orderBy: 'start DESC');
     var beacons = await BeaconModel.findAll(orderBy: 'start DESC');
 
+    if (!mounted) {
+      return;
+    }
+
     setState(() {
       _beacons = beacons;
       _transmissions = transmissions;

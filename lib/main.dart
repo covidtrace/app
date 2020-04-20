@@ -1,3 +1,4 @@
+import 'package:covidtrace/exposure.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
@@ -24,6 +25,7 @@ void main() async {
   runApp(ChangeNotifierProvider(
       create: (context) => AppState(), child: CovidTraceApp()));
 
+  // TODO(wes): Only works on Android. Use onLocation instead to check for exposures on iOS
   BackgroundFetch.registerHeadlessTask((String id) async {
     await checkExposures();
     BackgroundFetch.finish(id);
@@ -220,15 +222,9 @@ class MainPageState extends State<MainPage> {
     }
   }
 
-  resetInfection() async {
+  resetInfection(AppState state) async {
     Navigator.of(context).pop();
-    var locs = await LocationModel.findAll(where: 'exposure = 1');
-    if (locs.length > 0) {
-      await Future.forEach(locs, (location) async {
-        location.exposure = false;
-        await location.save();
-      });
-    }
+    await state.resetInfections();
   }
 
   resetReport(AppState state) async {
@@ -244,7 +240,9 @@ class MainPageState extends State<MainPage> {
   }
 
   void testNotification() async {
-    showExposureNotification((await LocationModel.findAll(limit: 1)).first);
+    Navigator.of(context).pop();
+    var exposure = await Exposure.getOne(newest: true, exposure: false);
+    showExposureNotification(exposure);
   }
 
   resetVerified(AppState state) async {
@@ -324,21 +322,13 @@ class MainPageState extends State<MainPage> {
             endDrawer: Drawer(
                 child: ListView(children: [
               ListTile(
-                  leading: Icon(Icons.location_on),
-                  title: Text('Start Tracking'),
-                  onTap: () => bg.BackgroundGeolocation.start()),
-              ListTile(
-                  leading: Icon(Icons.location_off),
-                  title: Text('Stop Tracking'),
-                  onTap: () => bg.BackgroundGeolocation.stop()),
-              ListTile(
                   leading: Icon(Icons.bug_report),
-                  title: Text('Test Infection'),
+                  title: Text('Test Exposure'),
                   onTap: testInfection),
               ListTile(
                   leading: Icon(Icons.restore),
-                  title: Text('Reset Infection'),
-                  onTap: resetInfection),
+                  title: Text('Reset Exposure'),
+                  onTap: () => resetInfection(state)),
               ListTile(
                 leading: Icon(Icons.notifications),
                 title: Text('Test Notification'),
