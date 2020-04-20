@@ -162,8 +162,10 @@ Future<Map<int, LocationModel>> matchBeaconsAndLocations(
     Iterable<BeaconModel> beacons,
     {Duration window}) async {
   window ??= Duration(minutes: 10);
-  var start = beacons.first.start.subtract(window).toIso8601String();
-  var end = beacons.last.end.add(window).toIso8601String();
+  var sorted = List.from(beacons);
+  sorted.sort((a, b) => a.start.compareTo(b.start));
+  var start = sorted.first.start.subtract(window).toIso8601String();
+  var end = sorted.last.end.add(window).toIso8601String();
 
   List<LocationModel> locations = await LocationModel.findAll(
       orderBy: 'id ASC',
@@ -173,10 +175,10 @@ Future<Map<int, LocationModel>> matchBeaconsAndLocations(
   Map<int, LocationModel> locationMatches = {};
 
   /// For each Beacon do the following:
-  /// - Find all the locations that fall within the duration window if the Beacon time range.
+  /// - Find all the locations that fall within the duration window of the Beacon time range.
   /// - Associate the location closest to the midpoint of the Beacon time range to the Beacon.
   /// - Mark any matching locations as exposures.
-  beacons.forEach((b) {
+  sorted.forEach((b) {
     var start = b.start.subtract(window);
     var end = b.end.add(window);
     var midpoint = b.start
