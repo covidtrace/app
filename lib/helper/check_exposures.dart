@@ -37,10 +37,12 @@ Future<Exposure> checkExposures() async {
   String publishedBucket = config['publishedBucket'];
   int compareLevel = config['compareS2Level'];
   List<dynamic> aggLevels = config['aggS2Levels'];
+  Duration timeResolution = Duration(minutes: config['timeResolution'] ?? 60);
 
   // Structures for exposures
   Map<int, LocationModel> exposedLocations = {};
-  var locationExposure = new LocationExposure(locations, compareLevel);
+  var locationExposure =
+      new LocationExposure(locations, compareLevel, timeResolution);
 
   Map<int, BeaconModel> exposedBeacons = {};
   var beaconExposure = new BeaconExposure(beacons, compareLevel);

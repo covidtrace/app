@@ -144,7 +144,8 @@ class AppState with ChangeNotifier {
     }
 
     int level = config['reportS2Level'];
-    var data = LocationModel.toCSV(locations, level);
+    Duration timeResolution = Duration(minutes: config['timeResolution'] ?? 60);
+    var data = LocationModel.toCSV(locations, level, timeResolution);
 
     try {
       var success = await objectUpload(
@@ -211,7 +212,8 @@ class AppState with ChangeNotifier {
     beacons = beacons.where((b) => b.location != null).toList();
 
     int level = config['reportS2Level'];
-    var data = BeaconUuid.toCSV(beacons, level);
+    Duration timeResolution = Duration(minutes: config['timeResolution'] ?? 60);
+    var data = BeaconUuid.toCSV(beacons, level, timeResolution);
 
     try {
       var success = await objectUpload(

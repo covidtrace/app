@@ -464,11 +464,12 @@ class BeaconUuid {
   }
 
   static final List<dynamic> _headers = ['timestamp', 'uuid', 's2geo'];
-  static String toCSV(Iterable<BeaconUuid> beacons, int level) =>
+  static String toCSV(
+          Iterable<BeaconUuid> beacons, int level, Duration resolution) =>
       ListToCsvConverter().convert([_headers] +
           beacons
               .map((beacon) => [
-                    ceilUnixSeconds(beacon.timestamp, 60),
+                    ceilUnixSeconds(beacon.timestamp, resolution.inMinutes),
                     beacon.uuid,
                     beacon.location.cellID.parent(level).toToken(),
                   ])

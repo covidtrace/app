@@ -153,11 +153,12 @@ class LocationModel {
   }
 
   static final List<dynamic> _headers = ['timestamp', 's2geo', 'verified'];
-  static String toCSV(Iterable<LocationModel> locations, int level) =>
+  static String toCSV(
+          Iterable<LocationModel> locations, int level, Duration resolution) =>
       ListToCsvConverter().convert([_headers] +
           locations
               .map((location) => [
-                    ceilUnixSeconds(location.timestamp, 60),
+                    ceilUnixSeconds(location.timestamp, resolution.inMinutes),
                     location.cellID.parent(level).toToken(),
                     false // whether this is a verified submission, always false for now
                   ])
