@@ -270,6 +270,7 @@ class AppState with ChangeNotifier {
   Future<void> resetInfections() async {
     final Database db = await Storage.db;
     await Future.wait([
+      db.update('user', {'last_check': null}),
       db.update('location', {'exposure': 0, 'reported': 0}),
       db.update('beacon', {'exposure': 0, 'reported': 0, 'location_id': null}),
     ]);
