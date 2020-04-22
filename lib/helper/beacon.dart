@@ -135,7 +135,7 @@ void showBeaconNotification() async {
   await notificationPlugin.show(
       1,
       'COVID Trace Monitoring Alert',
-      'Keep the app open to get accurate monitoring while indoors.',
+      'Keep the app open to get accurate exposure monitoring.',
       NotificationDetails(androidSpec, iosSpecs),
       payload: 'Default_Sound');
 }

@@ -301,11 +301,6 @@ class MainPageState extends State<MainPage> {
                     onTap: () => Navigator.of(context)
                         .popAndPushNamed('/location_history')),
                 ListTile(
-                    leading: Icon(Icons.bluetooth_searching),
-                    title: Text('Beacons'),
-                    onTap: () =>
-                        Navigator.of(context).popAndPushNamed('/beacon')),
-                ListTile(
                     leading: Icon(Icons.lock),
                     title: Text('Privacy Policy'),
                     onTap: () {
@@ -321,34 +316,41 @@ class MainPageState extends State<MainPage> {
                     }),
               ]),
             ),
-            endDrawer: Drawer(
-                child: ListView(children: [
-              ListTile(
-                  leading: Icon(Icons.bug_report),
-                  title: Text('Test Exposure'),
-                  onTap: testInfection),
-              ListTile(
-                  leading: Icon(Icons.restore),
-                  title: Text('Reset Exposure'),
-                  onTap: () => resetInfection(state)),
-              ListTile(
-                leading: Icon(Icons.notifications),
-                title: Text('Test Notification'),
-                onTap: testNotification,
-              ),
-              ListTile(
-                  leading: Icon(Icons.delete_forever),
-                  title: Text('Reset Report'),
-                  onTap: () => resetReport(state)),
-              ListTile(
-                  leading: Icon(Icons.verified_user),
-                  title: Text('Reset Verified'),
-                  onTap: () => resetVerified(state)),
-              ListTile(
-                  leading: Icon(Icons.power_settings_new),
-                  title: Text('Reset Onboarding'),
-                  onTap: () => resetOnboarding(state)),
-            ])),
+            endDrawer: kReleaseMode
+                ? null
+                : Drawer(
+                    child: ListView(children: [
+                    ListTile(
+                        leading: Icon(Icons.bluetooth_searching),
+                        title: Text('Beacons'),
+                        onTap: () =>
+                            Navigator.of(context).popAndPushNamed('/beacon')),
+                    ListTile(
+                        leading: Icon(Icons.bug_report),
+                        title: Text('Test Exposure'),
+                        onTap: testInfection),
+                    ListTile(
+                        leading: Icon(Icons.restore),
+                        title: Text('Reset Exposure'),
+                        onTap: () => resetInfection(state)),
+                    ListTile(
+                      leading: Icon(Icons.notifications),
+                      title: Text('Test Notification'),
+                      onTap: testNotification,
+                    ),
+                    ListTile(
+                        leading: Icon(Icons.delete_forever),
+                        title: Text('Reset Report'),
+                        onTap: () => resetReport(state)),
+                    ListTile(
+                        leading: Icon(Icons.verified_user),
+                        title: Text('Reset Verified'),
+                        onTap: () => resetVerified(state)),
+                    ListTile(
+                        leading: Icon(Icons.power_settings_new),
+                        title: Text('Reset Onboarding'),
+                        onTap: () => resetOnboarding(state)),
+                  ])),
             body: Dashboard()));
   }
 }
