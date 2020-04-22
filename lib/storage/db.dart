@@ -99,6 +99,13 @@ ALTER TABLE beacon ADD COLUMN location_id INTEGER REFERENCES location (id)
   ]
 };
 
+Future<void> _runMigrations(db, oldVersion, newVersion) async {
+  for (var i = oldVersion + 1; i <= newVersion; i++) {
+    print('running migration ver $i');
+    migrationScripts[i].forEach((script) async => await db.execute(script));
+  }
+}
+
 Future<String> _dataBasePath(String path) async {
   return join(await getDatabasesPath(), path);
 }
@@ -107,11 +114,10 @@ Future<Database> _initDatabase() async {
   return await openDatabase(await _dataBasePath('locations.db'), version: 4,
       onCreate: (db, version) async {
     initialScript.forEach((script) async => await db.execute(script));
-  }, onUpgrade: (db, oldVersion, newVersion) async {
-    for (var i = oldVersion + 1; i <= newVersion; i++) {
-      migrationScripts[i].forEach((script) async => await db.execute(script));
+    if (version > 1) {
+      _runMigrations(db, 1, version);
     }
-  });
+  }, onUpgrade: _runMigrations);
 }
 
 class Storage {
