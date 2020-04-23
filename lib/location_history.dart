@@ -86,10 +86,8 @@ class LocationHistoryState extends State {
     locations.forEach((l) {
       var timestamp = l.timestamp.toLocal();
       var dayHour = DateFormat.EEEE().add_MMMd().format(timestamp);
-      locationsIndex[dayHour] =
-          locationsIndex[dayHour] ?? Map<int, List<LocationModel>>();
-      locationsIndex[dayHour][timestamp.hour] =
-          locationsIndex[dayHour][timestamp.hour] ?? List<LocationModel>();
+      locationsIndex[dayHour] ??= Map<int, List<LocationModel>>();
+      locationsIndex[dayHour][timestamp.hour] ??= List<LocationModel>();
       locationsIndex[dayHour][timestamp.hour].add(l);
     });
 
@@ -130,7 +128,9 @@ class LocationHistoryState extends State {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(title: Text('Location History')),
+        appBar: AppBar(
+          title: Text('Location History'),
+        ),
         body: Column(children: [
           _nearHome != null
               ? Container(
@@ -155,33 +155,32 @@ class LocationHistoryState extends State {
           Flexible(
               flex: 2,
               child: Stack(children: [
-                (_selected != null || _currentLocation != null)
-                    ? GoogleMap(
-                        mapType: MapType.normal,
-                        myLocationEnabled: true,
-                        myLocationButtonEnabled: false,
-                        initialCameraPosition: CameraPosition(
-                            target: _selected != null
-                                ? _selected.latLng
-                                : _currentLocation,
-                            zoom: 16),
-                        markers: _markers.toSet(),
-                        circles: _user?.home != null
-                            ? [
-                                new Circle(
-                                    circleId: CircleId('home'),
-                                    center: _user.home,
-                                    radius: _user.homeRadius,
-                                    fillColor: Colors.blueGrey.withOpacity(.2),
-                                    strokeColor: Colors.blueGrey,
-                                    strokeWidth: 2)
-                              ].toSet()
-                            : Set(),
-                        onMapCreated: (GoogleMapController controller) {
-                          _controller.complete(controller);
-                        },
-                      )
-                    : Container(),
+                if (_selected != null || _currentLocation != null)
+                  GoogleMap(
+                    mapType: MapType.normal,
+                    myLocationEnabled: true,
+                    myLocationButtonEnabled: false,
+                    initialCameraPosition: CameraPosition(
+                        target: _selected != null
+                            ? _selected.latLng
+                            : _currentLocation,
+                        zoom: 16),
+                    markers: _markers.toSet(),
+                    circles: _user?.home != null
+                        ? [
+                            new Circle(
+                                circleId: CircleId('home'),
+                                center: _user.home,
+                                radius: _user.homeRadius,
+                                fillColor: Colors.blueGrey.withOpacity(.2),
+                                strokeColor: Colors.blueGrey,
+                                strokeWidth: 2)
+                          ].toSet()
+                        : Set(),
+                    onMapCreated: (GoogleMapController controller) {
+                      _controller.complete(controller);
+                    },
+                  ),
                 Positioned(
                     left: 0,
                     right: 0,
@@ -255,49 +254,22 @@ class LocationHistoryState extends State {
                                                     ? Colors.grey[200]
                                                     : Colors.transparent,
                                                 child: Row(children: [
-                                                  Column(
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .start,
-                                                      children: [
-                                                        Text(
-                                                            DateFormat.jm()
-                                                                .format(
-                                                                    timestamp)
-                                                                .toLowerCase(),
-                                                            style: Theme.of(
-                                                                    context)
-                                                                .textTheme
-                                                                .subhead),
-                                                      ]),
-                                                  SizedBox(width: 20),
-                                                  Stack(children: [
-                                                    SizedBox(
-                                                        width: 25, height: 25),
-                                                    AnimatedPositioned(
-                                                      top: selected ? 1 : 20,
-                                                      curve:
-                                                          Curves.fastOutSlowIn,
-                                                      duration: Duration(
-                                                          milliseconds: 250),
-                                                      child: AnimatedOpacity(
-                                                          opacity:
-                                                              selected ? 1 : 0,
-                                                          duration: Duration(
-                                                              milliseconds:
-                                                                  200),
-                                                          child: Image.asset(
-                                                              'assets/sun_icon.png',
-                                                              width: 25,
-                                                              color: selected
-                                                                  ? Colors
-                                                                      .orangeAccent
-                                                                  : Colors
-                                                                      .grey)),
-                                                    )
-                                                  ]),
-                                                  SizedBox(width: 5),
-                                                  Expanded(
+                                                  Container(
+                                                    width: 70,
+                                                    child: Text(
+                                                      DateFormat.jm()
+                                                          .format(timestamp)
+                                                          .toLowerCase(),
+                                                      style: Theme.of(context)
+                                                          .textTheme
+                                                          .subhead,
+                                                      textAlign:
+                                                          TextAlign.right,
+                                                    ),
+                                                  ),
+                                                  Expanded(child: Container()),
+                                                  Container(
+                                                      width: 160,
                                                       child: Row(
                                                           crossAxisAlignment:
                                                               CrossAxisAlignment
@@ -329,33 +301,7 @@ class LocationHistoryState extends State {
                                                                       ]));
                                                             },
                                                           ))),
-                                                  SizedBox(width: 5),
-                                                  Stack(children: [
-                                                    SizedBox(
-                                                        width: 25, height: 25),
-                                                    AnimatedPositioned(
-                                                      bottom: selected ? 2 : 20,
-                                                      duration: Duration(
-                                                          milliseconds: 250),
-                                                      curve:
-                                                          Curves.fastOutSlowIn,
-                                                      child: AnimatedOpacity(
-                                                          opacity:
-                                                              selected ? 1 : 0,
-                                                          duration: Duration(
-                                                              milliseconds:
-                                                                  200),
-                                                          child: Image.asset(
-                                                              'assets/moon_icon.png',
-                                                              width: 25,
-                                                              color: selected
-                                                                  ? Colors
-                                                                      .blueGrey
-                                                                  : Colors
-                                                                      .grey)),
-                                                    )
-                                                  ]),
-                                                  SizedBox(width: 20),
+                                                  Expanded(child: Container()),
                                                   Icon(
                                                       item.exposure
                                                           ? Icons.warning

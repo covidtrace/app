@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 
+import 'beacon_debug.dart';
 import 'beacon_history.dart';
 import 'dashboard.dart';
 import 'location_history.dart';
@@ -122,7 +123,8 @@ class CovidTraceAppState extends State {
             '/home': (context) => MainPage(),
             '/settings': (context) => SettingsView(),
             '/location_history': (context) => LocationHistory(),
-            '/beacon': (context) => BeaconHistory()
+            '/beacon_history': (context) => BeaconHistory(),
+            '/beacon_debug': (context) => BeaconDebug()
           },
         );
       } else {
@@ -301,6 +303,11 @@ class MainPageState extends State<MainPage> {
                     onTap: () => Navigator.of(context)
                         .popAndPushNamed('/location_history')),
                 ListTile(
+                    leading: Icon(Icons.bluetooth_searching),
+                    title: Text('Beacon History'),
+                    onTap: () => Navigator.of(context)
+                        .popAndPushNamed('/beacon_history')),
+                ListTile(
                     leading: Icon(Icons.lock),
                     title: Text('Privacy Policy'),
                     onTap: () {
@@ -323,8 +330,8 @@ class MainPageState extends State<MainPage> {
                     ListTile(
                         leading: Icon(Icons.bluetooth_searching),
                         title: Text('Beacons'),
-                        onTap: () =>
-                            Navigator.of(context).popAndPushNamed('/beacon')),
+                        onTap: () => Navigator.of(context)
+                            .popAndPushNamed('/beacon_debug')),
                     ListTile(
                         leading: Icon(Icons.bug_report),
                         title: Text('Test Exposure'),
