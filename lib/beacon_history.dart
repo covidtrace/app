@@ -192,7 +192,7 @@ class BeaconState extends State {
                           padding: EdgeInsets.all(5),
                           groupValue: _filter,
                           children: {
-                            'all': Text('All Locations'),
+                            'all': Text('All Beacons'),
                             'exposed': Text('Potential Exposures'),
                           },
                           onValueChanged: setFilter)))
