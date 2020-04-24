@@ -1,5 +1,5 @@
 # COVID Trace
-![Screenshot of Mobile App](https://covidtrace.com/static/af9318332cf00e26c54221c56132e220/54967/preview.png)
+<a href="https://www.figma.com/proto/dZ26JcuOaKsLCMzz3KEnKH/COVID-Trace-App?node-id=1%3A8&scaling=scale-down">![Screenshot of Mobile App](https://covidtrace.com/static/af9318332cf00e26c54221c56132e220/54967/preview.png)</a>
 
 ## Local Setup
 
