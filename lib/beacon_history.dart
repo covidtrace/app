@@ -169,7 +169,7 @@ class BeaconState extends State {
         Flexible(
             flex: 2,
             child: Stack(children: [
-              if (_selected != null || _currentLocation != null)
+              if (_selected?.location != null || _currentLocation != null)
                 GoogleMap(
                   mapType: MapType.normal,
                   myLocationEnabled: true,

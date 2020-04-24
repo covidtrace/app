@@ -150,6 +150,10 @@ void showBeaconNotification() async {
 Future<Map<int, LocationModel>> matchBeaconsAndLocations(
     Iterable<BeaconModel> beacons,
     {Duration window}) async {
+  if (beacons.isEmpty) {
+    return null;
+  }
+
   window ??= Duration(minutes: 10);
   var sorted = List.from(beacons);
   sorted.sort((a, b) => a.start.compareTo(b.start));
