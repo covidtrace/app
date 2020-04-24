@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:beacon_broadcast/beacon_broadcast.dart';
 import 'package:covidtrace/storage/beacon.dart';
+import 'package:covidtrace/storage/location.dart';
 import 'package:flutter_beacon/flutter_beacon.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
@@ -138,4 +139,60 @@ void showBeaconNotification() async {
       'Keep the app open to get accurate exposure monitoring.',
       NotificationDetails(androidSpec, iosSpecs),
       payload: 'Default_Sound');
+}
+
+/// Takes a list of beacons and attempts to match them with a recored location within
+/// the provided duration window. This method sets the `location` property on each
+/// `BeaconModel` when a match is found. Additionally it returns the set of locations
+/// that matched against any of the provided beacons.
+///
+/// The default `window` Duration is 10 minutes.
+Future<Map<int, LocationModel>> matchBeaconsAndLocations(
+    Iterable<BeaconModel> beacons,
+    {Duration window}) async {
+  if (beacons.isEmpty) {
+    return null;
+  }
+
+  window ??= Duration(minutes: 10);
+  var sorted = List.from(beacons);
+  sorted.sort((a, b) => a.start.compareTo(b.start));
+  var start = sorted.first.start.subtract(window).toIso8601String();
+  var end = sorted.last.end.add(window).toIso8601String();
+
+  List<LocationModel> locations = await LocationModel.findAll(
+      orderBy: 'id ASC',
+      where:
+          'DATETIME(timestamp) >= DATETIME(?) AND DATETIME(timestamp) <= DATETIME(?)',
+      whereArgs: [start, end]);
+  Map<int, LocationModel> locationMatches = {};
+
+  /// For each Beacon do the following:
+  /// - Find all the locations that fall within the duration window of the Beacon time range.
+  /// - Associate the location closest to the midpoint of the Beacon time range to the Beacon.
+  /// - Mark any matching locations as exposures.
+  sorted.forEach((b) {
+    var start = b.start.subtract(window);
+    var end = b.end.add(window);
+    var midpoint = b.start
+        .add(Duration(milliseconds: end.difference(start).inMilliseconds ~/ 2));
+
+    var matches = locations
+        .where((l) => l.timestamp.isAfter(start) && l.timestamp.isBefore(end))
+        .toList();
+
+    matches.sort((a, b) {
+      var aDiff = midpoint.difference(a.timestamp);
+      var bDiff = midpoint.difference(b.timestamp);
+
+      return aDiff.compareTo(bDiff);
+    });
+
+    if (matches.isNotEmpty) {
+      b.location = matches.first;
+      matches.forEach((l) => locationMatches[l.id] = l);
+    }
+  });
+
+  return locationMatches;
 }

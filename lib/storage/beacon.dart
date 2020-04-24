@@ -240,6 +240,7 @@ class BeaconTransmission {
     }).toList();
 
     // Insert converted beacons and remove completed transmissions
+    // TODO(wes): Call matchBeaconsAndLocations here instead of when reporting
     await Future.wait(beacons.map((b) => b.insert()));
     await Future.wait(rows.map((row) => db.delete(
           'beacon_transmission',
