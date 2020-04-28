@@ -1,6 +1,7 @@
 import 'package:covidtrace/exposure.dart';
 import 'package:covidtrace/storage/exposure.dart';
 import 'package:flutter/foundation.dart';
+import 'package:gact_plugin/gact_plugin.dart';
 import 'package:provider/provider.dart';
 
 import 'beacon_debug.dart';
@@ -202,8 +203,8 @@ class MainPageState extends State<MainPage> {
 
   void testNotification() async {
     Navigator.of(context).pop();
-    var exposure = await Exposure.getOne(newest: true, exposure: false);
-    showExposureNotification(exposure);
+    showExposureNotification(
+        ExposureInfo(DateTime.now(), Duration(minutes: 5), 0));
   }
 
   resetVerified(AppState state) async {
