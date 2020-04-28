@@ -53,10 +53,11 @@ Future<ExposureInfo> checkExposures() async {
 
     var rows = CsvToListConverter(shouldParseNumbers: false, eol: '\n')
         .convert(await file.readAsString());
-    keys.addAll(rows.map((row) => ExposureKey(row[0], row[1])));
+    keys.addAll(rows.map((row) => ExposureKey(row[0], int.parse(row[1]))));
   }));
 
   // Save all found exposures
+  // TODO(wes): Need a way to prevent duplicate exposures
   var exposures = await GactPlugin.checkExposure(keys);
   await Future.wait(exposures.map((e) {
     return ExposureModel(

@@ -8,7 +8,7 @@ class ExposureModel {
   final DateTime date;
   final Duration duration;
   final int attenuationValue;
-  final bool reported;
+  bool reported;
 
   ExposureModel(
       {this.id,
@@ -24,6 +24,7 @@ class ExposureModel {
       'id': id,
       'date': day.toIso8601String(),
       'duration': duration.inMinutes,
+      'attenuation_value': attenuationValue,
       'reported': reported == true ? 1 : 0,
     };
   }
@@ -47,9 +48,16 @@ class ExposureModel {
       return ExposureModel(
         id: rows[i]['id'],
         date: DateTime.parse(rows[i]['date']),
+        duration: Duration(minutes: rows[i]['duration']),
+        attenuationValue: rows[i]['attenuation_value'],
         reported: rows[i]['reported'] == 1,
       );
     });
+  }
+
+  Future<int> save() async {
+    final Database db = await Storage.db;
+    return db.update(TABLE_NAME, toMap(), where: 'id = ?', whereArgs: [id]);
   }
 
   Future<void> insert() async {

@@ -1,12 +1,8 @@
 import 'dart:async';
 import 'package:covidtrace/exposure.dart';
 
-import 'helper/location.dart';
 import 'operator.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -23,7 +19,6 @@ class DashboardState extends State with TickerProviderStateMixin {
   bool _sendingExposure = false;
   bool _hideReport = true;
   Exposure _oldest;
-  Completer<GoogleMapController> _mapController = Completer();
   AnimationController reportController;
   CurvedAnimation reportAnimation;
   AnimationController expandController;
@@ -74,11 +69,6 @@ class DashboardState extends State with TickerProviderStateMixin {
 
   Future<void> refreshExposures(AppState state) async {
     await state.checkExposures();
-    var exposure = state.exposure;
-    if (exposure?.location != null) {
-      var controller = await _mapController.future;
-      controller.animateCamera(CameraUpdate.newLatLng(exposure.latlng));
-    }
   }
 
   Future<void> sendExposure(AppState state) async {
@@ -348,13 +338,6 @@ class DashboardState extends State with TickerProviderStateMixin {
                 ])));
       }
 
-      var start = exposure.start.toLocal();
-      var end = exposure.end.toLocal();
-      var timeFormat = DateFormat('ha');
-      if (exposure.duration.compareTo(Duration(hours: 1)) < 0) {
-        timeFormat = DateFormat.jm();
-      }
-
       return Padding(
           padding: EdgeInsets.all(15),
           child: RefreshIndicator(
@@ -409,46 +392,14 @@ class DashboardState extends State with TickerProviderStateMixin {
                 SizedBox(height: 10),
                 Card(
                     child: Column(children: [
-                  if (exposure.latlng != null)
-                    SizedBox(
-                        height: 200,
-                        child: GoogleMap(
-                          mapType: MapType.normal,
-                          myLocationEnabled: false,
-                          myLocationButtonEnabled: false,
-                          initialCameraPosition:
-                              CameraPosition(target: exposure.latlng, zoom: 16),
-                          minMaxZoomPreference: MinMaxZoomPreference(10, 18),
-                          markers: [
-                            Marker(
-                                markerId: MarkerId('1'),
-                                position: exposure.latlng,
-                                onTap: () => launchMapsApp(exposure.latlng))
-                          ].toSet(),
-                          gestureRecognizers: [
-                            Factory(() => PanGestureRecognizer()),
-                            Factory(() => ScaleGestureRecognizer()),
-                            Factory(() => TapGestureRecognizer()),
-                          ].toSet(),
-                          onMapCreated: (controller) {
-                            if (!_mapController.isCompleted) {
-                              _mapController.complete(controller);
-                            }
-                          },
-                        )),
-                  SizedBox(height: 10),
                   ListTile(
-                    onTap: exposure.latlng != null
-                        ? () => launchMapsApp(exposure.latlng)
-                        : null,
-                    isThreeLine: false,
+                    isThreeLine: true,
                     title: Text(
-                        '${DateFormat.Md().format(start)} ${timeFormat.format(start).toLowerCase()} - ${timeFormat.format(end).toLowerCase()}'),
+                        '${DateFormat.EEEE().add_MMMd().format(exposure.date)}'),
                     subtitle: Text(
-                        'Your location overlapped with someone who reported as having COVID-19.'),
+                        'Your where exposed to someone who reported as having COVID-19 for ${exposure.duration.inMinutes} minutes.'),
                   ),
-                  if (exposure.location != null &&
-                      (!exposure.reported || !_hideReport))
+                  if (exposure != null && (!exposure.reported || !_hideReport))
                     SizeTransition(
                         axisAlignment: 1,
                         sizeFactor: reportAnimation,

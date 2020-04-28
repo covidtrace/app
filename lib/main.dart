@@ -1,4 +1,5 @@
-import 'package:covidtrace/exposure.dart';
+import 'dart:io';
+
 import 'package:covidtrace/storage/exposure.dart';
 import 'package:flutter/foundation.dart';
 import 'package:gact_plugin/gact_plugin.dart';
@@ -23,11 +24,12 @@ void main() async {
   runApp(ChangeNotifierProvider(
       create: (context) => AppState(), child: CovidTraceApp()));
 
-  // TODO(wes): Only works on Android. Use onLocation instead to check for exposures on iOS
-  BackgroundFetch.registerHeadlessTask((String id) async {
-    await checkExposures();
-    BackgroundFetch.finish(id);
-  });
+  if (Platform.isAndroid) {
+    BackgroundFetch.registerHeadlessTask((String id) async {
+      await checkExposures();
+      BackgroundFetch.finish(id);
+    });
+  }
 
   var notificationPlugin = FlutterLocalNotificationsPlugin();
   notificationPlugin.initialize(

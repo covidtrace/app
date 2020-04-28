@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:covidtrace/exposure.dart';
 import 'package:covidtrace/storage/db.dart';
 import 'package:csv/csv.dart';
 import 'package:sqflite/sqflite.dart';
@@ -21,7 +20,7 @@ class AppState with ChangeNotifier {
   static UserModel _user;
   static ReportModel _report;
   static bool _ready = false;
-  static Exposure _exposure;
+  static ExposureModel _exposure;
 
   AppState() {
     initState();
@@ -37,15 +36,17 @@ class AppState with ChangeNotifier {
 
   bool get ready => _ready;
 
-  Exposure get exposure => _exposure;
+  ExposureModel get exposure => _exposure;
 
   UserModel get user => _user;
 
-  Future<Exposure> getExposure() async {
-    return Exposure.newest;
+  Future<ExposureModel> getExposure() async {
+    var rows = await ExposureModel.findAll(limit: 1, orderBy: 'date DESC');
+
+    return rows.isNotEmpty ? rows.first : null;
   }
 
-  Future<Exposure> checkExposures() async {
+  Future<ExposureModel> checkExposures() async {
     await bg.checkExposures();
     _user = await UserModel.find();
     _exposure = await getExposure();
@@ -73,11 +74,11 @@ class AppState with ChangeNotifier {
       var config = await getConfig();
       var user = await UserModel.find();
 
-      int level = config['exposureS2Level'];
       String bucket = config['exposureBucket'] ?? 'covidtrace-exposures';
       var data = jsonEncode({
-        'cellID': _exposure.cellID.parent(level).toToken(),
-        'timestamp': DateFormat('yyyy-MM-dd').format(DateTime.now())
+        'duration': _exposure.duration.inMinutes,
+        'attenuationValue': _exposure.attenuationValue,
+        'timestamp': DateFormat('yyyy-MM-dd').format(_exposure.date)
       });
 
       if (!await objectUpload(
@@ -144,7 +145,9 @@ class AppState with ChangeNotifier {
       'verified'
     ];
     var data = ListToCsvConverter().convert([_headers] +
-        keys.map((key) => [key.keyData, key.rollingStartNumber, false]));
+        keys
+            .map((key) => [key.keyData, key.rollingStartNumber, false])
+            .toList());
 
     try {
       var success = await objectUpload(
