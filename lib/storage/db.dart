@@ -96,6 +96,20 @@ ALTER TABLE beacon ADD COLUMN reported INTEGER DEFAULT 0
     '''
 ALTER TABLE beacon ADD COLUMN location_id INTEGER REFERENCES location (id)
   ''',
+  ],
+  5: [
+    '''
+CREATE TABLE exposure (
+  id INTEGER PRIMARY KEY,
+  date TEXT,
+  duration INTEGER,
+  attenuation_value INTEGER,
+  reported INTEGER DEFAULT 0
+)
+  ''',
+    '''
+ALTER TABLE report ADD COLUMN last_exposure_key TEXT 
+  ''',
   ]
 };
 
@@ -111,7 +125,7 @@ Future<String> _dataBasePath(String path) async {
 }
 
 Future<Database> _initDatabase() async {
-  return await openDatabase(await _dataBasePath('locations.db'), version: 4,
+  return await openDatabase(await _dataBasePath('locations.db'), version: 5,
       onCreate: (db, version) async {
     initialScript.forEach((script) async => await db.execute(script));
     if (version > 1) {

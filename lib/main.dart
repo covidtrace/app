@@ -1,7 +1,6 @@
 import 'package:covidtrace/exposure.dart';
-import 'package:covidtrace/helper/beacon.dart';
+import 'package:covidtrace/storage/exposure.dart';
 import 'package:flutter/foundation.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 
 import 'beacon_debug.dart';
@@ -12,15 +11,11 @@ import 'helper/check_exposures.dart';
 import 'onboarding.dart';
 import 'package:background_fetch/background_fetch.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_background_geolocation/flutter_background_geolocation.dart'
-    as bg;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'send_report.dart';
 import 'settings.dart';
 import 'state.dart';
-import 'storage/location.dart';
-import 'storage/user.dart';
 import 'package:wakelock/wakelock.dart';
 
 void main() async {
@@ -42,47 +37,6 @@ void main() async {
               requestBadgePermission: false,
               requestSoundPermission: false)),
       onSelectNotification: (notice) async {});
-
-  bg.BackgroundGeolocation.onLocation((bg.Location l) async {
-    var coords = l.coords;
-    if (await UserModel.isInHome(LatLng(coords.latitude, coords.longitude))) {
-      return;
-    }
-
-    if (l.sample || coords.accuracy > 100) {
-      return;
-    }
-
-    await LocationModel(
-            longitude: coords.longitude,
-            latitude: coords.latitude,
-            activity: l.activity.type,
-            sample: l.sample ? 1 : 0,
-            speed: coords.speed,
-            timestamp: DateTime.parse(l.timestamp))
-        .insert();
-  }, (bg.LocationError error) {
-    // Do nothing
-  });
-
-  bg.BackgroundGeolocation.onProviderChange((bg.ProviderChangeEvent event) {
-    print('[providerchange] - $event');
-  });
-
-  bg.BackgroundGeolocation.ready(bg.Config(
-      desiredAccuracy: bg.Config.DESIRED_ACCURACY_HIGH,
-      enableHeadless: true,
-      stopOnTerminate: false,
-      startOnBoot: true,
-      fastestLocationUpdateInterval: 1000 * 60 * 5,
-      persistMode: bg.Config.PERSIST_MODE_NONE,
-      logLevel: bg.Config.LOG_LEVEL_OFF));
-
-  var user = await UserModel.find();
-  if (!user.onboarding) {
-    setupBeaconScanning();
-    setupBeaconBroadcast();
-  }
 }
 
 class CovidTraceApp extends StatefulWidget {
@@ -124,7 +78,7 @@ class CovidTraceAppState extends State {
             '/settings': (context) => SettingsView(),
             '/location_history': (context) => LocationHistory(),
             '/beacon_history': (context) => BeaconHistory(),
-            '/beacon_debug': (context) => BeaconDebug()
+            '/beacon_debug': (context) => BeaconDebug(),
           },
         );
       } else {
@@ -144,7 +98,7 @@ class MainPageState extends State<MainPage> {
     await BackgroundFetch.configure(
         BackgroundFetchConfig(
           enableHeadless: true,
-          minimumFetchInterval: 60,
+          minimumFetchInterval: 15,
           requiredNetworkType: NetworkType.ANY,
           requiresBatteryNotLow: true,
           requiresCharging: false,
@@ -219,10 +173,13 @@ class MainPageState extends State<MainPage> {
 
   testInfection() async {
     Navigator.of(context).pop();
-    var locs = await LocationModel.findAll(limit: 1, orderBy: 'timestamp DESC');
-    if (locs.length > 0) {
-      locs.first.exposure = true;
-      await locs.first.save();
+    var exp = await ExposureModel.findAll(limit: 1, orderBy: 'date DESC');
+    if (exp.isEmpty) {
+      await ExposureModel(
+              date: DateTime.now(),
+              duration: Duration(minutes: 5),
+              attenuationValue: 0)
+          .insert();
     }
   }
 
@@ -292,21 +249,6 @@ class MainPageState extends State<MainPage> {
                 }),
             drawer: Drawer(
               child: ListView(children: [
-                ListTile(
-                    leading: Icon(Icons.home),
-                    title: Text('Set My Home'),
-                    onTap: () =>
-                        Navigator.of(context).popAndPushNamed('/settings')),
-                ListTile(
-                    leading: Icon(Icons.location_on),
-                    title: Text('Location History'),
-                    onTap: () => Navigator.of(context)
-                        .popAndPushNamed('/location_history')),
-                ListTile(
-                    leading: Icon(Icons.bluetooth_searching),
-                    title: Text('Beacon History'),
-                    onTap: () => Navigator.of(context)
-                        .popAndPushNamed('/beacon_history')),
                 ListTile(
                     leading: Icon(Icons.lock),
                     title: Text('Privacy Policy'),

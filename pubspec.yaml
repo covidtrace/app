@@ -28,6 +28,8 @@ dependencies:
   flutter_beacon: ^0.3.0
   flutter_local_notifications: ^1.3.0
   flutter_sticky_header: "^0.4.2"
+  gact_plugin:
+    git: git@github.com:covidtrace/contact_trace_plugin.git
   google_maps_flutter: ^0.5.24+1
   http:
   intl:

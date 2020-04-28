@@ -201,6 +201,15 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  gact_plugin:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: "94b0b28a0678c4ac2802707313f5205d6bba799f"
+      url: "git@github.com:covidtrace/contact_trace_plugin.git"
+    source: git
+    version: "0.0.1"
   google_maps_flutter:
     dependency: "direct main"
     description:

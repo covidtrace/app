@@ -3,7 +3,9 @@ import 'dart:convert';
 
 import 'package:covidtrace/exposure.dart';
 import 'package:covidtrace/storage/db.dart';
+import 'package:csv/csv.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:gact_plugin/gact_plugin.dart';
 
 import 'config.dart';
 import 'helper/check_exposures.dart' as bg;
@@ -11,8 +13,7 @@ import 'helper/signed_upload.dart';
 import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'package:uuid/uuid.dart';
-import 'storage/beacon.dart';
-import 'storage/location.dart';
+import 'storage/exposure.dart';
 import 'storage/report.dart';
 import 'storage/user.dart';
 
@@ -124,105 +125,36 @@ class AppState with ChangeNotifier {
         data: jsonEncode(symptoms));
   }
 
-  Future<List<LocationModel>> sendLocations(
+  Future<List<ExposureKey>> sendExposureKeys(
       {@required Map<String, dynamic> config, DateTime date}) async {
-    String where = 'sample != 1';
-    List whereArgs = [];
-    if (report?.lastLocationId != null) {
-      where = '$where AND id > ?';
-      whereArgs = [report.lastLocationId];
-    } else {
-      where = '$where AND DATE(timestamp) >= DATE(?)';
-      whereArgs = [DateFormat('yyyy-MM-dd').format(date)];
-    }
-
-    List<LocationModel> locations = await LocationModel.findAll(
-        orderBy: 'id ASC', where: where, whereArgs: whereArgs);
-
-    if (locations.isEmpty) {
-      return locations;
-    }
-
-    int level = config['reportS2Level'];
-    Duration timeResolution = Duration(minutes: config['timeResolution'] ?? 60);
-    var data = LocationModel.toCSV(locations, level, timeResolution);
-
+    Iterable<ExposureKey> keys;
     try {
-      var success = await objectUpload(
-          config: config,
-          bucket: config['holdingBucket'] ?? 'covidtrace-holding',
-          object: '${user.uuid}.csv',
-          contentType: 'text/csv; charset=utf-8',
-          data: data);
-      return success ? locations : null;
+      keys = await GactPlugin.getExposureKeys();
     } catch (err) {
       print(err);
-      return null;
-    }
-  }
-
-  Future<List<BeaconUuid>> sendBeacons(
-      {@required Map<String, dynamic> config, DateTime date}) async {
-    String where;
-    List whereArgs = [];
-    if (report?.lastBeaconId != null) {
-      where = 'id > ?';
-      whereArgs = [report.lastBeaconId];
-    } else {
-      where = 'DATE(timestamp) >= DATE(?)';
-      whereArgs = [DateFormat('yyyy-MM-dd').format(date)];
     }
 
-    List<BeaconUuid> beacons = await BeaconUuid.findAll(
-        orderBy: 'id ASC', where: where, whereArgs: whereArgs);
-
-    if (beacons.isEmpty) {
-      return beacons;
+    if (keys == null || keys.isEmpty) {
+      return keys?.toList();
     }
 
-    // We evaluate all locations from previous 2 days since location
-    // changes may be infrequent in worst case scenario.
-    List<LocationModel> locations = await LocationModel.findAll(
-        orderBy: 'id ASC',
-        where: 'DATE(timestamp) >= DATE(?)',
-        whereArgs: [
-          DateFormat('yyyy-MM-dd')
-              .format(beacons.first.timestamp.subtract(Duration(days: 2)))
-        ]);
-
-    // For each beacon find the closest location recorded based on timestamp
-    beacons.forEach((b) {
-      var time = b.timestamp;
-      var before = locations.lastWhere((l) => l.timestamp.compareTo(time) < 0,
-          orElse: () => null);
-      var after = locations.firstWhere((l) => l.timestamp.compareTo(time) >= 0,
-          orElse: () => null);
-
-      if (before == null || after == null) {
-        b.location = before ?? after;
-      } else {
-        var beforeDiff = time.difference(before.timestamp);
-        var afterDiff = time.difference(after.timestamp);
-        b.location = beforeDiff.compareTo(afterDiff) < 0 ? before : after;
-      }
-    });
-
-    // TODO(wes): Although this is unlikely to ever occur we need to consider
-    // how to report beacons without any rough location.
-    beacons = beacons.where((b) => b.location != null).toList();
-
-    int level = config['reportS2Level'];
-    Duration timeResolution = Duration(minutes: config['timeResolution'] ?? 60);
-    var data = BeaconUuid.toCSV(beacons, level, timeResolution);
+    final List<dynamic> _headers = [
+      'key_data',
+      'rolling_start_number',
+      'verified'
+    ];
+    var data = ListToCsvConverter().convert([_headers] +
+        keys.map((key) => [key.keyData, key.rollingStartNumber, false]));
 
     try {
       var success = await objectUpload(
           config: config,
-          bucket: config['tokenBucket'] ?? 'covidtrace-tokens',
+          bucket: config['exposureKeysHoldingBucket'] ??
+              'covidtrace-exposure-keys-holding',
           object: '${user.uuid}.csv',
           contentType: 'text/csv; charset=utf-8',
           data: data);
-      return success ? beacons : null;
+      return success ? keys.toList() : null;
     } catch (err) {
       print(err);
       return null;
@@ -239,18 +171,14 @@ class AppState with ChangeNotifier {
     try {
       var results = await Future.wait([
         sendSymptoms(symptoms: symptoms, config: config),
-        sendLocations(config: config, date: date),
-        sendBeacons(config: config, date: date)
+        sendExposureKeys(config: config, date: date),
       ]);
 
-      List<LocationModel> locations = results[1] ?? [];
-      List<BeaconUuid> beacons = results[2] ?? [];
+      List<ExposureKey> keys = results[1] ?? [];
 
-      if (locations.isNotEmpty) {
+      if (keys.isNotEmpty) {
         _report = ReportModel(
-            lastLocationId: locations.last.id,
-            lastBeaconId: beacons.isNotEmpty ? beacons.last.id : null,
-            timestamp: DateTime.now());
+            lastExposureKey: keys.last.keyData, timestamp: DateTime.now());
         await report.create();
         success = true;
       }
@@ -273,8 +201,7 @@ class AppState with ChangeNotifier {
     final Database db = await Storage.db;
     await Future.wait([
       db.update('user', {'last_check': null}),
-      db.update('location', {'exposure': 0, 'reported': 0}),
-      db.update('beacon', {'exposure': 0, 'reported': 0, 'location_id': null}),
+      ExposureModel.destroyAll(),
     ]);
     _exposure = null;
     notifyListeners();
