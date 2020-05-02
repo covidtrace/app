@@ -25,3 +25,4 @@ key.properties
 
 *.code-workspace
 android/.idea
+.idea
