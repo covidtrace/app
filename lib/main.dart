@@ -20,6 +20,13 @@ import 'settings.dart';
 import 'state.dart';
 import 'package:wakelock/wakelock.dart';
 
+/// This Task ID must match the bundle ID that has the granted entitlements
+/// and end in `exposure-notification`. See:
+/// https://developer.apple.com/documentation/exposurenotification/building_an_app_to_notify_users_of_covid-19_exposure
+
+// TODO(wes): Move to ENV config
+const EN_BACKGROUND_TASK_ID = 'com.covidtrace.test.exposure-notification';
+
 void main() async {
   runApp(ChangeNotifierProvider(
       create: (context) => AppState(), child: CovidTraceApp()));
@@ -109,10 +116,15 @@ class MainPageState extends State<MainPage> {
           requiresStorageNotLow: true,
           startOnBoot: true,
           stopOnTerminate: false,
-        ), (String id) async {
-      await checkExposures();
-      BackgroundFetch.finish(id);
+        ), (String taskId) async {
+      if (taskId == EN_BACKGROUND_TASK_ID) {
+        await checkExposures();
+      }
+      BackgroundFetch.finish(taskId);
     });
+
+    await BackgroundFetch.scheduleTask(TaskConfig(
+        taskId: EN_BACKGROUND_TASK_ID, delay: 1000 * 60 * 15, periodic: true));
   }
 
   @override
@@ -235,7 +247,7 @@ class MainPageState extends State<MainPage> {
                     builder: (context) => FloatingActionButton.extended(
                           icon: Image.asset('assets/self_report_icon.png',
                               height: 25),
-                          label: Text('Self Report',
+                          label: Text('Report',
                               style: TextStyle(
                                   letterSpacing: 0,
                                   fontSize: 20,

@@ -141,12 +141,20 @@ class AppState with ChangeNotifier {
 
     final List<dynamic> _headers = [
       'key_data',
+      'rolling_period',
       'rolling_start_number',
+      'transmission_risk_level',
       'verified'
     ];
     var data = ListToCsvConverter().convert([_headers] +
         keys
-            .map((key) => [key.keyData, key.rollingStartNumber, false])
+            .map((key) => [
+                  key.keyData,
+                  key.rollingPeriod,
+                  key.rollingStartNumber,
+                  key.transmissionRiskLevel,
+                  true
+                ])
             .toList());
 
     try {

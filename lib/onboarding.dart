@@ -52,7 +52,8 @@ class OnboardingState extends State {
     setState(() => _requestExposure = true);
     try {
       await GactPlugin.startTracing();
-      bool allowed = (await GactPlugin.settings)["enableState"] == true;
+      bool allowed = (await GactPlugin.authorizationStatus) ==
+          AuthorizationStatus.Authorized;
 
       if (!allowed) {
         setState(() => _linkToSettings = true);

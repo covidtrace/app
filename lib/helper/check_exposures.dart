@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:covidtrace/config.dart';
 import 'package:covidtrace/helper/cloud_storage.dart';
 import 'package:covidtrace/storage/exposure.dart';
@@ -20,7 +21,7 @@ Future<ExposureInfo> checkExposures() async {
 
   var user = results[0];
   var config = results[1];
-  var dir = results[2];
+  var dir = results[2] as Directory;
 
   String publishedBucket = config['exposureKeysPublishedBucket'];
   var objects = await getPrefixMatches(publishedBucket, '');
@@ -31,7 +32,7 @@ Future<ExposureInfo> checkExposures() async {
   var threeWeeksAgo = DateTime.now().subtract(Duration(days: 21));
   var lastCheck = user.lastCheck ?? threeWeeksAgo;
   var lastCsv = '${(lastCheck.millisecondsSinceEpoch / 1000).floor()}.csv';
-  List<ExposureKey> keys = [];
+  List<Uri> keyFiles = [];
 
   await Future.wait(objects.where((object) {
     // Strip off geo prefix for lexical comparison
@@ -48,17 +49,25 @@ Future<ExposureInfo> checkExposures() async {
     print('processing $objectName');
 
     // Sync file to local storage and parse
-    var file = await syncObject(
-        dir.path, publishedBucket, objectName, object['md5Hash'] as String);
+    var file = File('${dir.path}/$publishedBucket/$objectName');
+    await syncObject(
+        file, publishedBucket, objectName, object['md5Hash'] as String);
 
+    // Parse CSV file and convert to ExposureKeys
     var rows = CsvToListConverter(shouldParseNumbers: false, eol: '\n')
         .convert(await file.readAsString());
-    keys.addAll(rows.map((row) => ExposureKey(row[0], int.parse(row[1]))));
+
+    var keyFile = File('${dir.path}/$publishedBucket/$objectName.pb');
+    var keys = rows.map((row) =>
+        ExposureKey(row[0], int.parse(row[1]), int.parse(row[2]), row[3]));
+
+    await GactPlugin.saveExposureKeyFile(keys, keyFile);
+    keyFiles.add(keyFile.uri);
   }));
 
   // Save all found exposures
   // TODO(wes): Need a way to prevent duplicate exposures
-  var exposures = await GactPlugin.checkExposure(keys);
+  var exposures = await GactPlugin.detectExposures(keyFiles);
   await Future.wait(exposures.map((e) {
     return ExposureModel(
             date: e.date,

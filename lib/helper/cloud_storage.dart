@@ -40,19 +40,18 @@ Future<List<dynamic>> getPrefixMatches(String bucket, String prefix) async {
   return objects;
 }
 
-Future<File> syncObject(
-    String localDir, String bucket, String object, String md5hash) async {
-  var fileHandle = new File('$localDir/$bucket/$object');
+Future<void> syncObject(
+    File fileHandle, String bucket, String object, String md5hash) async {
+  var changed = false;
 
   if (!await fileHandle.exists()) {
     await fileHandle.create(recursive: true);
+    changed = true;
+  } else {
+    changed = await fileChanged(fileHandle, md5hash);
   }
 
-  var checksum = base64Decode(md5hash);
-  var fileBytes = await fileHandle.readAsBytes();
-  var fileChecksum = md5.convert(fileBytes).bytes;
-
-  if (!listEquals(checksum, fileChecksum)) {
+  if (changed) {
     var fileResp =
         await http.get('https://$bucket.storage.googleapis.com/$object');
 
@@ -62,6 +61,16 @@ Future<File> syncObject(
 
     await fileHandle.writeAsBytes(fileResp.bodyBytes);
   }
+}
 
-  return fileHandle;
+Future<bool> fileChanged(File fileHandle, String md5hash) async {
+  if (!await fileHandle.exists()) {
+    return true;
+  }
+
+  var checksum = base64Decode(md5hash);
+  var fileBytes = await fileHandle.readAsBytes();
+  var fileChecksum = md5.convert(fileBytes).bytes;
+
+  return listEquals(checksum, fileChecksum);
 }
