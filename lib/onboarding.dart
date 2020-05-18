@@ -49,18 +49,26 @@ class OnboardingState extends State {
       return;
     }
 
-    setState(() => _requestExposure = true);
+    AuthorizationStatus status;
     try {
-      await GactPlugin.startTracing();
-      bool allowed = (await GactPlugin.authorizationStatus) ==
-          AuthorizationStatus.Authorized;
+      status = await GactPlugin.authorizationStatus;
+      print('enable exposure notification $status');
 
-      if (!allowed) {
+      if (status != AuthorizationStatus.Authorized) {
+        status = await GactPlugin.enableExposureNotification();
+      }
+
+      if (status != AuthorizationStatus.Authorized) {
         setState(() => _linkToSettings = true);
       }
     } catch (err) {
-      // TODO(wes): Prompt user to change settings?
+      print(err);
+      if (errorFromException(err) == ErrorCode.notAuthorized) {
+        setState(() => _linkToSettings = true);
+      }
     }
+
+    setState(() => _requestExposure = status == AuthorizationStatus.Authorized);
   }
 
   void requestNotifications(bool selected) async {
@@ -88,7 +96,7 @@ class OnboardingState extends State {
   Widget build(BuildContext context) {
     var bodyText = Theme.of(context)
         .textTheme
-        .body1
+        .bodyText2
         .merge(TextStyle(fontSize: 16, height: 1.4));
 
     var platform = Theme.of(context).platform;
@@ -116,7 +124,8 @@ class OnboardingState extends State {
                                   Expanded(
                                       child: Text(
                                     'Flatten The Curve',
-                                    style: Theme.of(context).textTheme.headline,
+                                    style:
+                                        Theme.of(context).textTheme.headline5,
                                   )),
                                   ClipRRect(
                                       borderRadius: BorderRadius.circular(50),
@@ -147,7 +156,7 @@ class OnboardingState extends State {
                                       child: Text('Enable Contact Tracing',
                                           style: Theme.of(context)
                                               .textTheme
-                                              .headline)),
+                                              .headline5)),
                                   Icon(Icons.near_me,
                                       size: 40, color: Colors.black38)
                                 ]),
@@ -194,7 +203,7 @@ class OnboardingState extends State {
                                   children: [
                                 Text(
                                   'What To Expect',
-                                  style: Theme.of(context).textTheme.headline,
+                                  style: Theme.of(context).textTheme.headline5,
                                 ),
                                 SizedBox(height: 10),
                                 Text(
@@ -218,7 +227,7 @@ class OnboardingState extends State {
                                                       'Enable notifications',
                                                       style: Theme.of(context)
                                                           .textTheme
-                                                          .title)),
+                                                          .headline6)),
                                               Switch.adaptive(
                                                   value: _requestNotification,
                                                   onChanged:

@@ -103,14 +103,15 @@ CREATE TABLE exposure (
   id INTEGER PRIMARY KEY,
   date TEXT,
   duration INTEGER,
-  attenuation_value INTEGER,
+  total_risk_score INTEGER,
+  transmission_risk_level INTEGER,
   reported INTEGER DEFAULT 0
 )
   ''',
     '''
 ALTER TABLE report ADD COLUMN last_exposure_key TEXT 
   ''',
-  ]
+  ],
 };
 
 Future<void> _runMigrations(db, oldVersion, newVersion) async {

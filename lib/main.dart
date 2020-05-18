@@ -191,10 +191,11 @@ class MainPageState extends State<MainPage> {
     var exp = await ExposureModel.findAll(limit: 1, orderBy: 'date DESC');
     if (exp.isEmpty) {
       await ExposureModel(
-              date: DateTime.now(),
-              duration: Duration(minutes: 5),
-              attenuationValue: 0)
-          .insert();
+        date: DateTime.now(),
+        duration: Duration(minutes: 5),
+        totalRiskScore: 6,
+        transmissionRiskLevel: 0,
+      ).insert();
     }
   }
 
@@ -218,7 +219,7 @@ class MainPageState extends State<MainPage> {
   void testNotification() async {
     Navigator.of(context).pop();
     showExposureNotification(
-        ExposureInfo(DateTime.now(), Duration(minutes: 5), 0));
+        ExposureInfo(DateTime.now(), Duration(minutes: 5), 6, 0));
   }
 
   resetVerified(AppState state) async {

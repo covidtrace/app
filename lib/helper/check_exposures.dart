@@ -42,6 +42,8 @@ Future<ExposureInfo> checkExposures() async {
     var fileNameParts = fileName.split('.');
     var unixTs = fileNameParts[0];
 
+    print('evaluating $fileName $lastCsv');
+
     //  Lexical comparison
     return '$unixTs.csv'.compareTo(lastCsv) >= 0;
   }).map((object) async {
@@ -58,23 +60,51 @@ Future<ExposureInfo> checkExposures() async {
         .convert(await file.readAsString());
 
     var keyFile = File('${dir.path}/$publishedBucket/$objectName.pb');
-    var keys = rows.map((row) =>
-        ExposureKey(row[0], int.parse(row[1]), int.parse(row[2]), row[3]));
+    var keys = rows.map((row) => ExposureKey(
+          row[0],
+          int.parse(row[1]),
+          int.parse(row[2]),
+          int.parse(row[3]),
+        ));
 
     await GactPlugin.saveExposureKeyFile(keys, keyFile);
     keyFiles.add(keyFile.uri);
   }));
 
   // Save all found exposures
-  // TODO(wes): Need a way to prevent duplicate exposures
-  var exposures = await GactPlugin.detectExposures(keyFiles);
-  await Future.wait(exposures.map((e) {
-    return ExposureModel(
-            date: e.date,
-            duration: e.duration,
-            attenuationValue: e.attenuationValue)
-        .insert();
-  }));
+  // TODO(wes): Read from config
+  await GactPlugin.setExposureConfiguration(
+      config['exposureNotificationConfiguration'] ??
+          {
+            "minimumRiskScore": 0,
+            "attenuationLevelValues": [1, 2, 3, 4, 5, 6, 7, 8],
+            "attenuationWeight": 50,
+            "daysSinceLastExposureLevelValues": [1, 2, 3, 4, 5, 6, 7, 8],
+            "daysSinceLastExposureWeight": 50,
+            "durationLevelValues": [1, 2, 3, 4, 5, 6, 7, 8],
+            "durationWeight": 50,
+            "transmissionRiskLevelValues": [1, 2, 3, 4, 5, 6, 7, 8],
+            "transmissionRiskWeight": 50
+          });
+
+  List<ExposureInfo> exposures;
+  try {
+    exposures = (await GactPlugin.detectExposures(keyFiles)).toList();
+    await Future.wait(exposures.map((e) {
+      return ExposureModel(
+        date: e.date,
+        duration: e.duration,
+        totalRiskScore: e.totalRiskScore,
+        transmissionRiskLevel: e.transmissionRiskLevel,
+      ).insert();
+    }));
+  } catch (err) {
+    print(err);
+    // TODO(wes): Figure out why detection session doesn't end properly
+    if (errorFromException(err) == ErrorCode.apiMisuse) {
+      return null;
+    }
+  }
 
   user.lastCheck = DateTime.now();
   await user.save();

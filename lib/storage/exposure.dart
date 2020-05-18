@@ -7,14 +7,16 @@ class ExposureModel {
   final int id;
   final DateTime date;
   final Duration duration;
-  final int attenuationValue;
+  final int totalRiskScore;
+  final int transmissionRiskLevel;
   bool reported;
 
   ExposureModel(
       {this.id,
       this.date,
       this.duration,
-      this.attenuationValue,
+      this.totalRiskScore,
+      this.transmissionRiskLevel,
       this.reported});
 
   Map<String, dynamic> toMap() {
@@ -24,7 +26,8 @@ class ExposureModel {
       'id': id,
       'date': day.toIso8601String(),
       'duration': duration.inMinutes,
-      'attenuation_value': attenuationValue,
+      'total_risk_score': totalRiskScore,
+      'transmission_risk_level': transmissionRiskLevel,
       'reported': reported == true ? 1 : 0,
     };
   }
@@ -49,7 +52,8 @@ class ExposureModel {
         id: rows[i]['id'],
         date: DateTime.parse(rows[i]['date']),
         duration: Duration(minutes: rows[i]['duration']),
-        attenuationValue: rows[i]['attenuation_value'],
+        totalRiskScore: rows[i]['total_risk_score'],
+        transmissionRiskLevel: rows[i]['transmission_risk_level'],
         reported: rows[i]['reported'] == 1,
       );
     });

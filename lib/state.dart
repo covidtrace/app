@@ -77,7 +77,8 @@ class AppState with ChangeNotifier {
       String bucket = config['exposureBucket'] ?? 'covidtrace-exposures';
       var data = jsonEncode({
         'duration': _exposure.duration.inMinutes,
-        'attenuationValue': _exposure.attenuationValue,
+        'totalRiskScore': _exposure.totalRiskScore,
+        'transmissionRiskLevel': _exposure.transmissionRiskLevel,
         'timestamp': DateFormat('yyyy-MM-dd').format(_exposure.date)
       });
 
@@ -130,9 +131,12 @@ class AppState with ChangeNotifier {
       {@required Map<String, dynamic> config, DateTime date}) async {
     Iterable<ExposureKey> keys;
     try {
-      keys = await GactPlugin.getExposureKeys();
+      keys = await GactPlugin.getExposureKeys(testMode: true);
     } catch (err) {
       print(err);
+      if (errorFromException(err) == ErrorCode.notAuthorized) {
+        return null;
+      }
     }
 
     if (keys == null || keys.isEmpty) {
@@ -144,7 +148,6 @@ class AppState with ChangeNotifier {
       'rolling_period',
       'rolling_start_number',
       'transmission_risk_level',
-      'verified'
     ];
     var data = ListToCsvConverter().convert([_headers] +
         keys
@@ -153,7 +156,6 @@ class AppState with ChangeNotifier {
                   key.rollingPeriod,
                   key.rollingStartNumber,
                   key.transmissionRiskLevel,
-                  true
                 ])
             .toList());
 

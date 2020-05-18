@@ -241,7 +241,7 @@ packages:
     description:
       path: "."
       ref: feat-en-api
-      resolved-ref: "3c8d866a29583bc6307bc6edee41096486d6c439"
+      resolved-ref: "52889ac27f37f26b4c440f6e6cd58b752218c92a"
       url: "git@github.com:covidtrace/contact_trace_plugin.git"
     source: git
     version: "0.0.2"
