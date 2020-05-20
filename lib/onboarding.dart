@@ -80,7 +80,6 @@ class OnboardingState extends State {
 
     setState(() => _requestNotification = allowed);
     var user = await UserModel.find();
-    user.trackLocation = true;
     await user.save();
   }
 

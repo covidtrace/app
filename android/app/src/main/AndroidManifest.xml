@@ -11,9 +11,6 @@
         android:label="COVID Trace"
         android:icon="@mipmap/ic_launcher">
         <meta-data android:name="com.transistorsoft.locationmanager.license" android:value="${locationManagerLicense}" />
-        <meta-data
-            android:name="com.google.android.geo.API_KEY"
-            android:value="${googleMapsApiKey}"/>
         <activity
             android:name=".MainActivity"
             android:launchMode="singleTop"
