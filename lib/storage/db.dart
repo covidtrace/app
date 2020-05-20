@@ -58,7 +58,7 @@ Future<String> _dataBasePath(String path) async {
 }
 
 Future<Database> _initDatabase() async {
-  return await openDatabase(await _dataBasePath('locations.db'), version: 1,
+  return await openDatabase(await _dataBasePath('covidtrace.db'), version: 1,
       onCreate: (db, version) async {
     initialScript.forEach((script) async => await db.execute(script));
     if (version > 1) {

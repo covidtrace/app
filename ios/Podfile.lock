@@ -3,15 +3,9 @@ PODS:
     - Flutter
   - background_fetch (0.5.4):
     - Flutter
-  - CocoaLumberjack (3.6.1):
-    - CocoaLumberjack/Core (= 3.6.1)
-  - CocoaLumberjack/Core (3.6.1)
   - e2e (0.0.1):
     - Flutter
   - Flutter (1.0.0)
-  - flutter_background_geolocation (1.7.0):
-    - CocoaLumberjack (~> 3.6.0)
-    - Flutter
   - flutter_local_notifications (0.0.1):
     - Flutter
   - FMDB (2.7.5):
@@ -46,7 +40,6 @@ DEPENDENCIES:
   - background_fetch (from `.symlinks/plugins/background_fetch/ios`)
   - e2e (from `.symlinks/plugins/e2e/ios`)
   - Flutter (from `Flutter`)
-  - flutter_background_geolocation (from `.symlinks/plugins/flutter_background_geolocation/ios`)
   - flutter_local_notifications (from `.symlinks/plugins/flutter_local_notifications/ios`)
   - gact_plugin (from `.symlinks/plugins/gact_plugin/ios`)
   - path_provider (from `.symlinks/plugins/path_provider/ios`)
@@ -62,7 +55,6 @@ DEPENDENCIES:
 
 SPEC REPOS:
   trunk:
-    - CocoaLumberjack
     - FMDB
 
 EXTERNAL SOURCES:
@@ -74,8 +66,6 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/e2e/ios"
   Flutter:
     :path: Flutter
-  flutter_background_geolocation:
-    :path: ".symlinks/plugins/flutter_background_geolocation/ios"
   flutter_local_notifications:
     :path: ".symlinks/plugins/flutter_local_notifications/ios"
   gact_plugin:
@@ -104,10 +94,8 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   app_settings: d103828c9f5d515c4df9ee754dabd443f7cedcf3
   background_fetch: c0d7c541f8495527ed7f167eb9ee2eeab0790703
-  CocoaLumberjack: b17ae15142558d08bbacf69775fa10c4abbebcc9
   e2e: 967b9b1fc533b7636a3b7a719f840c27f301fe1f
   Flutter: 0e3d915762c693b495b44d77113d4970485de6ec
-  flutter_background_geolocation: 5046073371cc210a1d128cfbc560533a51130293
   flutter_local_notifications: 9e4738ce2471c5af910d961a6b7eadcf57c50186
   FMDB: 2ce00b547f966261cd18927a3ddb07cb6f3db82a
   gact_plugin: becdcee3a5843c987db0d1104952b25561e81d95

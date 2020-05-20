@@ -27,8 +27,6 @@ if (flutterVersionName == null) {
     flutterVersionName = '1.0'
 }
 
-def locationManagerLicense = localProperties.getProperty('app.locationManagerLicense')
-
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
@@ -51,7 +49,6 @@ android {
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        manifestPlaceholders = [locationManagerLicense:locationManagerLicense]
     }
 
     signingConfigs {
