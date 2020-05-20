@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:covidtrace/storage/exposure.dart';
+import 'package:covidtrace/storage/report.dart';
 import 'package:flutter/foundation.dart';
 import 'package:gact_plugin/gact_plugin.dart';
 import 'package:provider/provider.dart';
@@ -196,6 +197,12 @@ class MainPageState extends State<MainPage> {
     await state.resetInfections();
   }
 
+  testReport(AppState state) async {
+    Navigator.of(context).pop();
+    await state.saveReport(
+        ReportModel(lastExposureKey: 'test-key', timestamp: DateTime.now()));
+  }
+
   resetReport(AppState state) async {
     Navigator.of(context).pop();
     await state.clearReport();
@@ -278,11 +285,6 @@ class MainPageState extends State<MainPage> {
                 : Drawer(
                     child: ListView(children: [
                     ListTile(
-                        leading: Icon(Icons.bluetooth_searching),
-                        title: Text('Beacons'),
-                        onTap: () => Navigator.of(context)
-                            .popAndPushNamed('/beacon_debug')),
-                    ListTile(
                         leading: Icon(Icons.bug_report),
                         title: Text('Test Exposure'),
                         onTap: testInfection),
@@ -295,6 +297,10 @@ class MainPageState extends State<MainPage> {
                       title: Text('Test Notification'),
                       onTap: testNotification,
                     ),
+                    ListTile(
+                        leading: Icon(Icons.assignment),
+                        title: Text('Test Report'),
+                        onTap: () => testReport(state)),
                     ListTile(
                         leading: Icon(Icons.delete_forever),
                         title: Text('Reset Report'),

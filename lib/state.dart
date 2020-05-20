@@ -62,7 +62,7 @@ class AppState with ChangeNotifier {
 
   ReportModel get report => _report;
 
-  Future<void> saveReport(user) async {
+  Future<void> saveReport(ReportModel report) async {
     _report = report;
     await _report.create();
     notifyListeners();
