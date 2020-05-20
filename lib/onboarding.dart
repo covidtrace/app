@@ -257,8 +257,9 @@ class OnboardingState extends State {
                                 SizedBox(height: 20),
                                 Center(
                                     child: Text('DO THE FIVE',
-                                        style:
-                                            Theme.of(context).textTheme.title)),
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .headline6)),
                                 SizedBox(height: 20),
                                 Column(
                                     crossAxisAlignment:

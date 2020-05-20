@@ -1,5 +1,6 @@
 import 'dart:async';
-import 'package:covidtrace/exposure.dart';
+
+import 'package:covidtrace/storage/exposure.dart';
 
 import 'operator.dart';
 import 'package:flutter/material.dart';
@@ -18,7 +19,7 @@ class DashboardState extends State with TickerProviderStateMixin {
   bool _expandHeader = false;
   bool _sendingExposure = false;
   bool _hideReport = true;
-  Exposure _oldest;
+  ExposureModel _oldest;
   AnimationController reportController;
   CurvedAnimation reportAnimation;
   AnimationController expandController;
@@ -48,8 +49,8 @@ class DashboardState extends State with TickerProviderStateMixin {
   }
 
   void loadOldest() async {
-    var exposure = await Exposure.getOne(newest: false, exposure: false);
-    setState(() => _oldest = exposure);
+    var exposures = await ExposureModel.findAll(limit: 1, orderBy: 'date');
+    setState(() => _oldest = exposures.isNotEmpty ? exposures.first : null);
   }
 
   void onStateChange() async {
@@ -125,7 +126,7 @@ class DashboardState extends State with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    var subhead = Theme.of(context).textTheme.subhead;
+    var subhead = Theme.of(context).textTheme.subtitle1;
     var alertText = TextStyle(color: Colors.white);
     var imageIcon = (String name) => ClipRRect(
         borderRadius: BorderRadius.circular(5),
@@ -159,7 +160,7 @@ class DashboardState extends State with TickerProviderStateMixin {
                                   Text('Report Submitted',
                                       style: Theme.of(context)
                                           .textTheme
-                                          .title
+                                          .headline6
                                           .merge(alertText)),
                                   Text(
                                       DateFormat.Md()
@@ -229,7 +230,7 @@ class DashboardState extends State with TickerProviderStateMixin {
       int days = 0;
       int hours = 0;
       if (_oldest != null) {
-        var diff = DateTime.now().difference(_oldest.start);
+        var diff = DateTime.now().difference(_oldest.date);
         days = diff.inDays;
         hours = diff.inHours;
       }
@@ -264,7 +265,7 @@ class DashboardState extends State with TickerProviderStateMixin {
                                         Text('No Exposures Found',
                                             style: Theme.of(context)
                                                 .textTheme
-                                                .title
+                                                .headline6
                                                 .merge(alertText)),
                                         Text(
                                             days >= 1
@@ -366,7 +367,7 @@ class DashboardState extends State with TickerProviderStateMixin {
                                       Text('Possible Exposure',
                                           style: Theme.of(context)
                                               .textTheme
-                                              .title
+                                              .headline6
                                               .merge(alertText)),
                                       Text(
                                           days >= 1

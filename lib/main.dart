@@ -5,10 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:gact_plugin/gact_plugin.dart';
 import 'package:provider/provider.dart';
 
-import 'beacon_debug.dart';
-import 'beacon_history.dart';
 import 'dashboard.dart';
-import 'location_history.dart';
 import 'helper/check_exposures.dart';
 import 'onboarding.dart';
 import 'package:background_fetch/background_fetch.dart';
@@ -16,7 +13,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'send_report.dart';
-import 'settings.dart';
 import 'state.dart';
 import 'package:wakelock/wakelock.dart';
 
@@ -85,10 +81,6 @@ class CovidTraceAppState extends State {
           routes: {
             '/onboarding': (context) => Onboarding(),
             '/home': (context) => MainPage(),
-            '/settings': (context) => SettingsView(),
-            '/location_history': (context) => LocationHistory(),
-            '/beacon_history': (context) => BeaconHistory(),
-            '/beacon_debug': (context) => BeaconDebug(),
           },
         );
       } else {

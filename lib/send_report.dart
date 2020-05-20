@@ -78,8 +78,8 @@ class SendReportState extends State<SendReport> {
 
     var textTheme = Theme.of(context).textTheme;
     var stepTextTheme =
-        textTheme.subhead.merge(TextStyle(color: Colors.black54));
-    var bodyText = textTheme.subhead.merge(TextStyle(height: 1.4));
+        textTheme.subtitle1.merge(TextStyle(color: Colors.black54));
+    var bodyText = textTheme.subtitle1.merge(TextStyle(height: 1.4));
 
     return Consumer<AppState>(
         builder: (context, state, _) => Scaffold(
@@ -131,8 +131,8 @@ class SendReportState extends State<SendReport> {
                           state: _step > 0
                               ? StepState.complete
                               : StepState.indexed,
-                          title:
-                              Text('Official Testing', style: textTheme.title),
+                          title: Text('Official Testing',
+                              style: textTheme.headline6),
                           content: Column(children: [
                             Text('Have you tested positive for COVID-19?',
                                 style: stepTextTheme),
@@ -163,7 +163,7 @@ class SendReportState extends State<SendReport> {
                           state: _step > 1
                               ? StepState.complete
                               : StepState.indexed,
-                          title: Text('Symptoms', style: textTheme.title),
+                          title: Text('Symptoms', style: textTheme.headline6),
                           content: Column(
                               mainAxisAlignment: MainAxisAlignment.start,
                               crossAxisAlignment: CrossAxisAlignment.start,
@@ -200,7 +200,7 @@ class SendReportState extends State<SendReport> {
                                       title: Text('Days with symptoms'),
                                       trailing: Text(
                                           '${_days.round() == 10 ? '10+' : _days.round()}',
-                                          style: textTheme.title),
+                                          style: textTheme.headline6),
                                     )),
                                 Slider.adaptive(
                                     min: 1,
@@ -211,7 +211,8 @@ class SendReportState extends State<SendReport> {
                               ])),
                       Step(
                           isActive: _step == 2,
-                          title: Text('Send Report', style: textTheme.title),
+                          title:
+                              Text('Send Report', style: textTheme.headline6),
                           content: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -223,7 +224,7 @@ class SendReportState extends State<SendReport> {
                                       value: _confirm,
                                       title: Text(
                                           'I strongly believe I have COVID-19',
-                                          style: textTheme.subtitle),
+                                          style: textTheme.subtitle2),
                                       onChanged: (selected) =>
                                           setState(() => _confirm = selected),
                                     )),

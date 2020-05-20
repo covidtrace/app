@@ -77,7 +77,7 @@ class VerifyPhoneState extends State with SingleTickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     var textTheme = Theme.of(context).textTheme;
-    var bodyText = textTheme.subhead.merge(TextStyle(height: 1.4));
+    var bodyText = textTheme.subtitle1.merge(TextStyle(height: 1.4));
 
     var loadIndicator = SizedBox(
         width: 20,
