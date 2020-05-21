@@ -40,18 +40,18 @@ const NON_EXPOSURE_FAQ = [
     "link": 'https://www.who.int/emergencies/diseases/novel-coronavirus-2019',
   },
   {
-    "icon": 'assets/stay_home_save_lives.png',
-    "title": 'Stay Home, Save Lives',
-    "body":
-        'Let frontline workers do their jobs. COVID-19 is spreading, and you may not know you’re infected until you’ve already infected others.',
-    "link": 'https://www.stayhomesavelives.us',
-  },
-  {
     "icon": 'assets/do_the_five.gif',
     "title": 'Do The Five',
     "body":
         '1. STAY home as much as you can\n2. KEEP a safe distance\n3. WASH hands often\n4. COVER your cough\n5. SICK? Call ahead',
     "link": 'https://www.google.com/covid19/#safety-tips',
+  },
+  {
+    "icon": 'assets/stay_home_save_lives.png',
+    "title": 'Stay Home, Save Lives',
+    "body":
+        'Let frontline workers do their jobs. COVID-19 is spreading, and you may not know you’re infected until you’ve already infected others.',
+    "link": 'https://www.stayhomesavelives.us',
   },
   {
     "icon": 'assets/crisis_test_line.png',
@@ -198,7 +198,7 @@ class DashboardState extends State with TickerProviderStateMixin {
   Widget cardIcon(String name) {
     return ClipRRect(
         borderRadius: BorderRadius.circular(5),
-        child: Image.asset(name, width: 50, height: 50, fit: BoxFit.contain));
+        child: Image.asset(name, width: 40, height: 40, fit: BoxFit.contain));
   }
 
   Widget createCard(BuildContext context, Map<String, String> item) {
@@ -264,13 +264,18 @@ class DashboardState extends State with TickerProviderStateMixin {
         .merge(TextStyle(fontWeight: FontWeight.bold));
     var alertText = TextStyle(color: Colors.white);
 
-    var heading = [
-      Center(child: Text(healthAuthority['name'], style: textTheme.caption)),
-      Center(
-          child: Text(
-              'Updated ${DateFormat.yMMMd().format(healthAuthority['updated'])}',
-              style: textTheme.caption)),
-    ];
+    var heading = (String title) => [
+          SizedBox(height: 20),
+          Center(
+              child: Text(healthAuthority['name'], style: textTheme.caption)),
+          Center(
+              child: Text(
+                  'Updated ${DateFormat.yMMMd().format(healthAuthority['updated'])}',
+                  style: textTheme.caption)),
+          SizedBox(height: 10),
+          Center(child: Text(title, style: subhead)),
+          SizedBox(height: 10),
+        ];
 
     return Consumer<AppState>(builder: (context, state, _) {
       if (state.report != null) {
@@ -320,12 +325,9 @@ class DashboardState extends State with TickerProviderStateMixin {
                               axisAlignment: 1.0,
                               sizeFactor: animation),
                         ])))),
-            SizedBox(height: 20),
-            ...heading,
-            SizedBox(height: 10),
-            Center(child: Text('What To Do Next', style: subhead)),
-            SizedBox(height: 5),
+            ...heading('What To Do Next'),
             ...REPORTED_FAQ.map((item) => createCard(context, item)),
+            SizedBox(height: 50), // Account for floating action button
           ]),
         );
       }
@@ -395,12 +397,9 @@ class DashboardState extends State with TickerProviderStateMixin {
                                       style: alertText)
                                 ],
                               )))),
-                  SizedBox(height: 20),
-                  ...heading,
-                  SizedBox(height: 10),
-                  Center(child: Text('Tips & Resources', style: subhead)),
-                  SizedBox(height: 5),
+                  ...heading('Tips & Resources'),
                   ...NON_EXPOSURE_FAQ.map((item) => createCard(context, item)),
+                  SizedBox(height: 50), // Account for floating action button
                 ])));
       }
 
@@ -451,11 +450,7 @@ class DashboardState extends State with TickerProviderStateMixin {
                                   "You were in close proximity to someone for ${exposure.duration.inMinutes * 2} minutes who tested positive for COVID-19.",
                                   style: alertText)
                             ])))),
-                SizedBox(height: 20),
-                ...heading,
-                SizedBox(height: 10),
-                Center(child: Text('What To Do Now', style: subhead)),
-                SizedBox(height: 5),
+                ...heading('What To Do Now'),
                 Card(
                   child: Padding(
                     padding: EdgeInsets.all(15),

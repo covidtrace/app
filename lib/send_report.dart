@@ -83,7 +83,7 @@ class SendReportState extends State<SendReport> {
 
     return Consumer<AppState>(
         builder: (context, state, _) => Scaffold(
-            appBar: AppBar(title: Text('Self Report')),
+            appBar: AppBar(title: Text('Report COVID-19')),
             body: Builder(builder: (context) {
               return SingleChildScrollView(
                   child: Column(children: [
