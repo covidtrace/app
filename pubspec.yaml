@@ -33,6 +33,7 @@ dependencies:
   http:
   intl:
   jaguar_jwt: ^2.1.6
+  package_info: ">=0.4.0+18 <2.0.0"
   path:
   path_provider: ^1.6.5
   provider: ^4.0.4

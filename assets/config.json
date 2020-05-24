@@ -1,0 +1,68 @@
+{
+  "healthAuthority": {
+    "name": "State Department of Health",
+    "updated": "2020-05-01"
+  },
+  "faqs": {
+    "non_exposure": [
+      {
+        "icon": "assets/who_logo.jpg",
+        "title": "World Health Organization",
+        "body": "Stay aware of the latest information on the COVID-19 outbreak, available on the WHO website and through your national and local public health authority.",
+        "link": "https://www.who.int/emergencies/diseases/novel-coronavirus-2019"
+      },
+      {
+        "icon": "assets/do_the_five.gif",
+        "title": "Do The Five",
+        "body": "1. STAY home as much as you can\n2. KEEP a safe distance\n3. WASH hands often\n4. COVER your cough\n5. SICK? Call ahead",
+        "link": "https://www.google.com/covid19/#safety-tips"
+      },
+      {
+        "icon": "assets/stay_home_save_lives.png",
+        "title": "Stay Home, Save Lives",
+        "body": "Let frontline workers do their jobs. COVID-19 is spreading, and you may not know you’re infected until you’ve already infected others.",
+        "link": "https://www.stayhomesavelives.us"
+      },
+      {
+        "icon": "assets/crisis_test_line.png",
+        "title": "Crisis Text Line",
+        "body": "Text HOME to 741741 from anywhere in the United States, anytime. Crisis Text Line is here for any crisis.",
+        "link": "https://www.crisistextline.org"
+      }
+    ],
+    "exposure": [
+      {
+        "title": "What should I do if I am not sick?",
+        "body": "You should monitor your health for fever, cough and shortness of breath during the 14 days after the last day you were in close contact with the sick person with COVID-19.",
+        "link": "https://coronavirus.wa.gov/"
+      },
+      {
+        "title": "What should I do if I work in critical infrastructure?",
+        "body": "Critical infrastructure workers who had close contact with a COVID-19 case can continue to work as long as they remain well without symptoms and if they take the following measures",
+        "link": "https://coronavirus.wa.gov/"
+      },
+      {
+        "title": "What is coronavirus disease 2019 (COVID-19)?",
+        "body": "COVID-19 is a respiratory disease caused by a new virus called SARS-CoV-2. The most common symptoms of the disease are fever, cough, and shortness of breath.",
+        "link": "https://coronavirus.wa.gov/"
+      }
+    ],
+    "reported": [
+      {
+        "title": "Protect others from getting sick",
+        "body": "Stay away from others for at least 7 days from when your symptoms first appeared",
+        "link": "https://www.cdc.gov/coronavirus/2019-ncov/if-you-are-sick/steps-when-sick.html"
+      },
+      {
+        "title": "Monitor your symptoms",
+        "body": "If your symptoms get worse, contact your doctor’s office",
+        "link": "https://www.cdc.gov/coronavirus/2019-ncov/if-you-are-sick/steps-when-sick.html"
+      },
+      {
+        "title": "Caring for yourself at home",
+        "body": "10 things you can do to manage your health at home",
+        "link": "https://www.cdc.gov/coronavirus/2019-ncov/if-you-are-sick/caring-for-yourself-at-home.html"
+      }
+    ]
+  }
+}

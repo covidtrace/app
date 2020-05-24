@@ -1,17 +1,18 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:covidtrace/storage/db.dart';
-import 'package:csv/csv.dart';
-import 'package:sqflite/sqflite.dart';
 import 'package:gact_plugin/gact_plugin.dart';
+import 'package:http/http.dart' as http;
+import 'package:package_info/package_info.dart';
+import 'package:sqflite/sqflite.dart';
 
 import 'config.dart';
 import 'helper/check_exposures.dart' as bg;
 import 'helper/signed_upload.dart';
 import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
-import 'package:uuid/uuid.dart';
 import 'storage/exposure.dart';
 import 'storage/report.dart';
 import 'storage/user.dart';
@@ -116,22 +117,14 @@ class AppState with ChangeNotifier {
         body: data);
   }
 
-  Future<bool> sendSymptoms(
-      {@required Map<String, dynamic> symptoms,
-      @required Map<String, dynamic> config}) {
-    var bucket = config['symptomBucket'] ?? 'covidtrace-symptoms';
-    return objectUpload(
-        config: config,
-        bucket: bucket,
-        object: '${Uuid().v4()}.json',
-        data: jsonEncode(symptoms));
-  }
-
   Future<List<ExposureKey>> sendExposureKeys(
-      {@required Map<String, dynamic> config, DateTime date}) async {
+      Map<String, dynamic> config, String verificationCode) async {
     Iterable<ExposureKey> keys;
+
     try {
-      keys = await GactPlugin.getExposureKeys(testMode: true);
+      // Note that using `testMode: true` will include today's exposure key
+      // which will be rejected by the exposure server if included.
+      keys = await GactPlugin.getExposureKeys(testMode: false);
     } catch (err) {
       print(err);
       if (errorFromException(err) == ErrorCode.notAuthorized) {
@@ -143,51 +136,48 @@ class AppState with ChangeNotifier {
       return keys?.toList();
     }
 
-    final List<dynamic> _headers = [
-      'key_data',
-      'rolling_period',
-      'rolling_start_number',
-      'transmission_risk_level',
-    ];
-    var data = ListToCsvConverter().convert([_headers] +
-        keys
-            .map((key) => [
-                  key.keyData,
-                  key.rollingPeriod,
-                  key.rollingStartNumber,
-                  key.transmissionRiskLevel,
-                ])
-            .toList());
+    var postData = {
+      "regions": ['US'],
+      "appPackageName": (await PackageInfo.fromPlatform()).packageName,
+      "platform": Platform.isIOS ? 'ios' : 'android',
+      "deviceVerificationPayload": await GactPlugin.deviceCheck,
+      "temporaryExposureKeys": keys
+          .map((k) => {
+                "key": k.keyData,
+                "rollingPeriod": k.rollingPeriod,
+                "rollingStartNumber": k.rollingStartNumber,
+                "transmissionRisk": k.transmissionRiskLevel
+              })
+          .toList(),
+      // TODO(wes): Support these fields, not currently required
+      // "verificationPayload": verificationCode,
+      // "padding": "",
+    };
 
-    try {
-      var success = await objectUpload(
-          config: config,
-          bucket: config['exposureKeysHoldingBucket'] ??
-              'covidtrace-exposure-keys-holding',
-          object: '${user.uuid}.csv',
-          contentType: 'text/csv; charset=utf-8',
-          data: data);
-      return success ? keys.toList() : null;
-    } catch (err) {
-      print(err);
-      return null;
+    var postResp = await http.post(
+      Uri.parse(config['exposurePublishUrl'] ??
+          'https://exposure-5v7v5qboea-uc.a.run.app'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(postData),
+    );
+
+    // TODO(wes): Handle verification failure
+    if (postResp.statusCode == 200) {
+      return keys.toList();
+    } else {
+      print(postResp.body);
     }
+
+    return null;
   }
 
-  Future<bool> sendReport(Map<String, dynamic> symptoms) async {
+  Future<bool> sendReport(String verificationCode) async {
     var success = false;
     var config = await getConfig();
 
-    int days = symptoms['days'];
-    var date = DateTime.now().subtract(Duration(days: 8 + days));
-
     try {
-      var results = await Future.wait([
-        sendSymptoms(symptoms: symptoms, config: config),
-        sendExposureKeys(config: config, date: date),
-      ]);
-
-      List<ExposureKey> keys = results[1] ?? [];
+      List<ExposureKey> keys =
+          await sendExposureKeys(config, verificationCode) ?? [];
 
       if (keys.isNotEmpty) {
         _report = ReportModel(

@@ -1,7 +1,11 @@
+import 'package:covidtrace/app_config.dart';
+import 'package:covidtrace/code_pin.dart';
+import 'package:covidtrace/info_card.dart';
 import 'package:covidtrace/operator.dart';
 import 'package:covidtrace/verify_phone.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'state.dart';
 
@@ -12,46 +16,46 @@ class SendReport extends StatefulWidget {
   SendReportState createState() => SendReportState();
 }
 
-class SendReportState extends State<SendReport> {
-  var _tested;
-  var _fever = false;
-  var _cough = false;
-  var _breathing = false;
-  var _days = 1.0;
-  var _confirm = false;
+class SendReportState extends State<SendReport> with TickerProviderStateMixin {
   var _loading = false;
   var _step = 0;
+  var _verificationCode = '';
+  bool _expandHeader = false;
+  AnimationController expandController;
+  CurvedAnimation animation;
+
+  void initState() {
+    super.initState();
+    expandController =
+        AnimationController(vsync: this, duration: Duration(milliseconds: 200));
+    animation =
+        CurvedAnimation(parent: expandController, curve: Curves.fastOutSlowIn);
+
+    Provider.of<AppState>(context, listen: false).addListener(onStateChange);
+  }
+
+  void onStateChange() async {
+    AppState state = Provider.of<AppState>(context, listen: false);
+    if (state.report != null) {
+      expandController.forward();
+      setState(() => _expandHeader = true);
+    }
+  }
 
   void onSubmit(context, AppState state) async {
-    if (!state.user.verified) {
-      state.user.token = await verifyPhone();
-      if (state.user.verified) {
-        await state.saveUser(state.user);
-      }
-    }
-
-    if (!state.user.verified) {
-      return;
-    }
-
     if (!await sendReport(state)) {
       Scaffold.of(context).showSnackBar(SnackBar(
           backgroundColor: Colors.deepOrange,
           content: Text('There was an error submitting your report')));
     } else {
-      Navigator.pop(context, true);
+      Scaffold.of(context).showSnackBar(
+          SnackBar(content: Text('Your report was successfully submitted')));
     }
   }
 
   Future<bool> sendReport(AppState state) async {
     setState(() => _loading = true);
-    var success = await state.sendReport({
-      'breathing': _breathing,
-      'cough': _cough,
-      'days': _days.toInt(),
-      'fever': _fever,
-      'tested': _tested,
-    });
+    var success = await state.sendReport(_verificationCode);
     setState(() => _loading = false);
 
     return success;
@@ -65,202 +69,215 @@ class SendReportState extends State<SendReport> {
     );
   }
 
+  void onCodeChange(context, String code) {
+    setState(() => _verificationCode = code);
+
+    if (codeComplete) {
+      FocusScope.of(context).unfocus();
+    }
+  }
+
+  bool get codeComplete => _verificationCode.length == 6;
+
+  List<Widget> getHeading(String title) {
+    var textTheme = Theme.of(context).textTheme;
+    var subhead = Theme.of(context)
+        .textTheme
+        .subtitle1
+        .merge(TextStyle(fontWeight: FontWeight.bold));
+
+    var authority = AppConfig.get()["healthAuthority"];
+
+    return [
+      SizedBox(height: 20),
+      Center(child: Text(authority['name'], style: textTheme.caption)),
+      Center(
+          child: Text(
+              'Updated ${DateFormat.yMMMd().format(DateTime.parse(authority['updated']))}',
+              style: textTheme.caption)),
+      SizedBox(height: 10),
+      Center(child: Text(title, style: subhead)),
+      SizedBox(height: 10),
+    ];
+  }
+
+  Widget buildReportedView(BuildContext context, AppState state) {
+    var alertText = TextStyle(color: Colors.white);
+
+    return Padding(
+      padding: EdgeInsets.only(left: 15, right: 15),
+      child: ListView(children: [
+        SizedBox(height: 15),
+        Container(
+            decoration: BoxDecoration(
+                color: Colors.blueGrey,
+                borderRadius: BorderRadius.circular(10)),
+            child: InkWell(
+                onTap: () {
+                  setState(() => _expandHeader = !_expandHeader);
+                  _expandHeader
+                      ? expandController.forward()
+                      : expandController.reverse();
+                },
+                child: Padding(
+                    padding: EdgeInsets.all(15),
+                    child: Column(children: [
+                      Row(children: [
+                        Expanded(
+                            child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                              Text('Report Submitted',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .headline6
+                                      .merge(alertText)),
+                              Text(
+                                  'On ${DateFormat.yMMMd().add_jm().format(state.report.timestamp)}',
+                                  style: alertText)
+                            ])),
+                        Image.asset('assets/clinic_medical_icon.png',
+                            height: 40),
+                      ]),
+                      SizeTransition(
+                          child: Column(children: [
+                            Divider(height: 20, color: Colors.white),
+                            Text(
+                                'Thank you for submitting your anonymized exposure history. Your data will help people at risk respond faster.',
+                                style: alertText)
+                          ]),
+                          axisAlignment: 1.0,
+                          sizeFactor: animation),
+                    ])))),
+        ...getHeading('What To Do Next'),
+        ...AppConfig.get()["faqs"]["reported"]
+            .map((item) => InfoCard(item: item)),
+        SizedBox(height: 10),
+      ]),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    var enableContinue = false;
-    switch (_step) {
-      case 0:
-        enableContinue = _tested != null;
-        break;
-      case 1:
-        enableContinue = _fever || _cough || _breathing;
-    }
-
+    var enableContinue = true;
     var textTheme = Theme.of(context).textTheme;
-    var stepTextTheme =
-        textTheme.subtitle1.merge(TextStyle(color: Colors.black54));
-    var bodyText = textTheme.subtitle1.merge(TextStyle(height: 1.4));
+    var stepTextTheme = textTheme.subtitle1;
 
     return Consumer<AppState>(
-        builder: (context, state, _) => Scaffold(
-            appBar: AppBar(title: Text('Report COVID-19')),
-            body: Builder(builder: (context) {
+      builder: (context, state, _) {
+        if (state.report != null) {
+          return Scaffold(body: buildReportedView(context, state));
+        }
+
+        return Scaffold(
+          body: GestureDetector(
+            onTap: () => FocusScope.of(context).unfocus(),
+            child: Builder(builder: (context) {
               return SingleChildScrollView(
-                  child: Column(children: [
-                Padding(
-                    padding: EdgeInsets.only(top: 20, left: 30, right: 30),
-                    child: Text(
-                        'When you report, you help others, save lives, and end the COVID-19 crisis sooner.',
-                        style: bodyText)),
-                Stepper(
-                    physics: NeverScrollableScrollPhysics(),
-                    currentStep: _step,
-                    onStepContinue: () => setState(() => _step++),
-                    onStepTapped: (index) {
-                      if (index < _step) {
+                child: Column(children: [
+                  Stepper(
+                      physics: NeverScrollableScrollPhysics(),
+                      currentStep: _step,
+                      onStepContinue: () => setState(() => _step++),
+                      onStepTapped: (index) {
                         setState(() => _step = index);
-                      }
-                    },
-                    onStepCancel: () => _step == 0
-                        ? Navigator.pop(context, false)
-                        : setState(() => _step--),
-                    controlsBuilder: (context, {onStepContinue, onStepCancel}) {
-                      return _step < 2
-                          ? ButtonBar(
-                              alignment: MainAxisAlignment.start,
-                              children: [
-                                  RaisedButton(
-                                      elevation: 0,
-                                      color: Theme.of(context)
-                                          .buttonTheme
-                                          .colorScheme
-                                          .primary,
-                                      onPressed: enableContinue
-                                          ? onStepContinue
-                                          : null,
-                                      child: Text('Continue')),
-                                  FlatButton(
-                                      onPressed: onStepCancel,
-                                      child: Text('Cancel')),
-                                ])
-                          : SizedBox.shrink();
-                    },
-                    steps: [
-                      Step(
+                      },
+                      onStepCancel: () =>
+                          _step == 0 ? null : setState(() => _step--),
+                      controlsBuilder: (context,
+                          {onStepContinue, onStepCancel}) {
+                        return _step < 2
+                            ? ButtonBar(
+                                alignment: MainAxisAlignment.start,
+                                children: [
+                                    RaisedButton(
+                                        elevation: 0,
+                                        color: Theme.of(context)
+                                            .buttonTheme
+                                            .colorScheme
+                                            .primary,
+                                        onPressed: enableContinue
+                                            ? onStepContinue
+                                            : null,
+                                        child: Text('Continue')),
+                                  ])
+                            : SizedBox.shrink();
+                      },
+                      steps: [
+                        Step(
                           isActive: _step == 0,
                           state: _step > 0
                               ? StepState.complete
                               : StepState.indexed,
-                          title: Text('Official Testing',
-                              style: textTheme.headline6),
-                          content: Column(children: [
-                            Text('Have you tested positive for COVID-19?',
-                                style: stepTextTheme),
-                            ...[
-                              'Tested Positive',
-                              'Tested Negative',
-                              'Pending',
-                              'Not Tested'
-                            ]
-                                .map((value) => ListTileTheme(
-                                    contentPadding: EdgeInsets.all(0),
-                                    child: RadioListTile(
-                                        controlAffinity:
-                                            ListTileControlAffinity.trailing,
-                                        groupValue: _tested,
-                                        value: value,
-                                        title: Text(value),
-                                        onChanged: (value) {
-                                          setState(() => _tested = value);
-                                          if (value == 'Tested Positive') {
-                                            setState(() => _confirm = true);
-                                          }
-                                        })))
-                                .toList()
-                          ])),
-                      Step(
-                          isActive: _step == 1,
-                          state: _step > 1
-                              ? StepState.complete
-                              : StepState.indexed,
-                          title: Text('Symptoms', style: textTheme.headline6),
-                          content: Column(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('What symptoms are you experiencing?',
-                                    style: stepTextTheme),
-                                ListTileTheme(
-                                    contentPadding: EdgeInsets.all(0),
-                                    child: CheckboxListTile(
-                                      value: _fever,
-                                      onChanged: (selected) =>
-                                          setState(() => _fever = selected),
-                                      title: Text('Fever (101°F or above)'),
-                                    )),
-                                ListTileTheme(
-                                    contentPadding: EdgeInsets.all(0),
-                                    child: CheckboxListTile(
-                                      value: _cough,
-                                      onChanged: (selected) =>
-                                          setState(() => _cough = selected),
-                                      title: Text('Dry cough'),
-                                    )),
-                                ListTileTheme(
-                                    contentPadding: EdgeInsets.all(0),
-                                    child: CheckboxListTile(
-                                      value: _breathing,
-                                      onChanged: (selected) =>
-                                          setState(() => _breathing = selected),
-                                      title: Text('Difficulty breathing'),
-                                    )),
-                                ListTileTheme(
-                                    contentPadding: EdgeInsets.only(right: 10),
-                                    child: ListTile(
-                                      title: Text('Days with symptoms'),
-                                      trailing: Text(
-                                          '${_days.round() == 10 ? '10+' : _days.round()}',
-                                          style: textTheme.headline6),
-                                    )),
-                                Slider.adaptive(
-                                    min: 1,
-                                    max: 10,
-                                    value: _days,
-                                    onChanged: (value) =>
-                                        setState(() => _days = value)),
-                              ])),
-                      Step(
-                          isActive: _step == 2,
                           title:
-                              Text('Send Report', style: textTheme.headline6),
-                          content: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                    'I understand that my anonymized location history outside my home will alert others who were nearby at the time of a possible infection.'),
-                                ListTileTheme(
-                                    contentPadding: EdgeInsets.all(0),
-                                    child: CheckboxListTile(
-                                      value: _confirm,
-                                      title: Text(
-                                          'I strongly believe I have COVID-19',
-                                          style: textTheme.subtitle2),
-                                      onChanged: (selected) =>
-                                          setState(() => _confirm = selected),
-                                    )),
-                                ButtonBar(
-                                    alignment: MainAxisAlignment.start,
-                                    children: [
-                                      RaisedButton(
-                                          padding: EdgeInsets.symmetric(
-                                              horizontal: 40),
-                                          color: Theme.of(context)
-                                              .buttonTheme
-                                              .colorScheme
-                                              .primary,
-                                          child: _loading
-                                              ? SizedBox(
-                                                  height: 20,
-                                                  width: 20,
-                                                  child: CircularProgressIndicator(
-                                                      strokeWidth: 2,
-                                                      value: null,
-                                                      valueColor:
-                                                          AlwaysStoppedAnimation(
-                                                              Colors.white)))
-                                              : Text("Submit"),
-                                          onPressed: _confirm
-                                              ? () => onSubmit(context, state)
-                                              : null),
-                                      FlatButton(
-                                        child: Text('Cancel'),
-                                        onPressed: () =>
-                                            Navigator.pop(context, false),
-                                      )
-                                    ]),
-                              ])),
-                    ])
-              ]));
-            })));
+                              Text('Notify Others', style: textTheme.headline6),
+                          content: Text(
+                              'If you have tested postive for COVID-19, anonymously sharing your diagnosis will help your community contain the spread of the virus.\n\nThis subimssion is completely optional.',
+                              style: stepTextTheme),
+                        ),
+                        Step(
+                            isActive: _step == 1,
+                            state: _step > 1
+                                ? StepState.complete
+                                : StepState.indexed,
+                            title: Text('What Will Be Shared',
+                                style: textTheme.headline6),
+                            content: Column(
+                                mainAxisAlignment: MainAxisAlignment.start,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                      'The random IDs generated by your phone and anonymously exchanged with others you have interacted with over the last 14 days will be shared.\n\nThis app neither collects nor shares any user identifiable information.',
+                                      style: stepTextTheme),
+                                ])),
+                        Step(
+                            isActive: _step == 2,
+                            title: Text('Verify Diagnosis',
+                                style: textTheme.headline6),
+                            content: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                      'Enter the verification code provided by your health official to submit your report.',
+                                      style: stepTextTheme),
+                                  CodePin(
+                                      size: 6,
+                                      onChange: (value) =>
+                                          onCodeChange(context, value)),
+                                  SizedBox(height: 10),
+                                  ButtonBar(
+                                      alignment: MainAxisAlignment.start,
+                                      children: [
+                                        RaisedButton(
+                                            padding: EdgeInsets.symmetric(
+                                                horizontal: 40),
+                                            color: Theme.of(context)
+                                                .buttonTheme
+                                                .colorScheme
+                                                .primary,
+                                            child: _loading
+                                                ? SizedBox(
+                                                    height: 20,
+                                                    width: 20,
+                                                    child: CircularProgressIndicator(
+                                                        strokeWidth: 2,
+                                                        value: null,
+                                                        valueColor:
+                                                            AlwaysStoppedAnimation(
+                                                                Colors.white)))
+                                                : Text("Submit"),
+                                            onPressed: codeComplete
+                                                ? () => onSubmit(context, state)
+                                                : null),
+                                      ]),
+                                ])),
+                      ])
+                ]),
+              );
+            }),
+          ),
+        );
+      },
+    );
   }
 }

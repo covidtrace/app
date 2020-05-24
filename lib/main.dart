@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:covidtrace/app_config.dart';
 import 'package:covidtrace/storage/exposure.dart';
 import 'package:covidtrace/storage/report.dart';
 import 'package:flutter/foundation.dart';
@@ -25,6 +26,8 @@ import 'package:wakelock/wakelock.dart';
 const EN_BACKGROUND_TASK_ID = 'com.covidtrace.test.exposure-notification';
 
 void main() async {
+  await AppConfig.load();
+
   runApp(ChangeNotifierProvider(
       create: (context) => AppState(), child: CovidTraceApp()));
 
@@ -97,6 +100,8 @@ class MainPage extends StatefulWidget {
 }
 
 class MainPageState extends State<MainPage> {
+  int _navIndex = 0;
+
   Future<void> initBackgroundFetch() async {
     await BackgroundFetch.configure(
         BackgroundFetchConfig(
@@ -228,92 +233,113 @@ class MainPageState extends State<MainPage> {
     await state.saveUser(user);
   }
 
+  onBottomNavTap(int index) {
+    setState(() {
+      _navIndex = index;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    var theme = Theme.of(context);
+    var selectedColor = theme.primaryColor;
+    var defaultColor = theme.textTheme.caption.color;
+
     return Consumer<AppState>(
         builder: (context, state, _) => Scaffold(
-            appBar: AppBar(
-              title: Row(mainAxisSize: MainAxisSize.min, children: [
-                Image.asset('assets/app_icon.png',
-                    fit: BoxFit.contain, height: 40),
-                Text('COVID Trace'),
-              ]),
-              actions: <Widget>[Container()], // Hides debug end drawer
-            ),
-            floatingActionButtonAnimator: FloatingActionButtonAnimator.scaling,
-            floatingActionButton: state.report != null
-                ? null
-                : Builder(
-                    builder: (context) => FloatingActionButton.extended(
-                          icon: Image.asset('assets/self_report_icon.png',
-                              height: 25),
-                          label: Text('Report',
-                              style: TextStyle(
-                                  letterSpacing: 0,
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.w500)),
-                          onPressed: () => showSendReport(context),
-                        )),
-            floatingActionButtonLocation:
-                FloatingActionButtonLocation.centerFloat,
-            // Use an empty bottom sheet to better control positiong of floating action button
-            bottomSheet: BottomSheet(
-                onClosing: () {},
-                builder: (context) {
-                  return SizedBox(height: 50);
-                }),
-            drawer: Drawer(
-              child: ListView(children: [
-                ListTile(
-                    leading: Icon(Icons.lock),
-                    title: Text('Privacy Policy'),
-                    onTap: () {
-                      Navigator.of(context).pop();
-                      launch('https://covidtrace.com/privacy-policy');
-                    }),
-                ListTile(
-                    leading: Icon(Icons.info),
-                    title: Text('About COVID Trace'),
-                    onTap: () {
-                      Navigator.of(context).pop();
-                      showInfoDialog();
-                    }),
-              ]),
-            ),
-            endDrawer: kReleaseMode
-                ? null
-                : Drawer(
-                    child: ListView(children: [
-                    ListTile(
-                        leading: Icon(Icons.bug_report),
-                        title: Text('Test Exposure'),
-                        onTap: testInfection),
-                    ListTile(
-                        leading: Icon(Icons.restore),
-                        title: Text('Reset Exposure'),
-                        onTap: () => resetInfection(state)),
-                    ListTile(
-                      leading: Icon(Icons.notifications),
-                      title: Text('Test Notification'),
-                      onTap: testNotification,
-                    ),
-                    ListTile(
-                        leading: Icon(Icons.assignment),
-                        title: Text('Test Report'),
-                        onTap: () => testReport(state)),
-                    ListTile(
-                        leading: Icon(Icons.delete_forever),
-                        title: Text('Reset Report'),
-                        onTap: () => resetReport(state)),
-                    ListTile(
-                        leading: Icon(Icons.verified_user),
-                        title: Text('Reset Verified'),
-                        onTap: () => resetVerified(state)),
-                    ListTile(
-                        leading: Icon(Icons.power_settings_new),
-                        title: Text('Reset Onboarding'),
-                        onTap: () => resetOnboarding(state)),
-                  ])),
-            body: Dashboard()));
+              appBar: AppBar(
+                title: Row(mainAxisSize: MainAxisSize.min, children: [
+                  Image.asset('assets/app_icon.png',
+                      fit: BoxFit.contain, height: 40),
+                  Text('COVID Trace'),
+                ]),
+                actions: <Widget>[Container()], // Hides debug end drawer
+              ),
+              bottomNavigationBar: BottomNavigationBar(
+                currentIndex: _navIndex,
+                onTap: (value) => onBottomNavTap(value),
+                items: [
+                  BottomNavigationBarItem(
+                      icon: Padding(
+                        padding: EdgeInsets.only(bottom: 5),
+                        child: Image.asset(
+                          'assets/people_arrows_icon.png',
+                          height: 25,
+                          color: _navIndex == 0 ? selectedColor : defaultColor,
+                        ),
+                      ),
+                      title: Text('Exposures')),
+                  BottomNavigationBarItem(
+                      icon: Padding(
+                        padding: EdgeInsets.only(bottom: 5),
+                        child: Image.asset(
+                          'assets/self_report_icon.png',
+                          height: 25,
+                          color: _navIndex == 1 ? selectedColor : defaultColor,
+                        ),
+                      ),
+                      title: Text('Notify Others')),
+                  BottomNavigationBarItem(
+                    icon: Icon(Icons.info_outline, size: 30),
+                    title: Text('About'),
+                  ),
+                ],
+              ),
+              drawer: Drawer(
+                child: ListView(children: [
+                  ListTile(
+                      leading: Icon(Icons.lock),
+                      title: Text('Privacy Policy'),
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        launch('https://covidtrace.com/privacy-policy');
+                      }),
+                  ListTile(
+                      leading: Icon(Icons.info),
+                      title: Text('About COVID Trace'),
+                      onTap: () {
+                        Navigator.of(context).pop();
+                        showInfoDialog();
+                      }),
+                ]),
+              ),
+              endDrawer: kReleaseMode
+                  ? null
+                  : Drawer(
+                      child: ListView(children: [
+                      ListTile(
+                          leading: Icon(Icons.bug_report),
+                          title: Text('Test Exposure'),
+                          onTap: testInfection),
+                      ListTile(
+                          leading: Icon(Icons.restore),
+                          title: Text('Reset Exposure'),
+                          onTap: () => resetInfection(state)),
+                      ListTile(
+                        leading: Icon(Icons.notifications),
+                        title: Text('Test Notification'),
+                        onTap: testNotification,
+                      ),
+                      ListTile(
+                          leading: Icon(Icons.assignment),
+                          title: Text('Test Report'),
+                          onTap: () => testReport(state)),
+                      ListTile(
+                          leading: Icon(Icons.delete_forever),
+                          title: Text('Reset Report'),
+                          onTap: () => resetReport(state)),
+                      ListTile(
+                          leading: Icon(Icons.verified_user),
+                          title: Text('Reset Verified'),
+                          onTap: () => resetVerified(state)),
+                      ListTile(
+                          leading: Icon(Icons.power_settings_new),
+                          title: Text('Reset Onboarding'),
+                          onTap: () => resetOnboarding(state)),
+                    ])),
+              body: _navIndex == 0
+                  ? Dashboard()
+                  : _navIndex == 1 ? SendReport() : null,
+            ));
   }
 }
