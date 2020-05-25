@@ -204,10 +204,7 @@ class DashboardState extends State with TickerProviderStateMixin {
                           SizedBox(height: 2),
                           Text(
                               'On ${DateFormat.EEEE().add_MMMd().format(exposure.date)}',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .subtitle1
-                                  .merge(alertText))
+                              style: alertText)
                         ])),
                     Image.asset('assets/shield_virus_icon.png', height: 40),
                   ]),

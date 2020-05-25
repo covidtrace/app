@@ -109,46 +109,50 @@ class SendReportState extends State<SendReport> with TickerProviderStateMixin {
       child: ListView(children: [
         SizedBox(height: 15),
         Container(
-            decoration: BoxDecoration(
-                color: Colors.blueGrey,
-                borderRadius: BorderRadius.circular(10)),
-            child: InkWell(
-                onTap: () {
-                  setState(() => _expandHeader = !_expandHeader);
-                  _expandHeader
-                      ? expandController.forward()
-                      : expandController.reverse();
-                },
-                child: Padding(
-                    padding: EdgeInsets.all(15),
-                    child: Column(children: [
-                      Row(children: [
-                        Expanded(
-                            child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                              Text('Report Submitted',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .headline6
-                                      .merge(alertText)),
-                              Text(
-                                  'On ${DateFormat.yMMMd().add_jm().format(state.report.timestamp)}',
-                                  style: alertText)
-                            ])),
-                        Image.asset('assets/clinic_medical_icon.png',
-                            height: 40),
+          decoration: BoxDecoration(
+              color: Colors.blueGrey, borderRadius: BorderRadius.circular(10)),
+          child: InkWell(
+            onTap: () {
+              setState(() => _expandHeader = !_expandHeader);
+              _expandHeader
+                  ? expandController.forward()
+                  : expandController.reverse();
+            },
+            child: Padding(
+              padding: EdgeInsets.all(15),
+              child: Column(
+                children: [
+                  Row(children: [
+                    Expanded(
+                        child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                          Text('Report Submitted',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .headline6
+                                  .merge(alertText)),
+                          SizedBox(height: 2),
+                          Text(
+                              'On ${DateFormat.yMMMd().add_jm().format(state.report.timestamp)}',
+                              style: alertText)
+                        ])),
+                    Image.asset('assets/clinic_medical_icon.png', height: 40),
+                  ]),
+                  SizeTransition(
+                      child: Column(children: [
+                        Divider(height: 20, color: Colors.white),
+                        Text(
+                            'Thank you for submitting your anonymized exposure history. Your data will help people at risk respond faster.',
+                            style: alertText)
                       ]),
-                      SizeTransition(
-                          child: Column(children: [
-                            Divider(height: 20, color: Colors.white),
-                            Text(
-                                'Thank you for submitting your anonymized exposure history. Your data will help people at risk respond faster.',
-                                style: alertText)
-                          ]),
-                          axisAlignment: 1.0,
-                          sizeFactor: animation),
-                    ])))),
+                      axisAlignment: 1.0,
+                      sizeFactor: animation),
+                ],
+              ),
+            ),
+          ),
+        ),
         ...getHeading('What To Do Next'),
         ...AppConfig.get()["faqs"]["reported"]
             .map((item) => InfoCard(item: item)),

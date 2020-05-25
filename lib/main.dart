@@ -135,55 +135,6 @@ class MainPageState extends State<MainPage> {
     initBackgroundFetch();
   }
 
-  showInfoDialog() {
-    return showDialog<void>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('COVID Trace'),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                Text(
-                    'Find out more about COVID Trace and how it works on our website.'),
-                SizedBox(height: 10),
-                InkWell(
-                  child: Text(
-                    'covidtrace.com',
-                    style: TextStyle(
-                      decoration: TextDecoration.underline,
-                    ),
-                  ),
-                  onTap: () => launch("https://covidtrace.com"),
-                ),
-              ],
-            ),
-          ),
-          actions: <Widget>[
-            FlatButton(
-              child: Text('Ok'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void showSendReport(context) async {
-    var sent = await Navigator.push(
-        context,
-        MaterialPageRoute(
-            fullscreenDialog: true, builder: (context) => SendReport()));
-
-    if (sent == true) {
-      Scaffold.of(context).showSnackBar(
-          SnackBar(content: Text('Your report was successfully submitted')));
-    }
-  }
-
   testInfection() async {
     Navigator.of(context).pop();
     var exp = await ExposureModel.findAll(limit: 1, orderBy: 'date DESC');
@@ -234,6 +185,11 @@ class MainPageState extends State<MainPage> {
   }
 
   onBottomNavTap(int index) {
+    if (index == 2) {
+      launch(AppConfig.get()['healthAuthority']['link']);
+      return;
+    }
+
     setState(() {
       _navIndex = index;
     });
@@ -284,24 +240,6 @@ class MainPageState extends State<MainPage> {
                     title: Text('About'),
                   ),
                 ],
-              ),
-              drawer: Drawer(
-                child: ListView(children: [
-                  ListTile(
-                      leading: Icon(Icons.lock),
-                      title: Text('Privacy Policy'),
-                      onTap: () {
-                        Navigator.of(context).pop();
-                        launch('https://covidtrace.com/privacy-policy');
-                      }),
-                  ListTile(
-                      leading: Icon(Icons.info),
-                      title: Text('About COVID Trace'),
-                      onTap: () {
-                        Navigator.of(context).pop();
-                        showInfoDialog();
-                      }),
-                ]),
               ),
               endDrawer: kReleaseMode
                   ? null
