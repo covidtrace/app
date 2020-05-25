@@ -72,7 +72,7 @@ class AppState with ChangeNotifier {
   Future<bool> sendExposure() async {
     var success = false;
     try {
-      var config = await getConfig();
+      var config = await Config.remote();
       var user = await UserModel.find();
 
       String bucket = config['exposureBucket'] ?? 'covidtrace-exposures';
@@ -173,7 +173,7 @@ class AppState with ChangeNotifier {
 
   Future<bool> sendReport(String verificationCode) async {
     var success = false;
-    var config = await getConfig();
+    var config = await Config.remote();
 
     try {
       List<ExposureKey> keys =

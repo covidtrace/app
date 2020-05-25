@@ -31,7 +31,7 @@ class Token {
 
 class Operator {
   static Future<String> init(String phone) async {
-    var config = await getConfig();
+    var config = await Config.remote();
     String operatorUrl = config['operatorUrl'];
 
     var resp = await http.post('$operatorUrl/init',
@@ -46,7 +46,7 @@ class Operator {
   }
 
   static Future<Token> verify(String token, String code) async {
-    var config = await getConfig();
+    var config = await Config.remote();
     String operatorUrl = config['operatorUrl'];
 
     var resp = await http.post('$operatorUrl/verify',
@@ -64,7 +64,7 @@ class Operator {
   }
 
   static Future<Token> refresh(String refreshToken) async {
-    var config = await getConfig();
+    var config = await Config.remote();
     String operatorUrl = config['operatorUrl'];
 
     var resp = await http.post(Uri.parse('$operatorUrl/refresh')

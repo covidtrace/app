@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:covidtrace/app_config.dart';
+import 'package:covidtrace/config.dart';
 import 'package:covidtrace/info_card.dart';
 import 'package:covidtrace/storage/exposure.dart';
 
@@ -95,7 +95,7 @@ class DashboardState extends State with TickerProviderStateMixin {
         .merge(TextStyle(fontWeight: FontWeight.bold));
     var alertText = TextStyle(color: Colors.white);
 
-    var config = AppConfig.get();
+    var config = Config.get();
     var authority = config["healthAuthority"];
     var faqs = config["faqs"];
 

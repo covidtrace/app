@@ -1,10 +1,12 @@
 import 'dart:io';
 
-import 'package:covidtrace/app_config.dart';
+import 'package:animations/animations.dart';
+import 'package:covidtrace/config.dart';
 import 'package:covidtrace/storage/exposure.dart';
 import 'package:covidtrace/storage/report.dart';
 import 'package:flutter/foundation.dart';
 import 'package:gact_plugin/gact_plugin.dart';
+import 'package:package_info/package_info.dart';
 import 'package:provider/provider.dart';
 
 import 'dashboard.dart';
@@ -18,15 +20,8 @@ import 'send_report.dart';
 import 'state.dart';
 import 'package:wakelock/wakelock.dart';
 
-/// This Task ID must match the bundle ID that has the granted entitlements
-/// and end in `exposure-notification`. See:
-/// https://developer.apple.com/documentation/exposurenotification/building_an_app_to_notify_users_of_covid-19_exposure
-
-// TODO(wes): Move to ENV config
-const EN_BACKGROUND_TASK_ID = 'com.covidtrace.test.exposure-notification';
-
 void main() async {
-  await AppConfig.load();
+  await Config.load();
 
   runApp(ChangeNotifierProvider(
       create: (context) => AppState(), child: CovidTraceApp()));
@@ -103,6 +98,12 @@ class MainPageState extends State<MainPage> {
   int _navIndex = 0;
 
   Future<void> initBackgroundFetch() async {
+    /// This Task ID must match the bundle ID that has the granted entitlements
+    /// and end in `exposure-notification`. See:
+    /// https://developer.apple.com/documentation/exposurenotification/building_an_app_to_notify_users_of_covid-19_exposure
+    var packageName = (await PackageInfo.fromPlatform()).packageName;
+    var enTaskID = '$packageName.exposure-notification';
+
     await BackgroundFetch.configure(
         BackgroundFetchConfig(
           enableHeadless: true,
@@ -115,14 +116,14 @@ class MainPageState extends State<MainPage> {
           startOnBoot: true,
           stopOnTerminate: false,
         ), (String taskId) async {
-      if (taskId == EN_BACKGROUND_TASK_ID) {
+      if (taskId == enTaskID) {
         await checkExposures();
       }
       BackgroundFetch.finish(taskId);
     });
 
-    await BackgroundFetch.scheduleTask(TaskConfig(
-        taskId: EN_BACKGROUND_TASK_ID, delay: 1000 * 60 * 15, periodic: true));
+    await BackgroundFetch.scheduleTask(
+        TaskConfig(taskId: enTaskID, delay: 1000 * 60 * 15, periodic: true));
   }
 
   @override
@@ -184,9 +185,9 @@ class MainPageState extends State<MainPage> {
     await state.saveUser(user);
   }
 
-  onBottomNavTap(int index) {
+  onBottomNavTap(int index) async {
     if (index == 2) {
-      launch(AppConfig.get()['healthAuthority']['link']);
+      launch(Config.get()['healthAuthority']['link']);
       return;
     }
 
@@ -275,9 +276,17 @@ class MainPageState extends State<MainPage> {
                           title: Text('Reset Onboarding'),
                           onTap: () => resetOnboarding(state)),
                     ])),
-              body: _navIndex == 0
-                  ? Dashboard()
-                  : _navIndex == 1 ? SendReport() : null,
+              body: PageTransitionSwitcher(
+                transitionBuilder:
+                    (child, primaryAnimation, secondaryAnimation) {
+                  return FadeThroughTransition(
+                    child: child,
+                    animation: primaryAnimation,
+                    secondaryAnimation: secondaryAnimation,
+                  );
+                },
+                child: _navIndex == 0 ? Dashboard() : SendReport(),
+              ),
             ));
   }
 }

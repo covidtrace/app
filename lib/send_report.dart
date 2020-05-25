@@ -1,5 +1,5 @@
-import 'package:covidtrace/app_config.dart';
 import 'package:covidtrace/code_pin.dart';
+import 'package:covidtrace/config.dart';
 import 'package:covidtrace/info_card.dart';
 import 'package:covidtrace/operator.dart';
 import 'package:covidtrace/verify_phone.dart';
@@ -86,7 +86,7 @@ class SendReportState extends State<SendReport> with TickerProviderStateMixin {
         .subtitle1
         .merge(TextStyle(fontWeight: FontWeight.bold));
 
-    var authority = AppConfig.get()["healthAuthority"];
+    var authority = Config.get()["healthAuthority"];
 
     return [
       SizedBox(height: 20),
@@ -154,8 +154,7 @@ class SendReportState extends State<SendReport> with TickerProviderStateMixin {
           ),
         ),
         ...getHeading('What To Do Next'),
-        ...AppConfig.get()["faqs"]["reported"]
-            .map((item) => InfoCard(item: item)),
+        ...Config.get()["faqs"]["reported"].map((item) => InfoCard(item: item)),
         SizedBox(height: 10),
       ]),
     );

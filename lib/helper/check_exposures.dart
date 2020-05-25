@@ -15,7 +15,7 @@ Future<ExposureInfo> checkExposures() async {
 
   var results = await Future.wait([
     UserModel.find(),
-    getConfig(),
+    Config.remote(),
     getApplicationSupportDirectory(),
   ]);
 
