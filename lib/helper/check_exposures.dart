@@ -71,22 +71,10 @@ Future<ExposureInfo> checkExposures() async {
     keyFiles.add(keyFile.uri);
   }));
 
-  // Save all found exposures
-  // TODO(wes): Read from config
   await GactPlugin.setExposureConfiguration(
-      config['exposureNotificationConfiguration'] ??
-          {
-            "minimumRiskScore": 0,
-            "attenuationLevelValues": [1, 2, 3, 4, 5, 6, 7, 8],
-            "attenuationWeight": 50,
-            "daysSinceLastExposureLevelValues": [1, 2, 3, 4, 5, 6, 7, 8],
-            "daysSinceLastExposureWeight": 50,
-            "durationLevelValues": [1, 2, 3, 4, 5, 6, 7, 8],
-            "durationWeight": 50,
-            "transmissionRiskLevelValues": [1, 2, 3, 4, 5, 6, 7, 8],
-            "transmissionRiskWeight": 50
-          });
+      config['exposureNotificationConfiguration']);
 
+  // Save all found exposures
   List<ExposureInfo> exposures;
   try {
     exposures = (await GactPlugin.detectExposures(keyFiles)).toList();
