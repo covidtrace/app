@@ -1,26 +1,24 @@
 # COVID Trace
+
+COVID Trace is a mobile app that use the Google/Apple Exposure Notification APIs to alert users to potential COVID-19 exposures.
+
+Main features:
+
+- Integrates with the reference [Google Exposure Notification Server](https://github.com/google/exposure-notifications-server)
+- Has support for verifying positive COVID-19 diagnosis from authorized health authorities.
+- Is easily customizable for the specific needs of local governments and health organizations.
+
 <a href="https://www.figma.com/proto/dZ26JcuOaKsLCMzz3KEnKH/COVID-Trace-App?node-id=1%3A8&scaling=scale-down">![Screenshot of Mobile App](https://covidtrace.com/static/9d0931ab8ac1b315288d947d475bf49e/b19f8/preview.png)</a>
 
 ## Local Setup
 
-The app requires you to specify some local configuration values to be able to compile debug and release builds for Android and iOS.
+The app is build on the Flutter framework for both iOS and Android. Follow the local development setup guide here:
+https://flutter.dev/docs/get-started/install
 
-### For iOS do the following:
+The app relies on a combination of local and remote JSON configuration. Be sure to edit `assets/config.json` to specify your remote configuration URL. A sample remote configuration can viewed here:
+https://storage.googleapis.com/covidtrace-config/config.json
 
-Create `ios/Flutter/App.xcconfig` and add the following line
-
-```
-GOOGLE_MAPS_API_KEY={INSERT_GOOGLE_API_KEY_HERE}
-```
-
-### For Android do the following:
-
-Modify `app/android/local.properties` and add the following lines
-
-```
-app.googleMapsApiKey={INSERT_GOOGLE_API_KEY_HERE}
-app.locationManagerLicense={INSERT_BACKGROUND_LOCATION_LICENSE_KEY_HERE}
-```
+In particular you should update `exposurePublishUrl` to point to your server for reporting expsoure keys.
 
 ## Troubleshooting
 
