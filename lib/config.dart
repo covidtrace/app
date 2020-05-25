@@ -28,10 +28,17 @@ class Config {
       await load();
     }
 
-    var configResp = await http.get(_local['remote']);
-    if (configResp.statusCode != 200) {
-      throw ("Unable to fetch config file");
+    // Allow local "remote" configuration for easier development/testing
+    var remoteUrl = Uri.parse(_local['remote']);
+    if (remoteUrl.hasScheme) {
+      var configResp = await http.get(remoteUrl.toString());
+      if (configResp.statusCode != 200) {
+        throw ("Unable to fetch config file");
+      }
+      return jsonDecode(configResp.body);
+    } else {
+      var configResp = await rootBundle.loadString(remoteUrl.toString());
+      return jsonDecode(configResp);
     }
-    return jsonDecode(configResp.body);
   }
 }

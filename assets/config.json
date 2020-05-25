@@ -1,5 +1,5 @@
 {
-  "remote": "https://storage.googleapis.com/covidtrace-config/config.json",
+  "remote": "assets/remote.json",
   "healthAuthority": {
     "name": "State Department of Health",
     "updated": "2020-05-01",

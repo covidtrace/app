@@ -15,10 +15,16 @@ Main features:
 The app is build on the Flutter framework for both iOS and Android. Follow the local development setup guide here:
 https://flutter.dev/docs/get-started/install
 
-The app relies on a combination of local and remote JSON configuration. Be sure to edit `assets/config.json` to specify your remote configuration URL. A sample remote configuration can viewed here:
-https://storage.googleapis.com/covidtrace-config/config.json
+The app relies on a combination of local and remote JSON configuration. Be sure to edit `assets/config.json` to specify your remote configuration URL. Here's the minimum remote configuration you must specify:
 
-In particular you should update `exposurePublishUrl` to point to your server for reporting expsoure keys.
+```json
+{
+  "exposurePublishUrl": "http://localhost:8080",
+  "exposureKeysPublishedBucket": "covidtrace-exposure-keys-published"
+}
+```
+
+In particular you should update `exposurePublishUrl` to point to your server for reporting expsoure keys. For local development, you can specify a path in the `/assets` directory to a configuration.
 
 ## Troubleshooting
 

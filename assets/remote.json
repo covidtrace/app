@@ -1,0 +1,4 @@
+{
+  "exposurePublishUrl": "http://localhost:8080",
+  "exposureKeysPublishedBucket": "covidtrace-exposure-keys-published"
+}

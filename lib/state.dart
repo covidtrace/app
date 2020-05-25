@@ -155,8 +155,7 @@ class AppState with ChangeNotifier {
     };
 
     var postResp = await http.post(
-      Uri.parse(config['exposurePublishUrl'] ??
-          'https://exposure-5v7v5qboea-uc.a.run.app'),
+      Uri.parse(config['exposurePublishUrl']),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode(postData),
     );
