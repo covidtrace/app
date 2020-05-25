@@ -50,33 +50,21 @@ class CovidTraceApp extends StatefulWidget {
 }
 
 class CovidTraceAppState extends State {
-  static final primaryValue = 0xFFFC4349;
-  // Created by: https://www.colorbox.io/#steps=11#hue_start=348#hue_end=334#hue_curve=easeInQuad#sat_start=4#sat_end=90#sat_curve=easeOutQuad#sat_rate=130#lum_start=100#lum_end=53#lum_curve=easeOutQuad#lock_hex=#FC4349#minor_steps_map=none
-  static final primaryColor = MaterialColor(
-    primaryValue,
-    <int, Color>{
-      50: Color(0xFFFFF2F4),
-      100: Color(0xFFFFC8D1),
-      200: Color(0xFFFF9EAA),
-      300: Color(0xFFFF7884),
-      400: Color(0xFFFF5A63),
-      500: Color(primaryValue),
-      600: Color(0xFFEA2237),
-      700: Color(0xFFD5173A),
-      800: Color(0xFFBD0E3D),
-      900: Color(0xFFA2063D),
-    },
-  );
-
   @override
   Widget build(BuildContext context) {
+    var swatch = Config.get()['primarySwatch'];
+    var colorMap = Map.fromEntries((swatch as Map<String, dynamic>)
+        .map((key, value) => MapEntry(int.parse(key), Color(int.parse(value))))
+        .entries);
+
     return Consumer<AppState>(builder: (context, state, _) {
       if (state.user != null) {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
           initialRoute: state.user.onboarding == true ? '/onboarding' : '/home',
           title: 'COVID Trace',
-          theme: ThemeData(primarySwatch: primaryColor),
+          theme: ThemeData(
+              primarySwatch: MaterialColor(colorMap[500].value, colorMap)),
           routes: {
             '/onboarding': (context) => Onboarding(),
             '/home': (context) => MainPage(),

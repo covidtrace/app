@@ -69,5 +69,17 @@
         "link": "https://www.cdc.gov/coronavirus/2019-ncov/if-you-are-sick/caring-for-yourself-at-home.html"
       }
     ]
+  },
+  "primarySwatch": {
+    "50": "0xfffff2f4",
+    "100": "0xffffc8d1",
+    "200": "0xffff9eaa",
+    "300": "0xffff7884",
+    "400": "0xffff5a63",
+    "500": "0xFFFC4349",
+    "600": "0xffea2237",
+    "700": "0xffd5173a",
+    "800": "0xffbd0e3d",
+    "900": "0xffa2063d"
   }
 }
