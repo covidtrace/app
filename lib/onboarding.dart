@@ -1,4 +1,5 @@
 import 'package:app_settings/app_settings.dart';
+import 'package:covidtrace/config.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -167,7 +168,8 @@ class OnboardingState extends State {
                                 recognizer: TapGestureRecognizer()
                                   ..onTap = () {
                                     try {
-                                      launch('https://covidtrace.com');
+                                      launch(Config.get()['onboarding']
+                                          ['en_faq_link']);
                                     } catch (err) {}
                                   })
                           ]),

@@ -35,7 +35,7 @@ The app relies on a combination of local and remote JSON configuration. Be sure 
 }
 ```
 
-In particular you should update `exposurePublishUrl` to point to your server for reporting expsoure keys. For local development, you can specify a path in the `/assets` directory to a configuration.
+In particular you should update `exposurePublishUrl` to point to your server for reporting expsoure keys. For local development, you can specify a path in the `/assets` directory to a "remote" configuration.
 
 ## Troubleshooting
 
