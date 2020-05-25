@@ -30,7 +30,6 @@ dependencies:
     git:
       url: git@github.com:covidtrace/contact_trace_plugin.git
       ref: feat-en-api
-  google_maps_flutter: ^0.5.24+1
   http:
   intl:
   jaguar_jwt: ^2.1.6
