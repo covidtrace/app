@@ -30,7 +30,7 @@ packages:
     source: hosted
     version: "3.0.1"
   archive:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: archive
       url: "https://pub.dartlang.org"
@@ -205,8 +205,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: feat-en-api
-      resolved-ref: "52889ac27f37f26b4c440f6e6cd58b752218c92a"
+      ref: HEAD
+      resolved-ref: "14d6f5c4cf84966cb32089af5e2aea11dba49a31"
       url: "git@github.com:covidtrace/contact_trace_plugin.git"
     source: git
     version: "0.0.2"

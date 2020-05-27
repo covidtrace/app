@@ -21,6 +21,7 @@ The app relies on a combination of local and remote JSON configuration. Be sure 
 {
   "exposurePublishUrl": "http://localhost:8080",
   "exposureKeysPublishedBucket": "covidtrace-exposure-keys-published",
+  "exposureKeysPublishedIndexFile": "exposure-keys/index.txt",
   "exposureNotificationConfiguration": {
     "minimumRiskScore": 0,
     "attenuationLevelValues": [1, 2, 3, 4, 5, 6, 7, 8],

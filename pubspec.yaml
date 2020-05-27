@@ -19,6 +19,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  archive:
   animations: ^1.0.0+5
   app_settings: 3.0.1
   background_fetch: ^0.5.3
@@ -29,7 +30,6 @@ dependencies:
   gact_plugin:
     git:
       url: git@github.com:covidtrace/contact_trace_plugin.git
-      ref: feat-en-api
   http:
   intl:
   jaguar_jwt: ^2.1.6

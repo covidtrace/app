@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:archive/archive_io.dart';
 import 'package:covidtrace/config.dart';
-import 'package:covidtrace/helper/cloud_storage.dart';
 import 'package:covidtrace/storage/exposure.dart';
 import 'package:covidtrace/storage/user.dart';
-import 'package:csv/csv.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:gact_plugin/gact_plugin.dart';
+import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -24,7 +24,13 @@ Future<ExposureInfo> checkExposures() async {
   var dir = results[2] as Directory;
 
   String publishedBucket = config['exposureKeysPublishedBucket'];
-  var objects = await getPrefixMatches(publishedBucket, '');
+  String indexFileName = config['exposureKeysPublishedIndexFile'];
+
+  var indexFile = await http
+      .get('https://$publishedBucket.storage.googleapis.com/$indexFileName');
+  if (indexFile.statusCode != 200) {
+    return null;
+  }
 
   // Filter objects for any that are lexically equal to or greater than
   // the CSVs we last downloaded. If we have never checked before, we
@@ -34,41 +40,46 @@ Future<ExposureInfo> checkExposures() async {
   var lastCsv = '${(lastCheck.millisecondsSinceEpoch / 1000).floor()}.csv';
   List<Uri> keyFiles = [];
 
-  await Future.wait(objects.where((object) {
-    // Strip off geo prefix for lexical comparison
-    var fileName = object['name'] as String;
-
-    // Perform lexical comparison. Object names look like: '$UNIX_TS.csv'
-    var fileNameParts = fileName.split('.');
-    var unixTs = fileNameParts[0];
-
-    print('evaluating $fileName $lastCsv');
-
-    //  Lexical comparison
-    return '$unixTs.csv'.compareTo(lastCsv) >= 0;
+  // Download exported zip files
+  var exportFiles = indexFile.body.split('\n');
+  var downloads = await Future.wait(exportFiles.where((object) {
+    // TODO(wes): Store last downloaded file in DB
+    return true;
   }).map((object) async {
-    var objectName = object['name'] as String;
-    print('processing $objectName');
+    print('Downloading $object');
+    // Download each exported zip file
+    var response = await http
+        .get('https://$publishedBucket.storage.googleapis.com/$object');
+    if (response.statusCode != 200) {
+      print(response.body);
+      return null;
+    }
 
-    // Sync file to local storage and parse
-    var file = File('${dir.path}/$publishedBucket/$objectName');
-    await syncObject(
-        file, publishedBucket, objectName, object['md5Hash'] as String);
+    var keyFile = File('${dir.path}/$publishedBucket/$object');
+    if (!await keyFile.exists()) {
+      await keyFile.create(recursive: true);
+    }
+    return keyFile.writeAsBytes(response.bodyBytes);
+  }));
 
-    // Parse CSV file and convert to ExposureKeys
-    var rows = CsvToListConverter(shouldParseNumbers: false, eol: '\n')
-        .convert(await file.readAsString());
+  // Decompress and verify downloads
+  keyFiles = await Future.wait(downloads.map((file) async {
+    var archive = ZipDecoder().decodeBytes(await file.readAsBytes());
+    var first = archive.files[0];
+    var second = archive.files[1];
 
-    var keyFile = File('${dir.path}/$publishedBucket/$objectName.pb');
-    var keys = rows.map((row) => ExposureKey(
-          row[0],
-          int.parse(row[1]),
-          int.parse(row[2]),
-          int.parse(row[3]),
-        ));
+    var bin = first.name == 'export.bin' ? first : second;
+    // TODO(wes): Verify signature
+    var sig = bin == first ? second : first;
 
-    await GactPlugin.saveExposureKeyFile(keys, keyFile);
-    keyFiles.add(keyFile.uri);
+    // Save bin file to disk
+    var binFile = File('${file.path}.bin');
+    if (!await binFile.exists()) {
+      await binFile.create(recursive: true);
+    }
+    // Skip 16-byte header
+    await binFile.writeAsBytes((bin.content as List<int>).sublist(16));
+    return binFile.uri;
   }));
 
   await GactPlugin.setExposureConfiguration(
