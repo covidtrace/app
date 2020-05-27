@@ -77,8 +77,7 @@ Future<ExposureInfo> checkExposures() async {
     if (!await binFile.exists()) {
       await binFile.create(recursive: true);
     }
-    // Skip 16-byte header
-    await binFile.writeAsBytes((bin.content as List<int>).sublist(16));
+    await binFile.writeAsBytes(bin.content as List<int>);
     return binFile.uri;
   }));
 
@@ -99,10 +98,7 @@ Future<ExposureInfo> checkExposures() async {
     }));
   } catch (err) {
     print(err);
-    // TODO(wes): Figure out why detection session doesn't end properly
-    if (errorFromException(err) == ErrorCode.apiMisuse) {
-      return null;
-    }
+    return null;
   }
 
   user.lastCheck = DateTime.now();
