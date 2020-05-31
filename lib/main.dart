@@ -1,23 +1,22 @@
 import 'dart:io';
 
 import 'package:animations/animations.dart';
+import 'package:background_fetch/background_fetch.dart';
 import 'package:covidtrace/config.dart';
+import 'package:covidtrace/dashboard.dart';
+import 'package:covidtrace/helper/check_exposures.dart';
+import 'package:covidtrace/onboarding.dart';
+import 'package:covidtrace/send_report.dart';
+import 'package:covidtrace/state.dart';
 import 'package:covidtrace/storage/exposure.dart';
 import 'package:covidtrace/storage/report.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:gact_plugin/gact_plugin.dart';
 import 'package:package_info/package_info.dart';
 import 'package:provider/provider.dart';
-
-import 'dashboard.dart';
-import 'helper/check_exposures.dart';
-import 'onboarding.dart';
-import 'package:background_fetch/background_fetch.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'send_report.dart';
-import 'state.dart';
 import 'package:wakelock/wakelock.dart';
 
 void main() async {
@@ -41,7 +40,9 @@ void main() async {
               requestAlertPermission: false,
               requestBadgePermission: false,
               requestSoundPermission: false)),
-      onSelectNotification: (notice) async {});
+      onSelectNotification: (notice) async {
+    NotificationState.instance.onNotice(notice);
+  });
 }
 
 class CovidTraceApp extends StatefulWidget {
@@ -122,34 +123,48 @@ class MainPageState extends State<MainPage> {
     }
 
     initBackgroundFetch();
+    NotificationState.instance.addListener(() {
+      // Goto exposure tab
+      onBottomNavTap(0);
+    });
   }
 
-  testInfection() async {
+  void closeDrawer(AppState state, Function(AppState) callback) {
     Navigator.of(context).pop();
-    var exp = await ExposureModel.findAll(limit: 1, orderBy: 'date DESC');
-    if (exp.isEmpty) {
-      await ExposureModel(
+    if (callback != null) {
+      callback(state);
+    }
+  }
+
+  testExposure(AppState state) async {
+    var rows = await ExposureModel.findAll(limit: 1, orderBy: 'date DESC');
+    var exposure;
+    if (rows.isEmpty) {
+      exposure = ExposureModel(
         date: DateTime.now(),
         duration: Duration(minutes: 5),
         totalRiskScore: 6,
         transmissionRiskLevel: 0,
-      ).insert();
+      );
+      await exposure.insert();
+    } else {
+      exposure = rows.first;
     }
+
+    state.setExposure(exposure);
   }
 
-  resetInfection(AppState state) async {
-    Navigator.of(context).pop();
+  resetExposure(AppState state) async {
     await state.resetInfections();
   }
 
   testReport(AppState state) async {
-    Navigator.of(context).pop();
     await state.saveReport(
         ReportModel(lastExposureKey: 'test-key', timestamp: DateTime.now()));
+    onBottomNavTap(1);
   }
 
   resetReport(AppState state) async {
-    Navigator.of(context).pop();
     await state.clearReport();
   }
 
@@ -160,14 +175,15 @@ class MainPageState extends State<MainPage> {
     Navigator.of(context).pushReplacementNamed('/onboarding');
   }
 
-  void testNotification() async {
-    Navigator.of(context).pop();
+  void testNotification(AppState state) async {
+    await Future.delayed(Duration(seconds: 3));
+    testExposure(state);
     showExposureNotification(
-        ExposureInfo(DateTime.now(), Duration(minutes: 10), 6, 0));
+      ExposureInfo(DateTime.now(), Duration(minutes: 10), 6, 0),
+    );
   }
 
   resetVerified(AppState state) async {
-    Navigator.of(context).pop();
     var user = state.user;
     user.token = null;
     await state.saveUser(user);
@@ -235,34 +251,40 @@ class MainPageState extends State<MainPage> {
                   : Drawer(
                       child: ListView(children: [
                       ListTile(
-                          leading: Icon(Icons.bug_report),
-                          title: Text('Test Exposure'),
-                          onTap: testInfection),
+                        leading: Icon(Icons.bug_report),
+                        title: Text('Test Exposure'),
+                        onTap: () => closeDrawer(state, testExposure),
+                      ),
                       ListTile(
-                          leading: Icon(Icons.restore),
-                          title: Text('Reset Exposure'),
-                          onTap: () => resetInfection(state)),
+                        leading: Icon(Icons.restore),
+                        title: Text('Reset Exposure'),
+                        onTap: () => closeDrawer(state, resetExposure),
+                      ),
                       ListTile(
                         leading: Icon(Icons.notifications),
                         title: Text('Test Notification'),
-                        onTap: testNotification,
+                        onTap: () => closeDrawer(state, testNotification),
                       ),
                       ListTile(
-                          leading: Icon(Icons.assignment),
-                          title: Text('Test Report'),
-                          onTap: () => testReport(state)),
+                        leading: Icon(Icons.assignment),
+                        title: Text('Test Report'),
+                        onTap: () => closeDrawer(state, testReport),
+                      ),
                       ListTile(
-                          leading: Icon(Icons.delete_forever),
-                          title: Text('Reset Report'),
-                          onTap: () => resetReport(state)),
+                        leading: Icon(Icons.delete_forever),
+                        title: Text('Reset Report'),
+                        onTap: () => closeDrawer(state, resetReport),
+                      ),
                       ListTile(
-                          leading: Icon(Icons.verified_user),
-                          title: Text('Reset Verified'),
-                          onTap: () => resetVerified(state)),
+                        leading: Icon(Icons.verified_user),
+                        title: Text('Reset Verified'),
+                        onTap: () => closeDrawer(state, resetVerified),
+                      ),
                       ListTile(
-                          leading: Icon(Icons.power_settings_new),
-                          title: Text('Reset Onboarding'),
-                          onTap: () => resetOnboarding(state)),
+                        leading: Icon(Icons.power_settings_new),
+                        title: Text('Reset Onboarding'),
+                        onTap: () => closeDrawer(state, resetOnboarding),
+                      ),
                     ])),
               body: PageTransitionSwitcher(
                 transitionBuilder:

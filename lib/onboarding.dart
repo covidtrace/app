@@ -1,6 +1,5 @@
 import 'package:app_settings/app_settings.dart';
 import 'package:covidtrace/config.dart';
-import 'package:covidtrace/helper/check_exposures.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -46,9 +45,6 @@ class OnboardingState extends State {
       duration: Duration(milliseconds: 250), curve: Curves.easeOut);
 
   void requestPermission(bool selected) async {
-    showExposureNotification(
-        ExposureInfo(DateTime.now(), Duration(minutes: 10), 6, 0));
-
     if (_linkToSettings) {
       AppSettings.openAppSettings();
       return;

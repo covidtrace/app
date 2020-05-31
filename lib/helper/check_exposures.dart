@@ -115,7 +115,7 @@ Future<ExposureInfo> checkExposures() async {
   return exposure;
 }
 
-void showExposureNotification(ExposureInfo exposure) async {
+void showExposureNotification(ExposureInfo exposure, {Duration delay}) async {
   var date = exposure.date.toLocal();
   var dur = exposure.duration;
   var notificationPlugin = FlutterLocalNotificationsPlugin();
@@ -124,10 +124,19 @@ void showExposureNotification(ExposureInfo exposure) async {
       '1', 'COVID Trace', 'Exposure notifications',
       importance: Importance.Max, priority: Priority.High, ticker: 'ticker');
   var iosSpecs = IOSNotificationDetails();
-  await notificationPlugin.show(
-      0,
-      'COVID-19 Exposure Alert',
-      'On ${DateFormat.EEEE().add_MMMd().format(date)} you were in close proximity to someone for ${dur.inMinutes} minutes who tested positive for COVID-19.',
-      NotificationDetails(androidSpec, iosSpecs),
-      payload: 'Default_Sound');
+
+  var id = 0;
+  var title = 'COVID-19 Exposure Alert';
+  var body =
+      'On ${DateFormat.EEEE().add_MMMd().format(date)} you were in close proximity to someone for ${dur.inMinutes} minutes who tested positive for COVID-19.';
+  var details = NotificationDetails(androidSpec, iosSpecs);
+  var payload = 'Default_Sound';
+
+  if (delay != null) {
+    await notificationPlugin.schedule(
+        id, title, body, DateTime.now().add(delay), details,
+        payload: payload);
+  } else {
+    await notificationPlugin.show(id, title, body, details, payload: payload);
+  }
 }

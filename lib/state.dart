@@ -17,6 +17,14 @@ import 'storage/exposure.dart';
 import 'storage/report.dart';
 import 'storage/user.dart';
 
+class NotificationState with ChangeNotifier {
+  static final instance = NotificationState();
+
+  void onNotice(String notice) {
+    notifyListeners();
+  }
+}
+
 class AppState with ChangeNotifier {
   static UserModel _user;
   static ReportModel _report;
@@ -25,6 +33,9 @@ class AppState with ChangeNotifier {
 
   AppState() {
     initState();
+    NotificationState.instance.addListener(() async {
+      setExposure(await getExposure());
+    });
   }
 
   initState() async {
@@ -45,6 +56,11 @@ class AppState with ChangeNotifier {
     var rows = await ExposureModel.findAll(limit: 1, orderBy: 'date DESC');
 
     return rows.isNotEmpty ? rows.first : null;
+  }
+
+  void setExposure(ExposureModel exposure) {
+    _exposure = exposure;
+    notifyListeners();
   }
 
   Future<ExposureModel> checkExposures() async {
