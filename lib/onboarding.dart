@@ -1,5 +1,6 @@
 import 'package:app_settings/app_settings.dart';
 import 'package:covidtrace/config.dart';
+import 'package:covidtrace/helper/check_exposures.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -45,6 +46,9 @@ class OnboardingState extends State {
       duration: Duration(milliseconds: 250), curve: Curves.easeOut);
 
   void requestPermission(bool selected) async {
+    showExposureNotification(
+        ExposureInfo(DateTime.now(), Duration(minutes: 10), 6, 0));
+
     if (_linkToSettings) {
       AppSettings.openAppSettings();
       return;
@@ -149,7 +153,7 @@ class OnboardingState extends State {
                           children: [
                         Row(children: [
                           Expanded(
-                              child: Text('Enable Contact Tracing',
+                              child: Text('Enable Exposure Notifications',
                                   style:
                                       Theme.of(context).textTheme.headline5)),
                           Icon(Icons.near_me, size: 40, color: Colors.black38)
@@ -159,7 +163,7 @@ class OnboardingState extends State {
                           text: TextSpan(style: bodyText, children: [
                             TextSpan(
                               text:
-                                  "COVID Trace’s early detection works by using Bluetooth contact tracing to see if you have come in contact with people who reported positive test results. COVID Trace does this all on your phone to maintain your privacy. Limited information is shared when reporting an infection, symptoms or exposure.\n",
+                                  "COVID Trace’s early detection works by using Bluetooth to see if you have come in contact with people who reported positive test results. COVID Trace does this all on your phone to maintain your privacy. Limited information is shared when reporting an infection or potential exposure.\n",
                             ),
                             TextSpan(
                                 text: 'Find out more here',

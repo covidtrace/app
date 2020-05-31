@@ -127,7 +127,7 @@ void showExposureNotification(ExposureInfo exposure) async {
   await notificationPlugin.show(
       0,
       'COVID-19 Exposure Alert',
-      'You where exposed to someone who reported an infection on ${DateFormat.EEEE().add_MMMd().format(date)} for ${dur.inMinutes} minutes.',
+      'On ${DateFormat.EEEE().add_MMMd().format(date)} you were in close proximity to someone for ${dur.inMinutes} minutes who tested positive for COVID-19.',
       NotificationDetails(androidSpec, iosSpecs),
       payload: 'Default_Sound');
 }

@@ -163,7 +163,7 @@ class MainPageState extends State<MainPage> {
   void testNotification() async {
     Navigator.of(context).pop();
     showExposureNotification(
-        ExposureInfo(DateTime.now(), Duration(minutes: 5), 6, 0));
+        ExposureInfo(DateTime.now(), Duration(minutes: 10), 6, 0));
   }
 
   resetVerified(AppState state) async {

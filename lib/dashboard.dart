@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:covidtrace/config.dart';
 import 'package:covidtrace/info_card.dart';
 import 'package:covidtrace/storage/exposure.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'operator.dart';
 import 'package:flutter/material.dart';
@@ -233,10 +234,14 @@ class DashboardState extends State with TickerProviderStateMixin {
                   ),
                   Material(
                     shape: CircleBorder(),
+                    clipBehavior: Clip.antiAlias,
                     color: Theme.of(context).primaryColor,
-                    child: Padding(
-                      padding: EdgeInsets.all(10),
-                      child: Icon(Icons.phone, color: Colors.white, size: 30),
+                    child: InkWell(
+                      onTap: () => launch('tel:${authority['phone_number']}'),
+                      child: Padding(
+                        padding: EdgeInsets.all(10),
+                        child: Icon(Icons.phone, color: Colors.white, size: 30),
+                      ),
                     ),
                   ),
                 ]),
