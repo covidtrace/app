@@ -94,6 +94,7 @@ class OnboardingState extends State {
 
   @override
   Widget build(BuildContext context) {
+    var config = Config.get()['onboarding'];
     var bodyText = Theme.of(context)
         .textTheme
         .bodyText2
@@ -123,24 +124,27 @@ class OnboardingState extends State {
                         Row(children: [
                           Expanded(
                               child: Text(
-                            'Flatten The Curve',
+                            config['intro']['title'],
                             style: Theme.of(context).textTheme.headline5,
                           )),
                           ClipRRect(
                               borderRadius: BorderRadius.circular(50),
                               child: Container(
-                                color: Colors.black,
-                                child: Image.asset('assets/app_icon.png',
-                                    height: 40, fit: BoxFit.contain),
+                                child: Image.asset(
+                                  config['intro']['icon'],
+                                  height: 40,
+                                  fit: BoxFit.contain,
+                                ),
                               )),
                         ]),
                         SizedBox(height: 10),
                         Text(
-                          "COVID Trace is an early warning app to let people know if they've recently been potentially exposed to COVID-19. COVID Trace is an online way to do instant contact tracing. Contact tracing is one of the most effective ways to combat the spread of the disease. By participating, you help save lives by flattening the curve.",
+                          config['intro']['body'],
                           style: bodyText,
                         ),
                         SizedBox(height: 30),
-                        BlockButton(onPressed: nextPage, label: 'Get Started'),
+                        BlockButton(
+                            onPressed: nextPage, label: config['intro']['cta']),
                       ])),
                   Center(
                       child: Column(
@@ -149,27 +153,34 @@ class OnboardingState extends State {
                           children: [
                         Row(children: [
                           Expanded(
-                              child: Text('Enable Exposure Notifications',
+                              child: Text(
+                                  config['exposure_notification']['title'],
                                   style:
                                       Theme.of(context).textTheme.headline5)),
-                          Icon(Icons.near_me, size: 40, color: Colors.black38)
+                          Container(
+                            child: Image.asset(
+                                config['exposure_notification']['icon'],
+                                color: Colors.black38,
+                                height: 40,
+                                fit: BoxFit.contain),
+                          ),
                         ]),
                         SizedBox(height: 10),
                         RichText(
                           text: TextSpan(style: bodyText, children: [
                             TextSpan(
-                              text:
-                                  "COVID Trace’s early detection works by using Bluetooth to see if you have come in contact with people who reported positive test results. COVID Trace does this all on your phone to maintain your privacy. Limited information is shared when reporting an infection or potential exposure.\n",
+                              text: config['exposure_notification']['body'],
                             ),
                             TextSpan(
-                                text: 'Find out more here',
+                                text: config['exposure_notification']
+                                    ['link_title'],
                                 style: TextStyle(
                                     decoration: TextDecoration.underline),
                                 recognizer: TapGestureRecognizer()
                                   ..onTap = () {
                                     try {
-                                      launch(Config.get()['onboarding']
-                                          ['en_faq_link']);
+                                      launch(config['exposure_notification']
+                                          ['link']);
                                     } catch (err) {}
                                   })
                           ]),
@@ -185,7 +196,7 @@ class OnboardingState extends State {
                                         onChanged: requestPermission)))),
                         SizedBox(height: 30),
                         BlockButton(
-                            label: 'Continue',
+                            label: config['exposure_notification']['cta'],
                             onPressed: _requestExposure ? nextPage : null)
                       ])),
                   Center(
@@ -194,18 +205,19 @@ class OnboardingState extends State {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                         Text(
-                          'What To Expect',
+                          config['notification_permission']['title'],
                           style: Theme.of(context).textTheme.headline5,
                         ),
                         SizedBox(height: 10),
                         Text(
-                          "COVID Trace is now monitoring for exposures. You will get a notification if you were potentially exposed to COVID-19.",
+                          config['notification_permission']['body'],
                           style: bodyText,
                         ),
                         SizedBox(height: 20),
                         Image.asset(platform == TargetPlatform.iOS
-                            ? 'assets/ios_notification.png'
-                            : 'assets/android_notification.png'),
+                            ? config['notification_permission']['preview_ios']
+                            : config['notification_permission']
+                                ['preview_android']),
                         SizedBox(height: 20),
                         platform == TargetPlatform.iOS
                             ? Material(
@@ -225,7 +237,9 @@ class OnboardingState extends State {
                                     ])))
                             : Container(),
                         SizedBox(height: 30),
-                        BlockButton(onPressed: finish, label: 'Finish'),
+                        BlockButton(
+                            onPressed: finish,
+                            label: config['notification_permission']['cta']),
                       ])),
                 ]),
           ),

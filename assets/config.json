@@ -7,7 +7,27 @@
     "phone_number": "5551234567"
   },
   "onboarding": {
-    "en_faq_link": "https://covidtrace.com"
+    "intro": {
+      "icon": "assets/app_icon.png",
+      "title": "Flatten The Curve",
+      "body": "COVID Trace alerts you when you may have been exposed to COVID-19. Early alerts and quick action helps stop the spread and saves lives. Your participation is voluntary and anonymous to protect your privacy and health.",
+      "cta": "Get Started"
+    },
+    "exposure_notification": {
+      "icon": "assets/people_arrows_icon.png",
+      "title": "Enable Exposure Notifications",
+      "body": "COVID Trace’s early detection works by using Bluetooth to see if you have come in contact with people who reported positive test results. COVID Trace does this all on your phone to maintain your privacy. Limited information is shared when reporting an infection or potential exposure.\n",
+      "link_title": "Find out more here",
+      "link": "https://covidtrace.com",
+      "cta": "Continue"
+    },
+    "notification_permission": {
+      "title": "What To Expect",
+      "body": "COVID Trace is now monitoring for exposures. You will get a notification if you were potentially exposed to COVID-19.",
+      "preview_ios": "assets/ios_notification.png",
+      "preview_android": "assets/android_notification.png",
+      "cta": "Finish"
+    }
   },
   "faqs": {
     "non_exposure": [
