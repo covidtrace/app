@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:covidtrace/config.dart';
 import 'package:covidtrace/info_card.dart';
 import 'package:covidtrace/storage/exposure.dart';
+import 'package:covidtrace/test_facilities.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'operator.dart';
@@ -220,31 +221,44 @@ class DashboardState extends State with TickerProviderStateMixin {
             Card(
               child: Padding(
                 padding: EdgeInsets.all(15),
-                child: Row(children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('County Health Department', style: subhead),
-                        SizedBox(height: 5),
-                        Text(
-                            'Report potential exposure to your county Department of Health.'),
-                      ],
-                    ),
-                  ),
-                  Material(
-                    shape: CircleBorder(),
-                    clipBehavior: Clip.antiAlias,
-                    color: Theme.of(context).primaryColor,
-                    child: InkWell(
-                      onTap: () => launch('tel:${authority['phone_number']}'),
-                      child: Padding(
-                        padding: EdgeInsets.all(10),
-                        child: Icon(Icons.phone, color: Colors.white, size: 30),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('County Health Department', style: subhead),
+                          SizedBox(height: 5),
+                          Text(
+                              'Report potential exposure to your county Department of Health.'),
+                          Divider(height: 20),
+                          InkWell(
+                              onTap: () => Navigator.of(context).push(
+                                    MaterialPageRoute(
+                                        fullscreenDialog: true,
+                                        builder: (ctx) => TestFacilities()),
+                                  ),
+                              child: Text('FIND A TEST FACILITY',
+                                  style: TextStyle(color: Colors.blue))),
+                        ],
                       ),
                     ),
-                  ),
-                ]),
+                    Material(
+                      shape: CircleBorder(),
+                      clipBehavior: Clip.antiAlias,
+                      color: Theme.of(context).primaryColor,
+                      child: InkWell(
+                        onTap: () => launch('tel:${authority['phone_number']}'),
+                        child: Padding(
+                          padding: EdgeInsets.all(10),
+                          child:
+                              Icon(Icons.phone, color: Colors.white, size: 30),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
             SizedBox(height: 10),

@@ -6,6 +6,19 @@
     "link": "https://covidtrace.com/privacy-policy",
     "phone_number": "5551234567"
   },
+  "test_facilities": {
+    "state": "NV",
+    "county": "Clark",
+    "css": [
+      "assets/test_facilities/lato.css",
+      "assets/test_facilities/bootstrap.min.css",
+      "assets/test_facilities/foundation.min.css",
+      "assets/test_facilities/ionicons.min.css",
+      "assets/test_facilities/main.css",
+      "assets/test_facilities/select2.min.css",
+      "assets/test_facilities/override.css"
+    ]
+  },
   "onboarding": {
     "intro": {
       "icon": "assets/app_icon.png",
