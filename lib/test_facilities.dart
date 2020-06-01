@@ -57,62 +57,59 @@ class TestFacilitiesState extends State with TickerProviderStateMixin {
     _showingSheet = true;
 
     await loadCounties();
-    // Must be delayed to avoid trigger rebuild during initial build
-    await Future.delayed(Duration(milliseconds: 100));
     var selected = await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       builder: (BuildContext context) {
         return DraggableScrollableSheet(
+          maxChildSize: .9,
           expand: false,
-          builder: (context, scroller) => SafeArea(
-            child: Container(
-              child: Column(
-                children: [
-                  Padding(
-                    padding: EdgeInsets.all(15),
-                    child: Row(
-                      children: [
-                        Expanded(
-                            child: Text(
-                          'Choose A County',
-                          style: Theme.of(context)
-                              .textTheme
-                              .subtitle1
-                              .merge(TextStyle(fontWeight: FontWeight.bold)),
-                        )),
-                        Material(
-                          color: Colors.grey[300],
-                          clipBehavior: Clip.antiAlias,
-                          shape: CircleBorder(),
-                          child: InkWell(
-                            onTap: () => Navigator.pop(context),
-                            child: Padding(
-                              padding: EdgeInsets.all(5),
-                              child: Icon(Icons.close, size: 20),
-                            ),
+          builder: (context, scroller) => Container(
+            child: Column(
+              children: [
+                Padding(
+                  padding: EdgeInsets.all(15),
+                  child: Row(
+                    children: [
+                      Expanded(
+                          child: Text(
+                        'Choose A County',
+                        style: Theme.of(context)
+                            .textTheme
+                            .subtitle1
+                            .merge(TextStyle(fontWeight: FontWeight.bold)),
+                      )),
+                      Material(
+                        color: Colors.grey[300],
+                        clipBehavior: Clip.antiAlias,
+                        shape: CircleBorder(),
+                        child: InkWell(
+                          onTap: () => Navigator.pop(context),
+                          child: Padding(
+                            padding: EdgeInsets.all(5),
+                            child: Icon(Icons.close, size: 20),
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                  Expanded(
-                    child: ListView.separated(
-                      controller: scroller,
-                      itemCount: _counties.length,
-                      itemBuilder: (context, index) {
-                        return ListTile(
-                          onTap: () => selectCounty(_counties[index]),
-                          title: Text(_counties[index]),
-                        );
-                      },
-                      separatorBuilder: (context, index) {
-                        return Divider(height: 0);
-                      },
-                    ),
+                ),
+                Expanded(
+                  child: ListView.separated(
+                    controller: scroller,
+                    itemCount: _counties.length,
+                    itemBuilder: (context, index) {
+                      return ListTile(
+                        onTap: () => selectCounty(_counties[index]),
+                        title: Text(_counties[index]),
+                      );
+                    },
+                    separatorBuilder: (context, index) {
+                      return Divider(height: 0);
+                    },
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         );
