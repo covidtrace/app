@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
+import 'package:url_launcher/url_launcher.dart';
 import 'package:wakelock/wakelock.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
@@ -84,6 +85,21 @@ class TestFacilitiesState extends State with TickerProviderStateMixin {
     controller.loadUrl('data:text/html;base64,$page');
   }
 
+  NavigationDecision navigationDelegate(NavigationRequest request) {
+    if (!_loaded) {
+      return NavigationDecision.navigate;
+    }
+
+    var url = request.url;
+    var isMapLink = url.contains(new RegExp(r'maps\.google\.com'));
+    if (!isMapLink) {
+      launch(url);
+      return NavigationDecision.prevent;
+    }
+
+    return NavigationDecision.navigate;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -99,6 +115,7 @@ class TestFacilitiesState extends State with TickerProviderStateMixin {
               onWebViewCreated: onWebViewCreated,
               onPageFinished: onPageFinished,
               javascriptMode: JavascriptMode.unrestricted,
+              navigationDelegate: navigationDelegate,
               userAgent: USER_AGENT,
             ),
           ),
