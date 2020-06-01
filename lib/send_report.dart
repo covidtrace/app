@@ -215,7 +215,7 @@ class SendReportState extends State<SendReport> with TickerProviderStateMixin {
                           title:
                               Text('Notify Others', style: textTheme.headline6),
                           content: Text(
-                              'If you have tested postive for COVID-19, anonymously sharing your diagnosis will help your community contain the spread of the virus.\n\nThis subimssion is completely optional.',
+                              'If you have tested postive for COVID-19, anonymously sharing your diagnosis will help your community contain the spread of the virus.\n\nThis submission is optional.',
                               style: stepTextTheme),
                         ),
                         Step(
