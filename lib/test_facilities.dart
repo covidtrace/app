@@ -2,12 +2,10 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:covidtrace/config.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
-import 'package:wakelock/wakelock.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 class TestFacilities extends StatefulWidget {

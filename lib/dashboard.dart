@@ -232,15 +232,6 @@ class DashboardState extends State with TickerProviderStateMixin {
                           SizedBox(height: 5),
                           Text(
                               'Report potential exposure to your county Department of Health.'),
-                          Divider(height: 20),
-                          InkWell(
-                              onTap: () => Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                        fullscreenDialog: true,
-                                        builder: (ctx) => TestFacilities()),
-                                  ),
-                              child: Text('FIND A TEST FACILITY',
-                                  style: TextStyle(color: Colors.blue))),
                         ],
                       ),
                     ),
@@ -258,6 +249,37 @@ class DashboardState extends State with TickerProviderStateMixin {
                       ),
                     ),
                   ],
+                ),
+              ),
+            ),
+            SizedBox(height: 20),
+            Card(
+              child: InkWell(
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                      fullscreenDialog: true,
+                      builder: (ctx) => TestFacilities()),
+                ),
+                child: Padding(
+                  padding: EdgeInsets.all(15),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Find A Test Facility',
+                          style: Theme.of(context)
+                              .textTheme
+                              .subtitle1
+                              .merge(TextStyle(fontWeight: FontWeight.bold)),
+                        ),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 10),
+                        child: Image.asset('assets/clinic_medical_icon.png',
+                            color: Theme.of(context).primaryColor, height: 30),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
