@@ -21,6 +21,9 @@ class TestFacilitiesState extends State with TickerProviderStateMixin {
   static const INITIAL_URL =
       'https://my.castlighthealth.com/corona-virus-testing-sites';
 
+  static const SEARCH_URL =
+      'https://my.castlighthealth.com/corona-virus-testing-sites/data/result.php';
+
   static const RESULTS_URL =
       'https://my.castlighthealth.com/corona-virus-testing-sites/data/result.php';
 
@@ -32,12 +35,120 @@ class TestFacilitiesState extends State with TickerProviderStateMixin {
 
   String _webViewContent = '';
   bool _loaded = false;
+  bool _showingSheet = false;
+  List<String> _counties = [];
+  String _selectedCounty;
 
-  Future<void> loadData() async {
+  void selectCounty(String value) async {
+    Navigator.pop(context, value);
+
+    setState(() {
+      _selectedCounty = value;
+    });
+
+    loadFacilities();
+  }
+
+  void showCountySheet(context) async {
+    if (_showingSheet) {
+      return;
+    }
+    _showingSheet = true;
+
+    await loadCounties();
+    // Must be delayed to avoid trigger rebuild during initial build
+    await Future.delayed(Duration(milliseconds: 100));
+    var selected = await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        return DraggableScrollableSheet(
+          expand: false,
+          builder: (context, scroller) => SafeArea(
+            child: Container(
+              child: Column(
+                children: [
+                  Padding(
+                    padding: EdgeInsets.all(15),
+                    child: Row(
+                      children: [
+                        Expanded(
+                            child: Text(
+                          'Choose A County',
+                          style: Theme.of(context)
+                              .textTheme
+                              .subtitle1
+                              .merge(TextStyle(fontWeight: FontWeight.bold)),
+                        )),
+                        Material(
+                          color: Colors.grey[300],
+                          clipBehavior: Clip.antiAlias,
+                          shape: CircleBorder(),
+                          child: InkWell(
+                            onTap: () => Navigator.pop(context),
+                            child: Padding(
+                              padding: EdgeInsets.all(5),
+                              child: Icon(Icons.close, size: 20),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: ListView.separated(
+                      controller: scroller,
+                      itemCount: _counties.length,
+                      itemBuilder: (context, index) {
+                        return ListTile(
+                          onTap: () => selectCounty(_counties[index]),
+                          title: Text(_counties[index]),
+                        );
+                      },
+                      separatorBuilder: (context, index) {
+                        return Divider(height: 0);
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+
+    if (selected == null && _webViewContent.isEmpty) {
+      Navigator.of(context).pop();
+    }
+  }
+
+  Future<void> loadCounties() async {
+    var config = Config.get()['test_facilities'];
+    var url = Uri.parse('$RESULTS_URL?state_key=${config['state']}');
+
+    var response = await http.get(url.toString());
+    if (response.statusCode != 200) {
+      print(response.body);
+      return;
+    }
+
+    var optionRe =
+        RegExp(r'<option value=[^>]+>([^<]+?)</option>', multiLine: true);
+    var matches = optionRe
+        .allMatches(response.body)
+        .where((m) => m.groupCount > 0 && m.group(1).toLowerCase() != 'all')
+        .map((m) => m.group(1));
+
+    setState(() {
+      _counties = matches.toList();
+    });
+  }
+
+  Future<void> loadFacilities() async {
     var config = Config.get()['test_facilities'];
     var url = Uri.parse(
-        '$RESULTS_URL?county=${config['county']}&state=${config['state']}');
-
+        '$RESULTS_URL?county=$_selectedCounty&state=${config['state']}');
     var response = await http.get(url.toString());
     if (response.statusCode != 200) {
       print(response.body);
@@ -48,9 +159,37 @@ class TestFacilitiesState extends State with TickerProviderStateMixin {
     }
 
     var imageRe = RegExp(r'\.\/images', multiLine: true);
+    String sanitized = '';
+    try {
+      sanitized = response.body.replaceAll(imageRe, IMAGE_PREFIX);
+    } catch (err) {
+      sanitized = 'Oops something went wrong';
+    }
+
     setState(() {
-      _webViewContent = response.body.replaceAll(imageRe, IMAGE_PREFIX);
+      _webViewContent = sanitized;
     });
+
+    var cssFiles = config['css'] as List<dynamic>;
+    var cssContent = await Future.wait(
+        cssFiles.map((name) => rootBundle.loadString(name, cache: false)));
+
+    var page = '''
+      <html>
+        <head>
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <style>${cssContent.join('\n')}</style>
+        </head>
+        <body>$_webViewContent</body>
+      </html>
+    ''';
+
+    var controller = await _controller.future;
+    controller.loadUrl(Uri.dataFromString(
+      page,
+      mimeType: 'text/html',
+      encoding: Encoding.getByName('utf-8'),
+    ).toString());
   }
 
   void onPageFinished(String url) async {
@@ -62,25 +201,10 @@ class TestFacilitiesState extends State with TickerProviderStateMixin {
   }
 
   void onWebViewCreated(WebViewController controller) async {
+    print('onWebViewCreated');
     if (!_controller.isCompleted) {
       _controller.complete(controller);
     }
-
-    var cssFiles = Config.get()['test_facilities']['css'] as List<dynamic>;
-    var cssContent = await Future.wait(
-        cssFiles.map((name) => rootBundle.loadString(name, cache: false)));
-
-    await loadData();
-    var page = base64Encode(utf8.encode('''
-      <html>
-        <head>
-          <meta name="viewport" content="width=device-width, initial-scale=1">
-          <style>${cssContent.join('\n')}</style>
-        </head>
-        <body>$_webViewContent</body>
-      </html>
-    '''));
-    controller.loadUrl('data:text/html;base64,$page');
   }
 
   NavigationDecision navigationDelegate(NavigationRequest request) {
@@ -100,24 +224,38 @@ class TestFacilitiesState extends State with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    showCountySheet(context);
+
     return Scaffold(
-      appBar: AppBar(title: Text('Test Facilities')),
+      appBar: AppBar(
+        title: Text('Find A Test Facility'),
+        actions: [
+          IconButton(
+            onPressed: () {
+              _showingSheet = false;
+              showCountySheet(context);
+            },
+            icon: Icon(Icons.search, color: Colors.white),
+          )
+        ],
+      ),
       body: Stack(
         children: [
-          AnimatedOpacity(
-            opacity: _loaded ? 1 : 0,
-            duration: Duration(milliseconds: 500),
-            curve: Curves.easeInOut,
-            child: WebView(
-              initialUrl: INITIAL_URL,
-              onWebViewCreated: onWebViewCreated,
-              onPageFinished: onPageFinished,
-              javascriptMode: JavascriptMode.unrestricted,
-              navigationDelegate: navigationDelegate,
-              userAgent: USER_AGENT,
+          if (_selectedCounty != null)
+            AnimatedOpacity(
+              opacity: _loaded ? 1 : 0,
+              duration: Duration(milliseconds: 500),
+              curve: Curves.easeInOut,
+              child: WebView(
+                initialUrl: INITIAL_URL,
+                onWebViewCreated: onWebViewCreated,
+                onPageFinished: onPageFinished,
+                javascriptMode: JavascriptMode.unrestricted,
+                navigationDelegate: navigationDelegate,
+                userAgent: USER_AGENT,
+              ),
             ),
-          ),
-          if (!_loaded)
+          if (!_loaded && _selectedCounty != null)
             Positioned.fill(child: Center(child: CircularProgressIndicator())),
         ],
       ),
