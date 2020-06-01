@@ -158,14 +158,16 @@ class TestFacilitiesState extends State with TickerProviderStateMixin {
 
     var imageRe = RegExp(r'\.\/images', multiLine: true);
     String sanitized = '';
+    // This may fail because the response body charset is set to utf-8 but is not actually encoded properly
+    // so we fall back to latin1.
     try {
-      sanitized = response.body.replaceAll(imageRe, IMAGE_PREFIX);
+      sanitized = response.body;
     } catch (err) {
-      sanitized = 'Oops something went wrong';
+      sanitized = Encoding.getByName('latin1').decode(response.bodyBytes);
     }
 
     setState(() {
-      _webViewContent = sanitized;
+      _webViewContent = sanitized.replaceAll(imageRe, IMAGE_PREFIX);
     });
 
     var cssFiles = config['css'] as List<dynamic>;
