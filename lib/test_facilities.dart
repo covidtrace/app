@@ -44,6 +44,7 @@ class TestFacilitiesState extends State with TickerProviderStateMixin {
 
     setState(() {
       _selectedCounty = value;
+      _loaded = false;
     });
 
     loadFacilities();
