@@ -244,7 +244,7 @@ class DashboardState extends State with TickerProviderStateMixin {
                         child: Padding(
                           padding: EdgeInsets.all(10),
                           child:
-                              Icon(Icons.phone, color: Colors.white, size: 30),
+                              Icon(Icons.phone, color: Colors.white, size: 25),
                         ),
                       ),
                     ),
@@ -274,7 +274,7 @@ class DashboardState extends State with TickerProviderStateMixin {
                         ),
                       ),
                       Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 10),
+                        padding: EdgeInsets.symmetric(horizontal: 5),
                         child: Image.asset('assets/clinic_medical_icon.png',
                             color: Theme.of(context).primaryColor, height: 30),
                       ),

@@ -60,6 +60,7 @@ class TestFacilitiesState extends State with TickerProviderStateMixin {
     var selected = await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      backgroundColor: Colors.transparent,
       builder: (BuildContext context) {
         return DraggableScrollableSheet(
           maxChildSize: .9,
@@ -67,46 +68,58 @@ class TestFacilitiesState extends State with TickerProviderStateMixin {
           builder: (context, scroller) => Container(
             child: Column(
               children: [
-                Padding(
-                  padding: EdgeInsets.all(15),
-                  child: Row(
-                    children: [
-                      Expanded(
-                          child: Text(
-                        'Choose A County',
-                        style: Theme.of(context)
-                            .textTheme
-                            .subtitle1
-                            .merge(TextStyle(fontWeight: FontWeight.bold)),
-                      )),
-                      Material(
-                        color: Colors.grey[300],
-                        clipBehavior: Clip.antiAlias,
-                        shape: CircleBorder(),
-                        child: InkWell(
-                          onTap: () => Navigator.pop(context),
-                          child: Padding(
-                            padding: EdgeInsets.all(5),
-                            child: Icon(Icons.close, size: 20),
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.grey[100],
+                    borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(10),
+                        topRight: Radius.circular(10)),
+                  ),
+                  child: Padding(
+                    padding: EdgeInsets.all(15),
+                    child: Row(
+                      children: [
+                        Expanded(
+                            child: Text(
+                          'Choose A County',
+                          style: Theme.of(context)
+                              .textTheme
+                              .subtitle1
+                              .merge(TextStyle(fontWeight: FontWeight.bold)),
+                        )),
+                        Material(
+                          color: Colors.grey[300],
+                          clipBehavior: Clip.antiAlias,
+                          shape: CircleBorder(),
+                          child: InkWell(
+                            onTap: () => Navigator.pop(context),
+                            child: Padding(
+                              padding: EdgeInsets.all(5),
+                              child: Icon(Icons.close, size: 20),
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
+                Divider(height: 0),
                 Expanded(
-                  child: ListView.separated(
-                    controller: scroller,
-                    itemCount: _counties.length,
-                    itemBuilder: (context, index) {
-                      return ListTile(
-                        onTap: () => selectCounty(_counties[index]),
-                        title: Text(_counties[index]),
-                      );
-                    },
-                    separatorBuilder: (context, index) {
-                      return Divider(height: 0);
-                    },
+                  child: Container(
+                    color: Colors.white,
+                    child: ListView.separated(
+                      controller: scroller,
+                      itemCount: _counties.length,
+                      itemBuilder: (context, index) {
+                        return ListTile(
+                          onTap: () => selectCounty(_counties[index]),
+                          title: Text(_counties[index]),
+                        );
+                      },
+                      separatorBuilder: (context, index) {
+                        return Divider(height: 0);
+                      },
+                    ),
                   ),
                 ),
               ],
