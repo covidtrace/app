@@ -8,7 +8,7 @@ Main features:
 - Has support for verifying positive COVID-19 diagnosis from authorized health authorities.
 - Is easily customizable for the specific needs of local governments and health organizations.
 
-<a href="https://www.figma.com/proto/dZ26JcuOaKsLCMzz3KEnKH/COVID-Trace-App?node-id=1%3A8&scaling=scale-down">![Screenshot of Mobile App](https://covidtrace.com/static/024f965cd42333a3ba7f2354abe8eb18/de73d/preview.png)</a>
+<a href="https://www.figma.com/proto/dZ26JcuOaKsLCMzz3KEnKH/COVID-Trace-App?node-id=1%3A8&scaling=scale-down">![Screenshot of Mobile App](https://covidtrace.com/static/024f965cd42333a3ba7f2354abe8eb18/78ef2/preview.png)</a>
 
 ## Local Setup
 
