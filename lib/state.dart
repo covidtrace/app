@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
+import 'package:crypto/crypto.dart';
 import 'package:covidtrace/storage/db.dart';
 import 'package:gact_plugin/gact_plugin.dart';
 import 'package:http/http.dart' as http;
@@ -152,11 +152,14 @@ class AppState with ChangeNotifier {
       return keys?.toList();
     }
 
+    var cert = await verifyCode(verificationCode, keys);
+    if (cert == null) {
+      return null;
+    }
+
     var postData = {
       "regions": ['US'],
       "appPackageName": (await PackageInfo.fromPlatform()).packageName,
-      "platform": Platform.isIOS ? 'ios' : 'android',
-      "deviceVerificationPayload": await GactPlugin.deviceCheck,
       "temporaryExposureKeys": keys
           .map((k) => {
                 "key": k.keyData,
@@ -165,9 +168,8 @@ class AppState with ChangeNotifier {
                 "transmissionRisk": k.transmissionRiskLevel
               })
           .toList(),
-      // TODO(wes): Support these fields, not currently required
-      // "verificationPayload": verificationCode,
-      // "padding": "",
+      "verificationPayload": cert,
+      "hmackey": base64.encode(utf8.encode(_user.uuid)),
     };
 
     var postResp = await http.post(
@@ -176,11 +178,10 @@ class AppState with ChangeNotifier {
       body: jsonEncode(postData),
     );
 
-    // TODO(wes): Handle verification failure
+    // TODO(wes): Handle failures
+    print(postResp.body);
     if (postResp.statusCode == 200) {
       return keys.toList();
-    } else {
-      print(postResp.body);
     }
 
     return null;
@@ -207,6 +208,61 @@ class AppState with ChangeNotifier {
 
     notifyListeners();
     return success;
+  }
+
+  Future<String> verifyCode(
+      String verificationCode, Iterable<ExposureKey> keys) async {
+    var config = await Config.remote();
+
+    var uri = Uri.parse('${config['verifyUrl']}/api/verify');
+    var postResp = await http.post(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-Key': config['verifyApiKey']
+      },
+      body: jsonEncode({"code": verificationCode}),
+    );
+
+    print(postResp.body);
+    if (postResp.statusCode != 200) {
+      return null;
+    }
+
+    var body = jsonDecode(postResp.body);
+    var token = body['token'];
+
+    // Calculate and submit HMAC
+    // See: https://developers.google.com/android/exposure-notifications/verification-system#hmac-calc
+    var hmacSha256 = new Hmac(sha256, utf8.encode(_user.uuid));
+    var sortedKeys = keys.toList();
+    sortedKeys.sort((a, b) => a.keyData.compareTo(b.keyData));
+    var bytes = sortedKeys
+        .map((k) =>
+            '${k.keyData}.${k.rollingStartNumber}.${k.rollingPeriod}.${k.transmissionRiskLevel}')
+        .join(',');
+    var digest = hmacSha256.convert(utf8.encode(bytes));
+
+    uri = Uri.parse('${config['verifyUrl']}/api/certificate');
+    postResp = await http.post(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-Key': config['verifyApiKey']
+      },
+      body:
+          jsonEncode({"token": token, 'ekeyhmac': base64.encode(digest.bytes)}),
+    );
+
+    print(postResp.body);
+    if (postResp.statusCode != 200) {
+      return null;
+    }
+
+    body = jsonDecode(postResp.body);
+    var certificate = body['certificate'];
+
+    return certificate;
   }
 
   Future<void> clearReport() async {

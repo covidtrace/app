@@ -77,7 +77,7 @@ class SendReportState extends State<SendReport> with TickerProviderStateMixin {
     }
   }
 
-  bool get codeComplete => _verificationCode.length == 6;
+  bool get codeComplete => _verificationCode.length == 8;
 
   List<Widget> getHeading(String title) {
     var textTheme = Theme.of(context).textTheme;
@@ -244,7 +244,7 @@ class SendReportState extends State<SendReport> with TickerProviderStateMixin {
                                       'Enter the verification code provided by your health official to submit your report.',
                                       style: stepTextTheme),
                                   CodePin(
-                                      size: 6,
+                                      size: 8,
                                       onChange: (value) =>
                                           onCodeChange(context, value)),
                                   SizedBox(height: 10),

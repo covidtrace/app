@@ -84,6 +84,9 @@ Future<ExposureInfo> checkExposures() async {
   await GactPlugin.setExposureConfiguration(
       config['exposureNotificationConfiguration']);
 
+  await GactPlugin.setUserExplanation(
+      'You were in close proximity to someone who tested positive for COVID-19.');
+
   // Save all found exposures
   List<ExposureInfo> exposures;
   try {
@@ -106,10 +109,6 @@ Future<ExposureInfo> checkExposures() async {
 
   exposures.sort((a, b) => a.date.compareTo(b.date));
   var exposure = exposures.isNotEmpty ? exposures.last : null;
-
-  if (exposure != null) {
-    showExposureNotification(exposure);
-  }
 
   print('Done checking exposures!');
   return exposure;

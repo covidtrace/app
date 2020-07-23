@@ -7,7 +7,7 @@ class CodePin extends StatefulWidget {
   final int flex;
   final void Function(String) onChange;
 
-  CodePin({Key key, this.size = 6, this.flex = 2, this.onChange})
+  CodePin({Key key, this.size = 8, this.flex = 3, this.onChange})
       : super(key: key);
 
   @override
