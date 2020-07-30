@@ -22,12 +22,12 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-         <receiver
-            android:name=".nearby.ExposureNotificationBroadcastReceiver"
-            android:permission="com.google.android.gms.nearby.exposurenotification.EXPOSURE_CALLBACK"
-            android:exported="true">
+        <receiver
+            android:name="com.covidtrace.gact_plugin.ExposureNotificationBroadcastReceiver"
+            android:permission="com.google.android.gms.nearby.exposurenotification.EXPOSURE_CALLBACK">
             <intent-filter>
                 <action android:name="com.google.android.gms.exposurenotification.ACTION_EXPOSURE_STATE_UPDATED" />
+                <action android:name="com.google.android.gms.exposurenotification.ACTION_EXPOSURE_NOT_FOUND" />
             </intent-filter>
         </receiver>
         <!-- Don't delete the meta-data below.

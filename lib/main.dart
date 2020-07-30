@@ -53,7 +53,8 @@ class CovidTraceApp extends StatefulWidget {
 class CovidTraceAppState extends State {
   @override
   Widget build(BuildContext context) {
-    var swatch = Config.get()['primarySwatch'];
+    var theme = Config.get()['theme'];
+    var swatch = theme['primarySwatch'];
     var colorMap = Map.fromEntries((swatch as Map<String, dynamic>)
         .map((key, value) => MapEntry(int.parse(key), Color(int.parse(value))))
         .entries);
@@ -63,7 +64,7 @@ class CovidTraceAppState extends State {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
           initialRoute: state.user.onboarding == true ? '/onboarding' : '/home',
-          title: 'COVID Trace',
+          title: theme['title'],
           theme: ThemeData(
               primarySwatch: MaterialColor(colorMap[500].value, colorMap)),
           routes: {
@@ -202,6 +203,7 @@ class MainPageState extends State<MainPage> {
 
   @override
   Widget build(BuildContext context) {
+    var config = Config.get();
     var theme = Theme.of(context);
     var selectedColor = theme.primaryColor;
     var defaultColor = theme.textTheme.caption.color;
@@ -210,9 +212,10 @@ class MainPageState extends State<MainPage> {
         builder: (context, state, _) => Scaffold(
               appBar: AppBar(
                 title: Row(mainAxisSize: MainAxisSize.min, children: [
-                  Image.asset('assets/app_icon.png',
+                  Image.asset(config['theme']['icon'],
                       fit: BoxFit.contain, height: 40),
-                  Text('COVID Trace'),
+                  SizedBox(width: 5),
+                  Text(config['theme']['title']),
                 ]),
                 actions: <Widget>[Container()], // Hides debug end drawer
               ),

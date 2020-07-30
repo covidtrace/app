@@ -110,7 +110,8 @@ class SendReportState extends State<SendReport> with TickerProviderStateMixin {
         SizedBox(height: 15),
         Container(
           decoration: BoxDecoration(
-              color: Colors.blueGrey, borderRadius: BorderRadius.circular(10)),
+              color: Theme.of(context).primaryColorDark,
+              borderRadius: BorderRadius.circular(10)),
           child: InkWell(
             onTap: () {
               setState(() => _expandHeader = !_expandHeader);

@@ -133,7 +133,7 @@ class DashboardState extends State with TickerProviderStateMixin {
               SizedBox(height: 15),
               Container(
                 decoration: BoxDecoration(
-                    color: Colors.blueGrey,
+                    color: Theme.of(context).primaryColorDark,
                     borderRadius: BorderRadius.circular(10)),
                 child: Padding(
                   padding: EdgeInsets.all(15),

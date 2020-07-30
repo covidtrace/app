@@ -17,13 +17,15 @@ class BlockButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    var theme = Config.get()['theme']['onboarding'];
+
     return Row(children: [
       Expanded(
           child: RaisedButton(
               child: Text(label, style: TextStyle(fontSize: 20)),
               onPressed: onPressed,
-              textColor: Colors.white,
-              color: Theme.of(context).buttonTheme.colorScheme.primary,
+              textColor: Color(int.parse(theme['button_text'])),
+              color: Color(int.parse(theme['button_background'])),
               shape: StadiumBorder(),
               padding: EdgeInsets.all(15)))
     ]);
@@ -95,153 +97,160 @@ class OnboardingState extends State {
   @override
   Widget build(BuildContext context) {
     var config = Config.get()['onboarding'];
-    var bodyText = Theme.of(context)
-        .textTheme
-        .bodyText2
+    var theme = Config.get()['theme']['onboarding'];
+    var themeData = ThemeData(
+        textTheme: Theme.of(context).textTheme.apply(
+              bodyColor: Color(int.parse(theme['text'])),
+              displayColor: Color(int.parse(theme['text'])),
+            ));
+
+    var bodyText = themeData.textTheme.bodyText2
         .merge(TextStyle(fontSize: 16, height: 1.4));
 
     var platform = Theme.of(context).platform;
-    var brightness = MediaQuery.platformBrightnessOf(context);
 
     return AnnotatedRegion(
-      value: brightness == Brightness.light
-          ? SystemUiOverlayStyle.dark
-          : SystemUiOverlayStyle.light,
-      child: Container(
-        color: Colors.white,
-        child: SafeArea(
-          child: Padding(
-            padding: EdgeInsets.only(top: 30, left: 30, right: 30),
-            child: PageView(
-                controller: _pageController,
-                physics: NeverScrollableScrollPhysics(),
-                children: [
-                  Center(
-                      child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                        Row(children: [
-                          Expanded(
-                              child: Text(
-                            config['intro']['title'],
-                            style: Theme.of(context).textTheme.headline5,
-                          )),
-                          ClipRRect(
-                              borderRadius: BorderRadius.circular(10),
-                              child: Container(
-                                child: Image.asset(
-                                  config['intro']['icon'],
-                                  height: 40,
-                                  fit: BoxFit.contain,
-                                ),
-                              )),
-                        ]),
-                        SizedBox(height: 10),
-                        Text(
-                          config['intro']['body'],
-                          style: bodyText,
-                        ),
-                        SizedBox(height: 30),
-                        BlockButton(
-                            onPressed: nextPage, label: config['intro']['cta']),
-                      ])),
-                  Center(
-                      child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                        Row(children: [
-                          Expanded(
-                              child: Text(
-                                  config['exposure_notification']['title'],
-                                  style:
-                                      Theme.of(context).textTheme.headline5)),
-                          Container(
-                            child: Image.asset(
-                                config['exposure_notification']['icon'],
-                                color: Colors.black38,
-                                height: 40,
-                                fit: BoxFit.contain),
-                          ),
-                        ]),
-                        SizedBox(height: 10),
-                        RichText(
-                          text: TextSpan(style: bodyText, children: [
-                            TextSpan(
-                              text: config['exposure_notification']['body'],
+      value: theme['system_overlay'] == 'light'
+          ? SystemUiOverlayStyle.light
+          : SystemUiOverlayStyle.dark,
+      child: Theme(
+        data: themeData,
+        child: Container(
+          color: Color(int.parse(theme['background'])),
+          child: SafeArea(
+            child: Padding(
+              padding: EdgeInsets.only(top: 30, left: 30, right: 30),
+              child: PageView(
+                  controller: _pageController,
+                  physics: NeverScrollableScrollPhysics(),
+                  children: [
+                    Center(
+                        child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                          Center(
+                            child: Container(
+                              child: Image.asset(
+                                config['intro']['icon'],
+                                height: 220,
+                                fit: BoxFit.contain,
+                              ),
                             ),
-                            TextSpan(
-                                text: config['exposure_notification']
-                                    ['link_title'],
-                                style: TextStyle(
-                                    decoration: TextDecoration.underline),
-                                recognizer: TapGestureRecognizer()
-                                  ..onTap = () {
-                                    try {
-                                      launch(config['exposure_notification']
-                                          ['link']);
-                                    } catch (err) {}
-                                  })
+                          ),
+                          SizedBox(height: 50),
+                          Row(children: [
+                            Expanded(
+                                child: Text(
+                              config['intro']['title'],
+                              style: themeData.textTheme.headline5,
+                            )),
                           ]),
-                        ),
-                        SizedBox(height: 30),
-                        Center(
-                            child: Transform.scale(
-                                scale: 1.5,
-                                child: Material(
-                                    color: Colors.white,
-                                    child: Switch.adaptive(
-                                        value: _requestExposure,
-                                        onChanged: requestPermission)))),
-                        SizedBox(height: 30),
-                        BlockButton(
-                            label: config['exposure_notification']['cta'],
-                            onPressed: _requestExposure ? nextPage : null)
-                      ])),
-                  Center(
-                      child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                        Text(
-                          config['notification_permission']['title'],
-                          style: Theme.of(context).textTheme.headline5,
-                        ),
-                        SizedBox(height: 10),
-                        Text(
-                          config['notification_permission']['body'],
-                          style: bodyText,
-                        ),
-                        SizedBox(height: 20),
-                        Image.asset(platform == TargetPlatform.iOS
-                            ? config['notification_permission']['preview_ios']
-                            : config['notification_permission']
-                                ['preview_android']),
-                        SizedBox(height: 20),
-                        platform == TargetPlatform.iOS
-                            ? Material(
-                                color: Colors.white,
-                                child: InkWell(
-                                    onTap: () =>
-                                        requestNotifications(!_requestExposure),
-                                    child: Row(children: [
-                                      Expanded(
-                                          child: Text('Enable notifications',
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .headline6)),
-                                      Switch.adaptive(
-                                          value: _requestNotification,
-                                          onChanged: requestNotifications),
-                                    ])))
-                            : Container(),
-                        SizedBox(height: 30),
-                        BlockButton(
-                            onPressed: finish,
-                            label: config['notification_permission']['cta']),
-                      ])),
-                ]),
+                          SizedBox(height: 10),
+                          Text(
+                            config['intro']['body'],
+                            style: bodyText,
+                          ),
+                          SizedBox(height: 30),
+                          BlockButton(
+                              onPressed: nextPage,
+                              label: config['intro']['cta']),
+                        ])),
+                    Center(
+                        child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                          Row(children: [
+                            Expanded(
+                                child: Text(
+                                    config['exposure_notification']['title'],
+                                    style: themeData.textTheme.headline5)),
+                            Container(
+                              child: Image.asset(
+                                  config['exposure_notification']['icon'],
+                                  color: Colors.black38,
+                                  height: 40,
+                                  fit: BoxFit.contain),
+                            ),
+                          ]),
+                          SizedBox(height: 10),
+                          RichText(
+                            text: TextSpan(style: bodyText, children: [
+                              TextSpan(
+                                text: config['exposure_notification']['body'],
+                              ),
+                              TextSpan(
+                                  text: config['exposure_notification']
+                                      ['link_title'],
+                                  style: TextStyle(
+                                      decoration: TextDecoration.underline),
+                                  recognizer: TapGestureRecognizer()
+                                    ..onTap = () {
+                                      try {
+                                        launch(config['exposure_notification']
+                                            ['link']);
+                                      } catch (err) {}
+                                    })
+                            ]),
+                          ),
+                          SizedBox(height: 30),
+                          Center(
+                              child: Transform.scale(
+                                  scale: 1.5,
+                                  child: Material(
+                                      color: Colors.white,
+                                      child: Switch.adaptive(
+                                          value: _requestExposure,
+                                          onChanged: requestPermission)))),
+                          SizedBox(height: 30),
+                          BlockButton(
+                              label: config['exposure_notification']['cta'],
+                              onPressed: _requestExposure ? nextPage : null)
+                        ])),
+                    Center(
+                        child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                          Text(
+                            config['notification_permission']['title'],
+                            style: themeData.textTheme.headline5,
+                          ),
+                          SizedBox(height: 10),
+                          Text(
+                            config['notification_permission']['body'],
+                            style: bodyText,
+                          ),
+                          SizedBox(height: 20),
+                          Image.asset(platform == TargetPlatform.iOS
+                              ? config['notification_permission']['preview_ios']
+                              : config['notification_permission']
+                                  ['preview_android']),
+                          SizedBox(height: 20),
+                          platform == TargetPlatform.iOS
+                              ? Material(
+                                  color: Colors.white,
+                                  child: InkWell(
+                                      onTap: () => requestNotifications(
+                                          !_requestExposure),
+                                      child: Row(children: [
+                                        Expanded(
+                                            child: Text('Enable notifications',
+                                                style: themeData
+                                                    .textTheme.headline6)),
+                                        Switch.adaptive(
+                                            value: _requestNotification,
+                                            onChanged: requestNotifications),
+                                      ])))
+                              : Container(),
+                          SizedBox(height: 30),
+                          BlockButton(
+                              onPressed: finish,
+                              label: config['notification_permission']['cta']),
+                        ])),
+                  ]),
+            ),
           ),
         ),
       ),

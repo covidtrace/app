@@ -1,14 +1,37 @@
 {
   "remote": "assets/remote.json",
+  "theme": {
+    "title": "COVID Trace",
+    "icon": "assets/app_icon.png",
+    "primarySwatch": {
+      "50": "0xFFFFF2F4",
+      "100": "0xFFFFC8D1",
+      "200": "0xFFFF9EAA",
+      "300": "0xFFFF7884",
+      "400": "0xFFFF5A63",
+      "500": "0xFFFC4349",
+      "600": "0xFFEA2237",
+      "700": "0xFFD5173A",
+      "800": "0xFFBD0E3D",
+      "900": "0xFFA2063D"
+    },
+    "onboarding": {
+      "system_overlay": "dark",
+      "background": "0xFFFFFFFF",
+      "text": "0xFF000000",
+      "button_background": "0xFFFC4349",
+      "button_text": "0xFFFFFFFF"
+    }
+  },
   "healthAuthority": {
     "name": "State Department of Health",
     "updated": "2020-05-01",
     "link": "https://covidtrace.com/privacy-policy",
-    "phone_number": "5551234567"
+    "phone_number": "5551234567",
+    "icon": "assets/app_icon.png"
   },
   "test_facilities": {
     "state": "NV",
-    "county": "Clark",
     "css": [
       "assets/test_facilities/lato.css",
       "assets/test_facilities/bootstrap.min.css",
@@ -103,17 +126,5 @@
         "link": "https://www.cdc.gov/coronavirus/2019-ncov/if-you-are-sick/caring-for-yourself-at-home.html"
       }
     ]
-  },
-  "primarySwatch": {
-    "50": "0xfffff2f4",
-    "100": "0xffffc8d1",
-    "200": "0xffff9eaa",
-    "300": "0xffff7884",
-    "400": "0xffff5a63",
-    "500": "0xFFFC4349",
-    "600": "0xffea2237",
-    "700": "0xffd5173a",
-    "800": "0xffbd0e3d",
-    "900": "0xffa2063d"
   }
 }
