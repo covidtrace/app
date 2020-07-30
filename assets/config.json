@@ -4,30 +4,30 @@
     "title": "COVID Trace",
     "icon": "assets/app_icon.png",
     "primarySwatch": {
-      "50": "0xFFFFF2F4",
-      "100": "0xFFFFC8D1",
-      "200": "0xFFFF9EAA",
-      "300": "0xFFFF7884",
-      "400": "0xFFFF5A63",
-      "500": "0xFFFC4349",
-      "600": "0xFFEA2237",
-      "700": "0xFFD5173A",
-      "800": "0xFFBD0E3D",
-      "900": "0xFFA2063D"
+      "50": "0xfffff2f4",
+      "100": "0xffffc8d1",
+      "200": "0xffff9eaa",
+      "300": "0xffff7884",
+      "400": "0xffff5a63",
+      "500": "0xFF005A9C",
+      "600": "0xFF004691",
+      "700": "0xFF00307F",
+      "800": "0xFF001C69",
+      "900": "0xFF000E52"
     },
     "onboarding": {
-      "system_overlay": "dark",
-      "background": "0xFFFFFFFF",
-      "text": "0xFF000000",
-      "button_background": "0xFFFC4349",
-      "button_text": "0xFFFFFFFF"
+      "system_overlay": "light",
+      "background": "0xFF005A9C",
+      "text": "0xFFFFFFFF",
+      "button_background": "0xFFFFCF53",
+      "button_text": "0xFF00307F"
     }
   },
   "healthAuthority": {
-    "name": "State Department of Health",
+    "name": "Division of Public & Behavioral Health",
     "updated": "2020-05-01",
-    "link": "https://covidtrace.com/privacy-policy",
-    "phone_number": "5551234567",
+    "link": "http://dpbh.nv.gov/coronavirus",
+    "phone_number": "211",
     "icon": "assets/app_icon.png"
   },
   "test_facilities": {
@@ -45,7 +45,7 @@
   "onboarding": {
     "intro": {
       "icon": "assets/app_icon.png",
-      "title": "Flatten The Curve",
+      "title": "Protect Nevada",
       "body": "COVID Trace alerts you when you may have been exposed to COVID-19. Early alerts and quick action helps stop the spread and saves lives. Your participation is voluntary and anonymous to protect your privacy and health.",
       "cta": "Get Started"
     },
