@@ -16,11 +16,19 @@
       "900": "0xFF000E52"
     },
     "onboarding": {
-      "system_overlay": "light",
-      "background": "0xFF005A9C",
-      "text": "0xFFFFFFFF",
-      "button_background": "0xFFFFCF53",
-      "button_text": "0xFF00307F"
+      "system_overlay": "dark",
+      "background": "0xFFFFFFFF",
+      "text": "0xFF000000",
+      "button_background": "0xFFFC4349",
+      "button_text": "0xFFFFFFFF"
+    },
+    "dashboard": {
+      "non_exposure_background": "0xFF607D8B",
+      "non_exposure_text": "0xFFFFFFFF",
+      "exposure_background": "0xFFFF9800",
+      "exposure_text": "0xFFFFFFFF",
+      "reported_background": "0xFF607D8B",
+      "reported_text": "0xFFFFFFFF"
     }
   },
   "healthAuthority": {

@@ -45,7 +45,7 @@ class SendReportState extends State<SendReport> with TickerProviderStateMixin {
   void onSubmit(context, AppState state) async {
     if (!await sendReport(state)) {
       Scaffold.of(context).showSnackBar(SnackBar(
-          backgroundColor: Colors.deepOrange,
+          backgroundColor: Colors.red,
           content: Text('There was an error submitting your report')));
     } else {
       Scaffold.of(context).showSnackBar(
@@ -102,7 +102,12 @@ class SendReportState extends State<SendReport> with TickerProviderStateMixin {
   }
 
   Widget buildReportedView(BuildContext context, AppState state) {
-    var alertText = TextStyle(color: Colors.white);
+    var config = Config.get();
+    var theme = config['theme']['dashboard'];
+
+    var bgColor = Color(int.parse(theme['reported_background']));
+    var textColor = Color(int.parse(theme['reported_text']));
+    var alertText = TextStyle(color: textColor);
 
     return Padding(
       padding: EdgeInsets.only(left: 15, right: 15),
@@ -110,8 +115,7 @@ class SendReportState extends State<SendReport> with TickerProviderStateMixin {
         SizedBox(height: 15),
         Container(
           decoration: BoxDecoration(
-              color: Theme.of(context).primaryColorDark,
-              borderRadius: BorderRadius.circular(10)),
+              color: bgColor, borderRadius: BorderRadius.circular(10)),
           child: InkWell(
             onTap: () {
               setState(() => _expandHeader = !_expandHeader);
@@ -138,11 +142,12 @@ class SendReportState extends State<SendReport> with TickerProviderStateMixin {
                               'On ${DateFormat.yMMMd().add_jm().format(state.report.timestamp)}',
                               style: alertText)
                         ])),
-                    Image.asset('assets/clinic_medical_icon.png', height: 40),
+                    Image.asset('assets/clinic_medical_icon.png',
+                        height: 40, color: textColor),
                   ]),
                   SizeTransition(
                       child: Column(children: [
-                        Divider(height: 20, color: Colors.white),
+                        Divider(height: 20, color: textColor),
                         Text(
                             'Thank you for submitting your anonymized exposure history. Your data will help people at risk respond faster.',
                             style: alertText)
