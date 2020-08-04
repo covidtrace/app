@@ -16,18 +16,18 @@
       "900": "0xFF000E52"
     },
     "onboarding": {
-      "system_overlay": "dark",
-      "background": "0xFFFFFFFF",
-      "text": "0xFF000000",
-      "button_background": "0xFFFC4349",
-      "button_text": "0xFFFFFFFF"
+      "system_overlay": "light",
+      "background": "0xFF005A9C",
+      "text": "0xFFFFFFFF",
+      "button_background": "0xFFFFCF53",
+      "button_text": "0xFF00307F"
     },
     "dashboard": {
-      "non_exposure_background": "0xFF607D8B",
+      "non_exposure_background": "0xFF001C69",
       "non_exposure_text": "0xFFFFFFFF",
-      "exposure_background": "0xFFFF9800",
+      "exposure_background": "0xFFFF0000",
       "exposure_text": "0xFFFFFFFF",
-      "reported_background": "0xFF607D8B",
+      "reported_background": "0xFF001C69",
       "reported_text": "0xFFFFFFFF"
     }
   },
