@@ -64,6 +64,10 @@ Future<ExposureInfo> checkExposures() async {
 
   // Decompress and verify downloads
   keyFiles = await Future.wait(downloads.map((file) async {
+    if (Platform.isAndroid) {
+      return file.uri;
+    }
+
     var archive = ZipDecoder().decodeBytes(await file.readAsBytes());
     var first = archive.files[0];
     var second = archive.files[1];
