@@ -22,6 +22,8 @@ import 'package:wakelock/wakelock.dart';
 void main() async {
   await Config.load();
 
+  GactPlugin.setup();
+
   runApp(ChangeNotifierProvider(
       create: (context) => AppState(), child: CovidTraceApp()));
 
