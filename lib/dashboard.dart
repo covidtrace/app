@@ -95,10 +95,10 @@ class DashboardState extends State with TickerProviderStateMixin {
         .textTheme
         .subtitle1
         .merge(TextStyle(fontWeight: FontWeight.bold));
-    var alertText = TextStyle(color: Colors.white);
 
     var config = Config.get();
     var authority = config["healthAuthority"];
+    var theme = config['theme']['dashboard'];
     var faqs = config["faqs"];
 
     var heading = (String title) => [
@@ -123,6 +123,10 @@ class DashboardState extends State with TickerProviderStateMixin {
         hours = diff.inHours;
       }
 
+      var bgColor = Color(int.parse(theme['non_exposure_background']));
+      var textColor = Color(int.parse(theme['non_exposure_text']));
+      var alertText = TextStyle(color: textColor);
+
       var exposure = state.exposure;
       if (exposure == null) {
         return Padding(
@@ -133,8 +137,7 @@ class DashboardState extends State with TickerProviderStateMixin {
               SizedBox(height: 15),
               Container(
                 decoration: BoxDecoration(
-                    color: Theme.of(context).primaryColorDark,
-                    borderRadius: BorderRadius.circular(10)),
+                    color: bgColor, borderRadius: BorderRadius.circular(10)),
                 child: Padding(
                   padding: EdgeInsets.all(15),
                   child: Column(
@@ -161,10 +164,10 @@ class DashboardState extends State with TickerProviderStateMixin {
                                         .merge(alertText))
                               ])),
                           Image.asset('assets/people_arrows_icon.png',
-                              height: 40),
+                              height: 40, color: textColor),
                         ],
                       ),
-                      Divider(height: 20, color: Colors.white),
+                      Divider(height: 20, color: textColor),
                       Text(
                           'Last checked: ${DateFormat.jm().format(lastCheck ?? DateTime.now()).toLowerCase()}',
                           style: alertText)
@@ -180,6 +183,10 @@ class DashboardState extends State with TickerProviderStateMixin {
         );
       }
 
+      bgColor = Color(int.parse(theme['exposure_background']));
+      textColor = Color(int.parse(theme['exposure_text']));
+      alertText = TextStyle(color: textColor);
+
       return Padding(
         padding: EdgeInsets.only(left: 15, right: 15),
         child: RefreshIndicator(
@@ -188,8 +195,7 @@ class DashboardState extends State with TickerProviderStateMixin {
             SizedBox(height: 15),
             Container(
               decoration: BoxDecoration(
-                  color: Colors.orange,
-                  borderRadius: BorderRadius.circular(10)),
+                  color: bgColor, borderRadius: BorderRadius.circular(10)),
               child: Padding(
                 padding: EdgeInsets.all(15),
                 child: Column(children: [
@@ -208,9 +214,10 @@ class DashboardState extends State with TickerProviderStateMixin {
                               'On ${DateFormat.EEEE().add_MMMd().format(exposure.date)}',
                               style: alertText)
                         ])),
-                    Image.asset('assets/shield_virus_icon.png', height: 40),
+                    Image.asset('assets/shield_virus_icon.png',
+                        height: 40, color: textColor),
                   ]),
-                  Divider(height: 20, color: Colors.white),
+                  Divider(height: 20, color: textColor),
                   Text(
                       "You were in close proximity to someone for ${exposure.duration.inMinutes * 2} minutes who tested positive for COVID-19.",
                       style: alertText)

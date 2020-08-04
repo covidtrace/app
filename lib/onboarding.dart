@@ -98,10 +98,12 @@ class OnboardingState extends State {
   Widget build(BuildContext context) {
     var config = Config.get()['onboarding'];
     var theme = Config.get()['theme']['onboarding'];
+    var textColor = Color(int.parse(theme['text']));
+
     var themeData = ThemeData(
         textTheme: Theme.of(context).textTheme.apply(
-              bodyColor: Color(int.parse(theme['text'])),
-              displayColor: Color(int.parse(theme['text'])),
+              bodyColor: textColor,
+              displayColor: textColor,
             ));
 
     var bodyText = themeData.textTheme.bodyText2
@@ -169,7 +171,7 @@ class OnboardingState extends State {
                             Container(
                               child: Image.asset(
                                   config['exposure_notification']['icon'],
-                                  color: Colors.black38,
+                                  color: textColor,
                                   height: 40,
                                   fit: BoxFit.contain),
                             ),
@@ -199,10 +201,12 @@ class OnboardingState extends State {
                               child: Transform.scale(
                                   scale: 1.5,
                                   child: Material(
-                                      color: Colors.white,
+                                      color: Colors.transparent,
                                       child: Switch.adaptive(
-                                          value: _requestExposure,
-                                          onChanged: requestPermission)))),
+                                        inactiveTrackColor: Colors.black26,
+                                        value: _requestExposure,
+                                        onChanged: requestPermission,
+                                      )))),
                           SizedBox(height: 30),
                           BlockButton(
                               label: config['exposure_notification']['cta'],
@@ -230,7 +234,7 @@ class OnboardingState extends State {
                           SizedBox(height: 20),
                           platform == TargetPlatform.iOS
                               ? Material(
-                                  color: Colors.white,
+                                  color: Colors.transparent,
                                   child: InkWell(
                                       onTap: () => requestNotifications(
                                           !_requestExposure),
@@ -240,6 +244,7 @@ class OnboardingState extends State {
                                                 style: themeData
                                                     .textTheme.headline6)),
                                         Switch.adaptive(
+                                            inactiveTrackColor: Colors.black26,
                                             value: _requestNotification,
                                             onChanged: requestNotifications),
                                       ])))
