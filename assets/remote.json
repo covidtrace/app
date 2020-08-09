@@ -1,6 +1,6 @@
 {
-  "exposurePublishUrl": "http://localhost:8080",
-  "exposureKeysPublishedBucket": "covidtrace-exposure-keys-published",
+  "exposurePublishUrl": "https://exposure-5v7v5qboea-uc.a.run.app",
+  "exposureKeysPublishedBucket": "exposure-notification-export-cpmxr",
   "exposureKeysPublishedIndexFile": "exposure-keys/index.txt",
   "exposureNotificationConfiguration": {
     "minimumRiskScore": 1,
@@ -13,6 +13,6 @@
     "transmissionRiskLevelValues": [1, 2, 3, 4, 5, 6, 7, 8],
     "transmissionRiskWeight": 50
   },
-  "verifyUrl": "http://localhost:8080",
-  "verifyApiKey": "INSERT_GENERATED_VERIFY_API_KEY_HERE"
+  "verifyUrl": "https://apiserver-5v7v5qboea-uc.a.run.app",
+  "verifyApiKey": "Gp/7ClkagyiAdpCRIuyivHUwy9BnoSHW21BYbarXtI6gqKxDDKwFmcXpwf06ynF5n828yAAkVaat+oBNC2kKQg"
 }

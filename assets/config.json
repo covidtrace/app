@@ -62,7 +62,7 @@
       "title": "Enable Exposure Notifications",
       "body": "COVID Trace’s early detection works by using Bluetooth to see if you have come in contact with people who reported positive test results. COVID Trace does this all on your phone to maintain your privacy. Limited information is shared when reporting an infection or potential exposure.\n",
       "link_title": "Find out more here",
-      "link": "https://covidtrace.com",
+      "link": "https://covidtrace.com/nct_privacy_policy.pdf",
       "cta": "Continue"
     },
     "notification_permission": {
