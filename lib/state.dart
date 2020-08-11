@@ -178,32 +178,25 @@ class AppState with ChangeNotifier {
       body: jsonEncode(postData),
     );
 
-    // TODO(wes): Handle failures
-    print(postResp.body);
     if (postResp.statusCode == 200) {
       return keys.toList();
+    } else {
+      throw (postResp.body);
     }
-
-    return null;
   }
 
   Future<bool> sendReport(String verificationCode) async {
     var success = false;
     var config = await Config.remote();
 
-    try {
-      List<ExposureKey> keys =
-          await sendExposureKeys(config, verificationCode) ?? [];
+    List<ExposureKey> keys =
+        await sendExposureKeys(config, verificationCode) ?? [];
 
-      if (keys.isNotEmpty) {
-        _report = ReportModel(
-            lastExposureKey: keys.last.keyData, timestamp: DateTime.now());
-        await report.create();
-        success = true;
-      }
-    } catch (err) {
-      print(err);
-      success = false;
+    if (keys.isNotEmpty) {
+      _report = ReportModel(
+          lastExposureKey: keys.last.keyData, timestamp: DateTime.now());
+      await report.create();
+      success = true;
     }
 
     notifyListeners();
@@ -223,14 +216,24 @@ class AppState with ChangeNotifier {
       },
       body: jsonEncode({"code": verificationCode}),
     );
-
     print(postResp.body);
-    if (postResp.statusCode != 200) {
-      return null;
+
+    var statusCode = postResp.statusCode;
+    if (statusCode == 429) {
+      throw ('Too many attempts. Please wait and try again later');
+    } else if (statusCode == 500) {
+      throw ('Unable to verify your code');
+    } else if (statusCode != 200) {
+      throw (postResp.body);
     }
 
     var body = jsonDecode(postResp.body);
     var token = body['token'];
+    var testType = body['testtype'];
+
+    if (testType != 'confirmed') {
+      throw ('Only a confirmed positive diagnosis is supported');
+    }
 
     // Calculate and submit HMAC
     // See: https://developers.google.com/android/exposure-notifications/verification-system#hmac-calc
@@ -256,7 +259,7 @@ class AppState with ChangeNotifier {
 
     print(postResp.body);
     if (postResp.statusCode != 200) {
-      return null;
+      throw (postResp.body);
     }
 
     body = jsonDecode(postResp.body);

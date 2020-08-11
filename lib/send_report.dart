@@ -7,6 +7,22 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'state.dart';
 
+class PinState extends ChangeNotifier {
+  String _pin;
+
+  String get pin => _pin;
+
+  void onChange(String value) {
+    _pin = value;
+    notifyListeners();
+  }
+
+  void reset() {
+    _pin = '';
+    notifyListeners();
+  }
+}
+
 class SendReport extends StatefulWidget {
   SendReport({Key key}) : super(key: key);
 
@@ -19,6 +35,7 @@ class SendReportState extends State<SendReport> with TickerProviderStateMixin {
   var _step = 0;
   var _verificationCode = '';
   bool _expandHeader = false;
+  var _pinState = PinState();
   AnimationController expandController;
   CurvedAnimation animation;
 
@@ -29,6 +46,7 @@ class SendReportState extends State<SendReport> with TickerProviderStateMixin {
     animation =
         CurvedAnimation(parent: expandController, curve: Curves.fastOutSlowIn);
 
+    _pinState.addListener(() => onCodeChange(_pinState.pin));
     Provider.of<AppState>(context, listen: false).addListener(onStateChange);
   }
 
@@ -41,25 +59,37 @@ class SendReportState extends State<SendReport> with TickerProviderStateMixin {
   }
 
   void onSubmit(context, AppState state) async {
-    if (!await sendReport(state)) {
+    var err = await sendReport(state);
+    if (err != null) {
       Scaffold.of(context).showSnackBar(SnackBar(
           backgroundColor: Colors.red,
-          content: Text('There was an error submitting your report')));
+          content: Text(
+              'There was an error submitting your report:\n"${err.trim()}"')));
     } else {
       Scaffold.of(context).showSnackBar(
           SnackBar(content: Text('Your report was successfully submitted')));
     }
   }
 
-  Future<bool> sendReport(AppState state) async {
+  Future<String> sendReport(AppState state) async {
     setState(() => _loading = true);
-    var success = await state.sendReport(_verificationCode);
+    var error;
+    try {
+      await state.sendReport(_verificationCode);
+    } catch (err) {
+      error = err;
+    }
+
     setState(() => _loading = false);
 
-    return success;
+    if (error != null) {
+      _pinState.reset();
+    }
+
+    return error;
   }
 
-  void onCodeChange(context, String code) {
+  void onCodeChange(String code) {
     setState(() => _verificationCode = code);
 
     if (codeComplete) {
@@ -239,10 +269,7 @@ class SendReportState extends State<SendReport> with TickerProviderStateMixin {
                                   Text(
                                       'Enter the verification code provided by your health official to submit your report.',
                                       style: stepTextTheme),
-                                  CodePin(
-                                      size: 8,
-                                      onChange: (value) =>
-                                          onCodeChange(context, value)),
+                                  CodePin(size: 8, pinState: _pinState),
                                   SizedBox(height: 10),
                                   ButtonBar(
                                       alignment: MainAxisAlignment.start,

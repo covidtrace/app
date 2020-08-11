@@ -1,13 +1,14 @@
 import 'dart:math';
 
+import 'package:covidtrace/send_report.dart';
 import 'package:flutter/material.dart';
 
 class CodePin extends StatefulWidget {
   final int size;
   final int flex;
-  final void Function(String) onChange;
+  final PinState pinState;
 
-  CodePin({Key key, this.size = 8, this.flex = 3, this.onChange})
+  CodePin({Key key, this.size = 8, this.flex = 3, this.pinState})
       : super(key: key);
 
   @override
@@ -22,6 +23,11 @@ class CodePinState extends State<CodePin> {
   @override
   void initState() {
     super.initState();
+    widget.pinState.addListener(() {
+      if (widget.pinState.pin != value) {
+        reset();
+      }
+    });
 
     createFocusAndControllers();
   }
@@ -41,6 +47,14 @@ class CodePinState extends State<CodePin> {
     if (widget.size != oldWidget.size) {
       createFocusAndControllers();
     }
+  }
+
+  void reset() {
+    var size = widget.size;
+    _values = List.generate(size, (_) => '');
+    _controllers.forEach((c) {
+      c.clear();
+    });
   }
 
   void createFocusAndControllers() {
@@ -82,9 +96,11 @@ class CodePinState extends State<CodePin> {
     );
   }
 
-  void onChange(int index, String value) {
-    _values[index] = value;
-    widget.onChange(_values.join('').trim());
+  String get value => _values.join('').trim();
+
+  void onChange(int index, String val) {
+    _values[index] = val;
+    widget.pinState.onChange(value);
   }
 
   void onTap(int index) {
