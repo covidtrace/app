@@ -10,9 +10,7 @@ import 'package:sqflite/sqflite.dart';
 
 import 'config.dart';
 import 'helper/check_exposures.dart' as bg;
-import 'helper/signed_upload.dart';
 import 'package:flutter/foundation.dart';
-import 'package:intl/intl.dart';
 import 'storage/exposure.dart';
 import 'storage/report.dart';
 import 'storage/user.dart';
@@ -83,54 +81,6 @@ class AppState with ChangeNotifier {
     _report = report;
     await _report.create();
     notifyListeners();
-  }
-
-  Future<bool> sendExposure() async {
-    var success = false;
-    try {
-      var config = await Config.remote();
-      var user = await UserModel.find();
-
-      String bucket = config['exposureBucket'] ?? 'covidtrace-exposures';
-      var data = jsonEncode({
-        'duration': _exposure.duration.inMinutes,
-        'totalRiskScore': _exposure.totalRiskScore,
-        'transmissionRiskLevel': _exposure.transmissionRiskLevel,
-        'timestamp': DateFormat('yyyy-MM-dd').format(_exposure.date)
-      });
-
-      if (!await objectUpload(
-          config: config,
-          bucket: bucket,
-          object: '${user.uuid}.json',
-          data: data)) {
-        return false;
-      }
-
-      _exposure.reported = true;
-      await _exposure.save();
-      success = true;
-    } catch (err) {
-      print(err);
-      success = false;
-    }
-
-    notifyListeners();
-    return success;
-  }
-
-  Future<bool> objectUpload(
-      {@required Map<String, dynamic> config,
-      @required String bucket,
-      @required String object,
-      @required String data,
-      String contentType = 'application/json; charset=utf-8'}) async {
-    var user = await UserModel.find();
-
-    return signedUpload(config, user.token,
-        query: {'bucket': bucket, 'contentType': contentType, 'object': object},
-        headers: {'Content-Type': contentType},
-        body: data);
   }
 
   Future<List<ExposureKey>> sendExposureKeys(
