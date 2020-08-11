@@ -1,0 +1,138 @@
+{
+  "remote": "assets/remote.json",
+  "theme": {
+    "title": "COVID Trace",
+    "icon": "assets/app_icon.png",
+    "primarySwatch": {
+      "50": "0xFFFFF2F4",
+      "100": "0xFFFFC8D1",
+      "200": "0xFFFF9EAA",
+      "300": "0xFFFF7884",
+      "400": "0xFFFF5A63",
+      "500": "0xFFFC4349",
+      "600": "0xFFEA2237",
+      "700": "0xFFD5173A",
+      "800": "0xFFBD0E3D",
+      "900": "0xFFA2063D"
+    },
+    "onboarding": {
+      "system_overlay": "dark",
+      "background": "0xFFFFFFFF",
+      "text": "0xFF000000",
+      "button_background": "0xFFFC4349",
+      "button_text": "0xFFFFFFFF"
+    },
+    "dashboard": {
+      "non_exposure_background": "0xFF607D8B",
+      "non_exposure_text": "0xFFFFFFFF",
+      "exposure_background": "0xFFFF9800",
+      "exposure_text": "0xFFFFFFFF",
+      "reported_background": "0xFF607D8B",
+      "reported_text": "0xFFFFFFFF"
+    }
+  },
+  "healthAuthority": {
+    "name": "State Department of Health",
+    "updated": "2020-05-01",
+    "link": "https://covidtrace.com/privacy-policy",
+    "phone_number": "5551234567",
+    "icon": "assets/app_icon.png"
+  },
+  "test_facilities": {
+    "state": "NV",
+    "css": [
+      "assets/test_facilities/lato.css",
+      "assets/test_facilities/bootstrap.min.css",
+      "assets/test_facilities/foundation.min.css",
+      "assets/test_facilities/ionicons.min.css",
+      "assets/test_facilities/main.css",
+      "assets/test_facilities/select2.min.css",
+      "assets/test_facilities/override.css"
+    ]
+  },
+  "onboarding": {
+    "intro": {
+      "icon": "assets/app_icon.png",
+      "title": "Flatten The Curve",
+      "body": "COVID Trace alerts you when you may have been exposed to COVID-19. Early alerts and quick action helps stop the spread and saves lives. Your participation is voluntary and anonymous to protect your privacy and health.",
+      "cta": "Get Started"
+    },
+    "exposure_notification": {
+      "icon": "assets/people_arrows_icon.png",
+      "title": "Enable Exposure Notifications",
+      "body": "COVID Trace’s early detection works by using Bluetooth to see if you have come in contact with people who reported positive test results. COVID Trace does this all on your phone to maintain your privacy. Limited information is shared when reporting an infection or potential exposure.\n",
+      "privacy_title": "Privacy Policy",
+      "privacy_policy": "assets/privacy_policy.html",
+      "cta": "Continue"
+    },
+    "notification_permission": {
+      "title": "What To Expect",
+      "body": "COVID Trace is now monitoring for exposures. You will get a notification if you were potentially exposed to COVID-19.",
+      "preview_ios": "assets/ios_notification.png",
+      "preview_android": "assets/android_notification.png",
+      "cta": "Finish"
+    }
+  },
+  "faqs": {
+    "non_exposure": [
+      {
+        "icon": "assets/who_logo.jpg",
+        "title": "World Health Organization",
+        "body": "Stay aware of the latest information on the COVID-19 outbreak, available on the WHO website and through your national and local public health authority.",
+        "link": "https://www.who.int/emergencies/diseases/novel-coronavirus-2019"
+      },
+      {
+        "icon": "assets/do_the_five.gif",
+        "title": "Do The Five",
+        "body": "1. STAY home as much as you can\n2. KEEP a safe distance\n3. WASH hands often\n4. COVER your cough\n5. SICK? Call ahead",
+        "link": "https://www.google.com/covid19/#safety-tips"
+      },
+      {
+        "icon": "assets/stay_home_save_lives.png",
+        "title": "Stay Home, Save Lives",
+        "body": "Let frontline workers do their jobs. COVID-19 is spreading, and you may not know you’re infected until you’ve already infected others.",
+        "link": "https://www.stayhomesavelives.us"
+      },
+      {
+        "icon": "assets/crisis_test_line.png",
+        "title": "Crisis Text Line",
+        "body": "Text HOME to 741741 from anywhere in the United States, anytime. Crisis Text Line is here for any crisis.",
+        "link": "https://www.crisistextline.org"
+      }
+    ],
+    "exposure": [
+      {
+        "title": "What should I do if I am not sick?",
+        "body": "You should monitor your health for fever, cough and shortness of breath during the 14 days after the last day you were in close contact with the sick person with COVID-19.",
+        "link": "https://coronavirus.wa.gov/"
+      },
+      {
+        "title": "What should I do if I work in critical infrastructure?",
+        "body": "Critical infrastructure workers who had close contact with a COVID-19 case can continue to work as long as they remain well without symptoms and if they take the following measures",
+        "link": "https://coronavirus.wa.gov/"
+      },
+      {
+        "title": "What is coronavirus disease 2019 (COVID-19)?",
+        "body": "COVID-19 is a respiratory disease caused by a new virus called SARS-CoV-2. The most common symptoms of the disease are fever, cough, and shortness of breath.",
+        "link": "https://coronavirus.wa.gov/"
+      }
+    ],
+    "reported": [
+      {
+        "title": "Protect others from getting sick",
+        "body": "Stay away from others for at least 7 days from when your symptoms first appeared",
+        "link": "https://www.cdc.gov/coronavirus/2019-ncov/if-you-are-sick/steps-when-sick.html"
+      },
+      {
+        "title": "Monitor your symptoms",
+        "body": "If your symptoms get worse, contact your doctor’s office",
+        "link": "https://www.cdc.gov/coronavirus/2019-ncov/if-you-are-sick/steps-when-sick.html"
+      },
+      {
+        "title": "Caring for yourself at home",
+        "body": "10 things you can do to manage your health at home",
+        "link": "https://www.cdc.gov/coronavirus/2019-ncov/if-you-are-sick/caring-for-yourself-at-home.html"
+      }
+    ]
+  }
+}

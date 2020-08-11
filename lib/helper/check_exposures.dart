@@ -1,177 +1,150 @@
 import 'dart:async';
+import 'dart:io';
+import 'package:archive/archive_io.dart';
 import 'package:covidtrace/config.dart';
-import 'package:covidtrace/exposure.dart';
-import 'package:covidtrace/exposure/beacon.dart';
-import 'package:covidtrace/exposure/location.dart';
-import 'package:covidtrace/helper/beacon.dart';
-import 'package:covidtrace/helper/cloud_storage.dart';
-import 'package:covidtrace/storage/beacon.dart';
-import 'package:covidtrace/storage/location.dart';
+import 'package:covidtrace/storage/exposure.dart';
 import 'package:covidtrace/storage/user.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:gact_plugin/gact_plugin.dart';
+import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:tuple/tuple.dart';
 
-Future<Exposure> checkExposures() async {
+Future<ExposureInfo> checkExposures() async {
   print('Checking exposures...');
-  var threeWeeksAgo = DateTime.now().subtract(Duration(days: 21));
-  var whereArgs = [threeWeeksAgo.toIso8601String()];
 
   var results = await Future.wait([
     UserModel.find(),
-    getConfig(),
+    Config.remote(),
     getApplicationSupportDirectory(),
-    LocationModel.findAll(
-        where: 'exposure = 0 AND DATE(timestamp) >= DATE(?)',
-        whereArgs: whereArgs),
-    BeaconModel.findAll(
-        where: 'exposure = 0 AND DATE(start) >= DATE(?)', whereArgs: whereArgs),
   ]);
 
-  var user = results[0];
+  var user = results[0] as UserModel;
   var config = results[1];
-  var dir = results[2];
-  var locations = results[3];
-  var beacons = results[4];
+  var dir = results[2] as Directory;
 
-  String publishedBucket = config['publishedBucket'];
-  int compareLevel = config['compareS2Level'];
-  List<dynamic> aggLevels = config['aggS2Levels'];
-  Duration timeResolution = Duration(minutes: config['timeResolution'] ?? 60);
+  String publishedBucket = config['exposureKeysPublishedBucket'];
+  String indexFileName = config['exposureKeysPublishedIndexFile'];
 
-  // Structures for exposures
-  Map<int, LocationModel> exposedLocations = {};
-  var locationExposure =
-      new LocationExposure(locations, compareLevel, timeResolution);
-
-  Map<int, BeaconModel> exposedBeacons = {};
-  var beaconExposure = new BeaconExposure(beacons, compareLevel);
-
-  // Set of all top level geo prefixes to begin querying
-  var geoPrefixes = Set<String>.from(locations.map(
-      (location) => location.cellID.parent(aggLevels.first as int).toToken()));
-
-  // Build a queue of geos to fetch
-  List<Tuple2<String, int>> geoPrefixQueue =
-      geoPrefixes.map((prefix) => Tuple2(prefix, 0)).toList();
-
-  // BFS through published bucket using `geoPrefixQueue`
-  var objects = [];
-  while (geoPrefixQueue.length > 0) {
-    var prefix = geoPrefixQueue.removeAt(0);
-    var geo = prefix.item1;
-    var level = prefix.item2;
-
-    var hint = await objectExists(publishedBucket, '$geo/0_HINT');
-    if (hint && level + 1 < aggLevels.length) {
-      geoPrefixQueue.addAll(Set.from(locations
-              .where((location) =>
-                  location.cellID.parent(aggLevels[level]).toToken() == geo)
-              .map((location) =>
-                  location.cellID.parent(aggLevels[level + 1]).toToken()))
-          .map((geo) => Tuple2(geo, level + 1)));
-    } else {
-      objects.addAll(await getPrefixMatches(publishedBucket, '$geo/'));
-    }
+  var indexFile = await http
+      .get('https://$publishedBucket.storage.googleapis.com/$indexFileName');
+  if (indexFile.statusCode != 200) {
+    return null;
   }
 
   // Filter objects for any that are lexically equal to or greater than
-  // the CSVs we last downloaded. If we have never checked before, we
-  // should fetch everything for the last three weeks
-  var lastCheck = user.lastCheck ?? threeWeeksAgo;
-  var lastCsv = '${(lastCheck.millisecondsSinceEpoch / 1000).floor()}.csv';
+  // the last downloaded batch. If we have never checked before, we
+  // should fetch everything in the index.
+  var lastKeyFile = user.lastKeyFile ?? '';
+  var exportFiles = indexFile.body
+      .split('\n')
+      .where((name) => name.compareTo(lastKeyFile) > 0);
 
-  await Future.wait(objects.where((object) {
-    // Strip off geo prefix for lexical comparison
-    var objectName = object['name'] as String;
-    var objectNameParts = objectName.split('/');
-    if (objectNameParts.length != 2) {
-      return false;
+  var downloads = await Future.wait(exportFiles.map((object) async {
+    print('Downloading $object');
+    // Download each exported zip file
+    var response = await http
+        .get('https://$publishedBucket.storage.googleapis.com/$object');
+    if (response.statusCode != 200) {
+      print(response.body);
+      return null;
     }
 
-    // Perform lexical comparison. Object names look like: '$UNIX_TS.$TYPE.csv'
-    // where $TYPE is one of `points` or `tokens`. We want to compare
-    // '$UNIX_TS.csv' to `lastCsv`
-    var fileName = objectNameParts[1];
-    var fileNameParts = fileName.split('.');
-    if (fileNameParts.length < 1) {
-      return false;
+    var keyFile = File('${dir.path}/$publishedBucket/$object');
+    if (!await keyFile.exists()) {
+      await keyFile.create(recursive: true);
     }
-    var unixTs = fileNameParts[0];
-
-    //  Lexical comparison
-    return '$unixTs.csv'.compareTo(lastCsv) >= 0;
-  }).map((object) async {
-    var objectName = object['name'] as String;
-    print('processing $objectName');
-
-    // Sync file to local storage
-    var file = await syncObject(
-        dir.path, publishedBucket, objectName, object['md5Hash'] as String);
-
-    // Find exposures and update!
-    if (objectName.contains(".tokens.csv")) {
-      var exposed =
-          await beaconExposure.getExposures(await file.readAsString());
-      exposed.forEach((e) => exposedBeacons[e.id] = e);
-    } else {
-      var exposed =
-          await locationExposure.getExposures(await file.readAsString());
-      exposed.forEach((e) => exposedLocations[e.id] = e);
-    }
+    return keyFile.writeAsBytes(response.bodyBytes);
   }));
 
+  // Decompress and verify downloads
+  List<Uri> keyFiles = await Future.wait(downloads.map((file) async {
+    if (Platform.isAndroid) {
+      return file.uri;
+    }
+
+    var archive = ZipDecoder().decodeBytes(await file.readAsBytes());
+    var first = archive.files[0];
+    var second = archive.files[1];
+
+    var bin = first.name == 'export.bin' ? first : second;
+    // TODO(wes): Verify signature
+    var sig = bin == first ? second : first;
+
+    // Save bin file to disk
+    var binFile = File('${file.path}.bin');
+    if (!await binFile.exists()) {
+      await binFile.create(recursive: true);
+    }
+    await binFile.writeAsBytes(bin.content as List<int>);
+    return binFile.uri;
+  }));
+
+  await GactPlugin.setExposureConfiguration(
+      config['exposureNotificationConfiguration']);
+
+  await GactPlugin.setUserExplanation(
+      'You were in close proximity to someone who tested positive for COVID-19.');
+
+  // Save all found exposures
+  List<ExposureInfo> exposures;
+  try {
+    exposures = (await GactPlugin.detectExposures(keyFiles)).toList();
+    await Future.wait(exposures.map((e) {
+      return ExposureModel(
+        date: e.date,
+        duration: e.duration,
+        totalRiskScore: e.totalRiskScore,
+        transmissionRiskLevel: e.transmissionRiskLevel,
+      ).insert();
+    }));
+  } catch (err) {
+    print(err);
+    return null;
+  }
+
+  if (exportFiles.isNotEmpty) {
+    user.lastKeyFile = exportFiles.last;
+  }
   user.lastCheck = DateTime.now();
   await user.save();
 
-  if (exposedBeacons.isNotEmpty) {
-    print('Found new beacon exposures!');
-    var locations = await matchBeaconsAndLocations(exposedBeacons.values);
-    exposedLocations.addAll(locations);
-  }
-
-  // Save all exposed beacons and locations
-  var exposures = [
-    ...exposedBeacons.values.map((b) => Exposure(b)),
-    ...exposedLocations.values.map((l) => Exposure(l)),
-  ];
-
-  await Future.wait(
-    exposures.map((e) {
-      e.exposure = true;
-      return e.save();
-    }),
-  );
-
-  exposures.sort((a, b) => a.end.compareTo(b.end));
+  exposures.sort((a, b) => a.date.compareTo(b.date));
   var exposure = exposures.isNotEmpty ? exposures.last : null;
 
-  if (exposure != null) {
+  print('Done checking exposures!');
+
+  // iOS automatically shows a system level notification via the EN API.
+  if (exposure != null && Platform.isAndroid) {
     showExposureNotification(exposure);
   }
 
-  print('Done checking exposures!');
   return exposure;
 }
 
-void showExposureNotification(Exposure exposure) async {
-  var start = exposure.start.toLocal();
-  var end = exposure.end.toLocal();
-  var timeFormat = DateFormat('ha');
-  if (exposure.duration.compareTo(Duration(hours: 1)) < 0) {
-    timeFormat = DateFormat.jm();
-  }
-
+void showExposureNotification(ExposureInfo exposure, {Duration delay}) async {
+  var date = exposure.date.toLocal();
+  var dur = exposure.duration;
   var notificationPlugin = FlutterLocalNotificationsPlugin();
+  var config = Config.get();
+
   var androidSpec = AndroidNotificationDetails(
-      '1', 'COVID Trace', 'Exposure notifications',
+      '1', config['theme']['title'], 'Exposure notifications',
       importance: Importance.Max, priority: Priority.High, ticker: 'ticker');
   var iosSpecs = IOSNotificationDetails();
-  await notificationPlugin.show(
-      0,
-      'COVID-19 Exposure Alert',
-      'Your location history matched with a reported infection on ${DateFormat.Md().format(start)} ${timeFormat.format(start).toLowerCase()} - ${timeFormat.format(end).toLowerCase()}',
-      NotificationDetails(androidSpec, iosSpecs),
-      payload: 'Default_Sound');
+
+  var id = 0;
+  var title = 'COVID-19 Exposure Alert';
+  var body =
+      'On ${DateFormat.EEEE().add_MMMd().format(date)} you were in close proximity to someone for ${dur.inMinutes} minutes who tested positive for COVID-19.';
+  var details = NotificationDetails(androidSpec, iosSpecs);
+  var payload = 'Default_Sound';
+
+  if (delay != null) {
+    await notificationPlugin.schedule(
+        id, title, body, DateTime.now().add(delay), details,
+        payload: payload);
+  } else {
+    await notificationPlugin.show(id, title, body, details, payload: payload);
+  }
 }

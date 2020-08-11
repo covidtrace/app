@@ -5,6 +5,7 @@
 	<key>BGTaskSchedulerPermittedIdentifiers</key>
 	<array>
 		<string>com.transistorsoft.fetch</string>
+		<string>com.covidtrace.test.exposure-notification</string>
 	</array>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
@@ -24,35 +25,25 @@
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
-	<key>GOOGLE_MAPS_API_KEY</key>
-	<string>$(GOOGLE_MAPS_API_KEY)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
-	<key>NSBluetoothAlwaysUsageDescription</key>
-	<string>COVID Trace needs access to Bluetooth to provide better exposure monitoring.</string>
-	<key>NSBluetoothPeripheralUsageDescription</key>
-	<string>COVID Trace needs access to Bluetooth to provide better exposure monitoring.</string>
-	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>COVID Trace needs access to your location history to monitor for potential exposures</string>
-	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>COVID Trace needs access to your location history to monitor for potential exposures</string>
-	<key>NSMotionUsageDescription</key>
-	<string>Motion detection is used to save battery life while recording location history</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>
-		<string>location</string>
 		<string>processing</string>
 	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
 	<string>Main</string>
+	<key>UIRequiredDeviceCapabilities</key>
+	<array>
+		<string>bluetooth-le</string>
+		<string>telephony</string>
+	</array>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 	<key>UISupportedInterfaceOrientations~ipad</key>
 	<array>

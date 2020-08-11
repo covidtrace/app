@@ -1,0 +1,27 @@
+body {
+  background: #efefef !important;
+  padding: 15px;
+}
+
+.result_box {
+  border: none !important;
+  border-radius: 10px;
+  box-shadow: 0px 1px 2px 0 #aaa;
+  margin-bottom: 20px !important;
+}
+
+.result_box .provider_url {
+  font-size: 20px;
+  line-height: 1em;
+}
+
+.result_box .google-link,
+.result_box .verified_text,
+.result_box .guidelines_text + .p-b-5,
+.result_box > p:last-of-type {
+  display: none;
+}
+
+.result_box > div:first-child {
+  padding: 0 !important;
+}

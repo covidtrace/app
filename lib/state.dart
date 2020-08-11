@@ -1,29 +1,39 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:covidtrace/exposure.dart';
+import 'package:crypto/crypto.dart';
 import 'package:covidtrace/storage/db.dart';
+import 'package:gact_plugin/gact_plugin.dart';
+import 'package:http/http.dart' as http;
+import 'package:package_info/package_info.dart';
 import 'package:sqflite/sqflite.dart';
 
 import 'config.dart';
 import 'helper/check_exposures.dart' as bg;
-import 'helper/signed_upload.dart';
 import 'package:flutter/foundation.dart';
-import 'package:intl/intl.dart';
-import 'package:uuid/uuid.dart';
-import 'storage/beacon.dart';
-import 'storage/location.dart';
+import 'storage/exposure.dart';
 import 'storage/report.dart';
 import 'storage/user.dart';
+
+class NotificationState with ChangeNotifier {
+  static final instance = NotificationState();
+
+  void onNotice(String notice) {
+    notifyListeners();
+  }
+}
 
 class AppState with ChangeNotifier {
   static UserModel _user;
   static ReportModel _report;
   static bool _ready = false;
-  static Exposure _exposure;
+  static ExposureModel _exposure;
 
   AppState() {
     initState();
+    NotificationState.instance.addListener(() async {
+      setExposure(await getExposure());
+    });
   }
 
   initState() async {
@@ -36,15 +46,22 @@ class AppState with ChangeNotifier {
 
   bool get ready => _ready;
 
-  Exposure get exposure => _exposure;
+  ExposureModel get exposure => _exposure;
 
   UserModel get user => _user;
 
-  Future<Exposure> getExposure() async {
-    return Exposure.newest;
+  Future<ExposureModel> getExposure() async {
+    var rows = await ExposureModel.findAll(limit: 1, orderBy: 'date DESC');
+
+    return rows.isNotEmpty ? rows.first : null;
   }
 
-  Future<Exposure> checkExposures() async {
+  void setExposure(ExposureModel exposure) {
+    _exposure = exposure;
+    notifyListeners();
+  }
+
+  Future<ExposureModel> checkExposures() async {
     await bg.checkExposures();
     _user = await UserModel.find();
     _exposure = await getExposure();
@@ -60,207 +77,145 @@ class AppState with ChangeNotifier {
 
   ReportModel get report => _report;
 
-  Future<void> saveReport(user) async {
+  Future<void> saveReport(ReportModel report) async {
     _report = report;
     await _report.create();
     notifyListeners();
   }
 
-  Future<bool> sendExposure() async {
-    var success = false;
+  Future<List<ExposureKey>> sendExposureKeys(
+      Map<String, dynamic> config, String verificationCode) async {
+    Iterable<ExposureKey> keys;
+
     try {
-      var config = await getConfig();
-      var user = await UserModel.find();
-
-      int level = config['exposureS2Level'];
-      String bucket = config['exposureBucket'] ?? 'covidtrace-exposures';
-      var data = jsonEncode({
-        'cellID': _exposure.cellID.parent(level).toToken(),
-        'timestamp': DateFormat('yyyy-MM-dd').format(DateTime.now())
-      });
-
-      if (!await objectUpload(
-          config: config,
-          bucket: bucket,
-          object: '${user.uuid}.json',
-          data: data)) {
-        return false;
+      // Note that using `testMode: true` will include today's exposure key
+      // which will be rejected by the exposure server if included.
+      keys = await GactPlugin.getExposureKeys(testMode: false);
+    } catch (err) {
+      print(err);
+      if (errorFromException(err) == ErrorCode.notAuthorized) {
+        return null;
       }
+    }
 
-      _exposure.reported = true;
-      await _exposure.save();
+    if (keys == null || keys.isEmpty) {
+      return keys?.toList();
+    }
+
+    var cert = await verifyCode(verificationCode, keys);
+    if (cert == null) {
+      return null;
+    }
+
+    var postData = {
+      "regions": ['US'],
+      "appPackageName": (await PackageInfo.fromPlatform()).packageName,
+      "temporaryExposureKeys": keys
+          .map((k) => {
+                "key": k.keyData,
+                "rollingPeriod": k.rollingPeriod,
+                "rollingStartNumber": k.rollingStartNumber,
+                "transmissionRisk": k.transmissionRiskLevel
+              })
+          .toList(),
+      "verificationPayload": cert,
+      "hmackey": base64.encode(utf8.encode(_user.uuid)),
+    };
+
+    var postResp = await http.post(
+      Uri.parse(config['exposurePublishUrl']),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(postData),
+    );
+
+    if (postResp.statusCode == 200) {
+      return keys.toList();
+    } else {
+      throw (postResp.body);
+    }
+  }
+
+  Future<bool> sendReport(String verificationCode) async {
+    var success = false;
+    var config = await Config.remote();
+
+    List<ExposureKey> keys =
+        await sendExposureKeys(config, verificationCode) ?? [];
+
+    if (keys.isNotEmpty) {
+      _report = ReportModel(
+          lastExposureKey: keys.last.keyData, timestamp: DateTime.now());
+      await report.create();
       success = true;
-    } catch (err) {
-      print(err);
-      success = false;
     }
 
     notifyListeners();
     return success;
   }
 
-  Future<bool> objectUpload(
-      {@required Map<String, dynamic> config,
-      @required String bucket,
-      @required String object,
-      @required String data,
-      String contentType = 'application/json; charset=utf-8'}) async {
-    var user = await UserModel.find();
+  Future<String> verifyCode(
+      String verificationCode, Iterable<ExposureKey> keys) async {
+    var config = await Config.remote();
 
-    return signedUpload(config, user.token,
-        query: {'bucket': bucket, 'contentType': contentType, 'object': object},
-        headers: {'Content-Type': contentType},
-        body: data);
-  }
+    var uri = Uri.parse('${config['verifyUrl']}/api/verify');
+    var postResp = await http.post(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-Key': config['verifyApiKey']
+      },
+      body: jsonEncode({"code": verificationCode}),
+    );
+    print(postResp.body);
 
-  Future<bool> sendSymptoms(
-      {@required Map<String, dynamic> symptoms,
-      @required Map<String, dynamic> config}) {
-    var bucket = config['symptomBucket'] ?? 'covidtrace-symptoms';
-    return objectUpload(
-        config: config,
-        bucket: bucket,
-        object: '${Uuid().v4()}.json',
-        data: jsonEncode(symptoms));
-  }
-
-  Future<List<LocationModel>> sendLocations(
-      {@required Map<String, dynamic> config, DateTime date}) async {
-    String where = 'sample != 1';
-    List whereArgs = [];
-    if (report?.lastLocationId != null) {
-      where = '$where AND id > ?';
-      whereArgs = [report.lastLocationId];
-    } else {
-      where = '$where AND DATE(timestamp) >= DATE(?)';
-      whereArgs = [DateFormat('yyyy-MM-dd').format(date)];
+    var statusCode = postResp.statusCode;
+    if (statusCode == 429) {
+      throw ('Too many attempts. Please wait and try again later');
+    } else if (statusCode == 500) {
+      throw ('Unable to verify your code');
+    } else if (statusCode != 200) {
+      throw (postResp.body);
     }
 
-    List<LocationModel> locations = await LocationModel.findAll(
-        orderBy: 'id ASC', where: where, whereArgs: whereArgs);
+    var body = jsonDecode(postResp.body);
+    var token = body['token'];
+    var testType = body['testtype'];
 
-    if (locations.isEmpty) {
-      return locations;
+    if (testType != 'confirmed') {
+      throw ('Only a confirmed positive diagnosis is supported');
     }
 
-    int level = config['reportS2Level'];
-    Duration timeResolution = Duration(minutes: config['timeResolution'] ?? 60);
-    var data = LocationModel.toCSV(locations, level, timeResolution);
+    // Calculate and submit HMAC
+    // See: https://developers.google.com/android/exposure-notifications/verification-system#hmac-calc
+    var hmacSha256 = new Hmac(sha256, utf8.encode(_user.uuid));
+    var sortedKeys = keys.toList();
+    sortedKeys.sort((a, b) => a.keyData.compareTo(b.keyData));
+    var bytes = sortedKeys
+        .map((k) =>
+            '${k.keyData}.${k.rollingStartNumber}.${k.rollingPeriod}.${k.transmissionRiskLevel}')
+        .join(',');
+    var digest = hmacSha256.convert(utf8.encode(bytes));
 
-    try {
-      var success = await objectUpload(
-          config: config,
-          bucket: config['holdingBucket'] ?? 'covidtrace-holding',
-          object: '${user.uuid}.csv',
-          contentType: 'text/csv; charset=utf-8',
-          data: data);
-      return success ? locations : null;
-    } catch (err) {
-      print(err);
-      return null;
-    }
-  }
+    uri = Uri.parse('${config['verifyUrl']}/api/certificate');
+    postResp = await http.post(
+      uri,
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-Key': config['verifyApiKey']
+      },
+      body:
+          jsonEncode({"token": token, 'ekeyhmac': base64.encode(digest.bytes)}),
+    );
 
-  Future<List<BeaconUuid>> sendBeacons(
-      {@required Map<String, dynamic> config, DateTime date}) async {
-    String where;
-    List whereArgs = [];
-    if (report?.lastBeaconId != null) {
-      where = 'id > ?';
-      whereArgs = [report.lastBeaconId];
-    } else {
-      where = 'DATE(timestamp) >= DATE(?)';
-      whereArgs = [DateFormat('yyyy-MM-dd').format(date)];
+    print(postResp.body);
+    if (postResp.statusCode != 200) {
+      throw (postResp.body);
     }
 
-    List<BeaconUuid> beacons = await BeaconUuid.findAll(
-        orderBy: 'id ASC', where: where, whereArgs: whereArgs);
+    body = jsonDecode(postResp.body);
+    var certificate = body['certificate'];
 
-    if (beacons.isEmpty) {
-      return beacons;
-    }
-
-    // We evaluate all locations from previous 2 days since location
-    // changes may be infrequent in worst case scenario.
-    List<LocationModel> locations = await LocationModel.findAll(
-        orderBy: 'id ASC',
-        where: 'DATE(timestamp) >= DATE(?)',
-        whereArgs: [
-          DateFormat('yyyy-MM-dd')
-              .format(beacons.first.timestamp.subtract(Duration(days: 2)))
-        ]);
-
-    // For each beacon find the closest location recorded based on timestamp
-    beacons.forEach((b) {
-      var time = b.timestamp;
-      var before = locations.lastWhere((l) => l.timestamp.compareTo(time) < 0,
-          orElse: () => null);
-      var after = locations.firstWhere((l) => l.timestamp.compareTo(time) >= 0,
-          orElse: () => null);
-
-      if (before == null || after == null) {
-        b.location = before ?? after;
-      } else {
-        var beforeDiff = time.difference(before.timestamp);
-        var afterDiff = time.difference(after.timestamp);
-        b.location = beforeDiff.compareTo(afterDiff) < 0 ? before : after;
-      }
-    });
-
-    // TODO(wes): Although this is unlikely to ever occur we need to consider
-    // how to report beacons without any rough location.
-    beacons = beacons.where((b) => b.location != null).toList();
-
-    int level = config['reportS2Level'];
-    Duration timeResolution = Duration(minutes: config['timeResolution'] ?? 60);
-    var data = BeaconUuid.toCSV(beacons, level, timeResolution);
-
-    try {
-      var success = await objectUpload(
-          config: config,
-          bucket: config['tokenBucket'] ?? 'covidtrace-tokens',
-          object: '${user.uuid}.csv',
-          contentType: 'text/csv; charset=utf-8',
-          data: data);
-      return success ? beacons : null;
-    } catch (err) {
-      print(err);
-      return null;
-    }
-  }
-
-  Future<bool> sendReport(Map<String, dynamic> symptoms) async {
-    var success = false;
-    var config = await getConfig();
-
-    int days = symptoms['days'];
-    var date = DateTime.now().subtract(Duration(days: 8 + days));
-
-    try {
-      var results = await Future.wait([
-        sendSymptoms(symptoms: symptoms, config: config),
-        sendLocations(config: config, date: date),
-        sendBeacons(config: config, date: date)
-      ]);
-
-      List<LocationModel> locations = results[1] ?? [];
-      List<BeaconUuid> beacons = results[2] ?? [];
-
-      if (locations.isNotEmpty) {
-        _report = ReportModel(
-            lastLocationId: locations.last.id,
-            lastBeaconId: beacons.isNotEmpty ? beacons.last.id : null,
-            timestamp: DateTime.now());
-        await report.create();
-        success = true;
-      }
-    } catch (err) {
-      print(err);
-      success = false;
-    }
-
-    notifyListeners();
-    return success;
+    return certificate;
   }
 
   Future<void> clearReport() async {
@@ -272,9 +227,8 @@ class AppState with ChangeNotifier {
   Future<void> resetInfections() async {
     final Database db = await Storage.db;
     await Future.wait([
-      db.update('user', {'last_check': null}),
-      db.update('location', {'exposure': 0, 'reported': 0}),
-      db.update('beacon', {'exposure': 0, 'reported': 0, 'location_id': null}),
+      db.update('user', {'last_check': null, 'last_key_file': null}),
+      ExposureModel.destroyAll(),
     ]);
     _exposure = null;
     notifyListeners();
