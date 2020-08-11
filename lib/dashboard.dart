@@ -6,12 +6,10 @@ import 'package:covidtrace/storage/exposure.dart';
 import 'package:covidtrace/test_facilities.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import 'operator.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'state.dart';
-import 'verify_phone.dart';
 
 class Dashboard extends StatefulWidget {
   @override
@@ -19,7 +17,6 @@ class Dashboard extends StatefulWidget {
 }
 
 class DashboardState extends State with TickerProviderStateMixin {
-  bool _sendingExposure = false;
   ExposureModel _oldest;
 
   void initState() {
@@ -34,33 +31,6 @@ class DashboardState extends State with TickerProviderStateMixin {
 
   Future<void> refreshExposures(AppState state) async {
     await state.checkExposures();
-  }
-
-  Future<void> sendExposure(AppState state) async {
-    if (!state.user.verified) {
-      state.user.token = await verifyPhone();
-      if (state.user.verified) {
-        await state.saveUser(state.user);
-      }
-    }
-
-    if (!state.user.verified) {
-      return;
-    }
-
-    setState(() => _sendingExposure = true);
-    await state.sendExposure();
-    setState(() => _sendingExposure = false);
-    Scaffold.of(context).showSnackBar(
-        SnackBar(content: Text('Your report was successfully submitted')));
-  }
-
-  Future<Token> verifyPhone() {
-    return showModalBottomSheet(
-      context: context,
-      builder: (context) => VerifyPhone(),
-      isScrollControlled: true,
-    );
   }
 
   Future<void> showExposureDialog() async {
@@ -219,43 +189,43 @@ class DashboardState extends State with TickerProviderStateMixin {
                   ]),
                   Divider(height: 20, color: textColor),
                   Text(
-                      "You were in close proximity to someone for ${exposure.duration.inMinutes * 2} minutes who tested positive for COVID-19.",
+                      "You were in close proximity to someone for ${exposure.duration.inMinutes} minutes who tested positive for COVID-19.",
                       style: alertText)
                 ]),
               ),
             ),
             ...heading('What To Do Now'),
             Card(
-              child: Padding(
-                padding: EdgeInsets.all(15),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('County Health Department', style: subhead),
-                          SizedBox(height: 5),
-                          Text(
-                              'Report potential exposure to your county Department of Health.'),
-                        ],
+              child: InkWell(
+                onTap: () => launch('tel:${authority['phone_number']}'),
+                child: Padding(
+                  padding: EdgeInsets.all(15),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('County Health Department', style: subhead),
+                            SizedBox(height: 5),
+                            Text(
+                                'Report potential exposure to your county Department of Health.'),
+                          ],
+                        ),
                       ),
-                    ),
-                    Material(
-                      shape: CircleBorder(),
-                      clipBehavior: Clip.antiAlias,
-                      color: Theme.of(context).primaryColor,
-                      child: InkWell(
-                        onTap: () => launch('tel:${authority['phone_number']}'),
+                      Material(
+                        shape: CircleBorder(),
+                        clipBehavior: Clip.antiAlias,
+                        color: Theme.of(context).primaryColor,
                         child: Padding(
                           padding: EdgeInsets.all(10),
                           child:
                               Icon(Icons.phone, color: Colors.white, size: 25),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),

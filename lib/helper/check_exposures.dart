@@ -19,7 +19,7 @@ Future<ExposureInfo> checkExposures() async {
     getApplicationSupportDirectory(),
   ]);
 
-  var user = results[0];
+  var user = results[0] as UserModel;
   var config = results[1];
   var dir = results[2] as Directory;
 
@@ -33,19 +33,14 @@ Future<ExposureInfo> checkExposures() async {
   }
 
   // Filter objects for any that are lexically equal to or greater than
-  // the CSVs we last downloaded. If we have never checked before, we
-  // should fetch everything for the last three weeks
-  var threeWeeksAgo = DateTime.now().subtract(Duration(days: 21));
-  var lastCheck = user.lastCheck ?? threeWeeksAgo;
-  var lastCsv = '${(lastCheck.millisecondsSinceEpoch / 1000).floor()}.csv';
-  List<Uri> keyFiles = [];
+  // the last downloaded batch. If we have never checked before, we
+  // should fetch everything in the index.
+  var lastKeyFile = user.lastKeyFile ?? '';
+  var exportFiles = indexFile.body
+      .split('\n')
+      .where((name) => name.compareTo(lastKeyFile) > 0);
 
-  // Download exported zip files
-  var exportFiles = indexFile.body.split('\n');
-  var downloads = await Future.wait(exportFiles.where((object) {
-    // TODO(wes): Store last downloaded file in DB
-    return true;
-  }).map((object) async {
+  var downloads = await Future.wait(exportFiles.map((object) async {
     print('Downloading $object');
     // Download each exported zip file
     var response = await http
@@ -63,7 +58,7 @@ Future<ExposureInfo> checkExposures() async {
   }));
 
   // Decompress and verify downloads
-  keyFiles = await Future.wait(downloads.map((file) async {
+  List<Uri> keyFiles = await Future.wait(downloads.map((file) async {
     if (Platform.isAndroid) {
       return file.uri;
     }
@@ -108,6 +103,9 @@ Future<ExposureInfo> checkExposures() async {
     return null;
   }
 
+  if (exportFiles.isNotEmpty) {
+    user.lastKeyFile = exportFiles.last;
+  }
   user.lastCheck = DateTime.now();
   await user.save();
 
@@ -115,6 +113,12 @@ Future<ExposureInfo> checkExposures() async {
   var exposure = exposures.isNotEmpty ? exposures.last : null;
 
   print('Done checking exposures!');
+
+  // iOS automatically shows a system level notification via the EN API.
+  if (exposure != null && Platform.isAndroid) {
+    showExposureNotification(exposure);
+  }
+
   return exposure;
 }
 
@@ -122,9 +126,10 @@ void showExposureNotification(ExposureInfo exposure, {Duration delay}) async {
   var date = exposure.date.toLocal();
   var dur = exposure.duration;
   var notificationPlugin = FlutterLocalNotificationsPlugin();
+  var config = Config.get();
 
   var androidSpec = AndroidNotificationDetails(
-      '1', 'COVID Trace', 'Exposure notifications',
+      '1', config['theme']['title'], 'Exposure notifications',
       importance: Importance.Max, priority: Priority.High, ticker: 'ticker');
   var iosSpecs = IOSNotificationDetails();
 

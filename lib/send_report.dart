@@ -1,8 +1,6 @@
 import 'package:covidtrace/code_pin.dart';
 import 'package:covidtrace/config.dart';
 import 'package:covidtrace/info_card.dart';
-import 'package:covidtrace/operator.dart';
-import 'package:covidtrace/verify_phone.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -59,14 +57,6 @@ class SendReportState extends State<SendReport> with TickerProviderStateMixin {
     setState(() => _loading = false);
 
     return success;
-  }
-
-  Future<Token> verifyPhone() {
-    return showModalBottomSheet(
-      context: context,
-      builder: (context) => VerifyPhone(),
-      isScrollControlled: true,
-    );
   }
 
   void onCodeChange(context, String code) {

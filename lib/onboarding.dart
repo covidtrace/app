@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:app_settings/app_settings.dart';
 import 'package:covidtrace/config.dart';
 import 'package:flutter/gestures.dart';
@@ -5,7 +8,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:gact_plugin/gact_plugin.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 import 'storage/user.dart';
 
@@ -92,6 +96,28 @@ class OnboardingState extends State {
     await user.save();
 
     Navigator.of(context).pushReplacementNamed('/home');
+  }
+
+  Future<void> showPrivacyPolicy() async {
+    // Load privacy policy and write it to a file which can be loaded by a webview
+    String privacyLink =
+        Config.get()['onboarding']['exposure_notification']['privacy_policy'];
+    var data = await rootBundle.load(privacyLink);
+    var dir = await getApplicationDocumentsDirectory();
+    var file = File('${dir.path}/${privacyLink.split('/')[1]}');
+
+    await file.writeAsBytes(data.buffer.asUint8List());
+
+    Navigator.of(context).push(MaterialPageRoute(
+        fullscreenDialog: true,
+        builder: (context) {
+          return Scaffold(
+              appBar: AppBar(
+                centerTitle: true,
+                title: Text('Privacy Policy'),
+              ),
+              body: WebView(initialUrl: file.uri.toString()));
+        }));
   }
 
   @override
@@ -184,16 +210,12 @@ class OnboardingState extends State {
                               ),
                               TextSpan(
                                   text: config['exposure_notification']
-                                      ['link_title'],
+                                      ['privacy_title'],
                                   style: TextStyle(
                                       decoration: TextDecoration.underline),
                                   recognizer: TapGestureRecognizer()
-                                    ..onTap = () {
-                                      try {
-                                        launch(config['exposure_notification']
-                                            ['link']);
-                                      } catch (err) {}
-                                    })
+                                    ..onTap =
+                                        () async => await showPrivacyPolicy())
                             ]),
                           ),
                           SizedBox(height: 30),

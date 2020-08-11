@@ -213,6 +213,7 @@ class MainPageState extends State<MainPage> {
     return Consumer<AppState>(
         builder: (context, state, _) => Scaffold(
               appBar: AppBar(
+                centerTitle: true,
                 title: Row(mainAxisSize: MainAxisSize.min, children: [
                   Image.asset(config['theme']['icon'],
                       fit: BoxFit.contain, height: 40),
