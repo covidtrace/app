@@ -43,7 +43,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.covidtrace.app"
+        applicationId "gov.nv.dhhs.en"
         minSdkVersion 21
         targetSdkVersion 28
         versionCode flutterVersionCode.toInteger()
