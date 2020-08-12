@@ -58,7 +58,7 @@ class CodePinState extends State<CodePin> {
   }
 
   void createFocusAndControllers() {
-    List<ChangeNotifier> dispose = [..._focusNodes, ..._controllers];
+    // List<ChangeNotifier> dispose = [..._focusNodes, ..._controllers];
 
     setState(() {
       var size = widget.size;

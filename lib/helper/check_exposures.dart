@@ -40,6 +40,13 @@ Future<ExposureInfo> checkExposures() async {
       .split('\n')
       .where((name) => name.compareTo(lastKeyFile) > 0);
 
+  if (exportFiles.isEmpty) {
+    user.lastCheck = DateTime.now();
+    await user.save();
+    print('No new keys to check!');
+    return null;
+  }
+
   var downloads = await Future.wait(exportFiles.map((object) async {
     print('Downloading $object');
     // Download each exported zip file
@@ -69,7 +76,7 @@ Future<ExposureInfo> checkExposures() async {
 
     var bin = first.name == 'export.bin' ? first : second;
     // TODO(wes): Verify signature
-    var sig = bin == first ? second : first;
+    // var sig = bin == first ? second : first;
 
     // Save bin file to disk
     var binFile = File('${file.path}.bin');
@@ -103,9 +110,7 @@ Future<ExposureInfo> checkExposures() async {
     return null;
   }
 
-  if (exportFiles.isNotEmpty) {
-    user.lastKeyFile = exportFiles.last;
-  }
+  user.lastKeyFile = exportFiles.last;
   user.lastCheck = DateTime.now();
   await user.save();
 

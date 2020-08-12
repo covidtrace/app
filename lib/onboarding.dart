@@ -1,15 +1,10 @@
-import 'dart:async';
-import 'dart:io';
-
-import 'package:app_settings/app_settings.dart';
 import 'package:covidtrace/config.dart';
+import 'package:covidtrace/privacy_policy.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:gact_plugin/gact_plugin.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:webview_flutter/webview_flutter.dart';
 
 import 'storage/user.dart';
 
@@ -45,17 +40,12 @@ class OnboardingState extends State {
   var _pageController = PageController();
   var _requestExposure = false;
   var _requestNotification = false;
-  var _linkToSettings = false;
+  var _exposureRequested = false;
 
   void nextPage() => _pageController.nextPage(
       duration: Duration(milliseconds: 250), curve: Curves.easeOut);
 
   void requestPermission(bool selected) async {
-    if (_linkToSettings) {
-      AppSettings.openAppSettings();
-      return;
-    }
-
     AuthorizationStatus status;
     try {
       status = await GactPlugin.authorizationStatus;
@@ -64,18 +54,17 @@ class OnboardingState extends State {
       if (status != AuthorizationStatus.Authorized) {
         status = await GactPlugin.enableExposureNotification();
       }
-
-      if (status != AuthorizationStatus.Authorized) {
-        setState(() => _linkToSettings = true);
-      }
     } catch (err) {
       print(err);
       if (errorFromException(err) == ErrorCode.notAuthorized) {
-        setState(() => _linkToSettings = true);
+        status = AuthorizationStatus.NotAuthorized;
       }
     }
 
-    setState(() => _requestExposure = status == AuthorizationStatus.Authorized);
+    setState(() {
+      _requestExposure = status == AuthorizationStatus.Authorized;
+      _exposureRequested = true;
+    });
   }
 
   void requestNotifications(bool selected) async {
@@ -98,26 +87,9 @@ class OnboardingState extends State {
     Navigator.of(context).pushReplacementNamed('/home');
   }
 
-  Future<void> showPrivacyPolicy() async {
-    // Load privacy policy and write it to a file which can be loaded by a webview
-    String privacyLink =
-        Config.get()['onboarding']['exposure_notification']['privacy_policy'];
-    var data = await rootBundle.load(privacyLink);
-    var dir = await getApplicationDocumentsDirectory();
-    var file = File('${dir.path}/${privacyLink.split('/')[1]}');
-
-    await file.writeAsBytes(data.buffer.asUint8List());
-
+  void showPrivacyPolicy() {
     Navigator.of(context).push(MaterialPageRoute(
-        fullscreenDialog: true,
-        builder: (context) {
-          return Scaffold(
-              appBar: AppBar(
-                centerTitle: true,
-                title: Text('Privacy Policy'),
-              ),
-              body: WebView(initialUrl: file.uri.toString()));
-        }));
+        fullscreenDialog: true, builder: (context) => PrivacyPolicy()));
   }
 
   @override
@@ -214,8 +186,7 @@ class OnboardingState extends State {
                                   style: TextStyle(
                                       decoration: TextDecoration.underline),
                                   recognizer: TapGestureRecognizer()
-                                    ..onTap =
-                                        () async => await showPrivacyPolicy())
+                                    ..onTap = () => showPrivacyPolicy())
                             ]),
                           ),
                           SizedBox(height: 30),
@@ -232,7 +203,7 @@ class OnboardingState extends State {
                           SizedBox(height: 30),
                           BlockButton(
                               label: config['exposure_notification']['cta'],
-                              onPressed: _requestExposure ? nextPage : null)
+                              onPressed: _exposureRequested ? nextPage : null)
                         ])),
                     Center(
                         child: Column(

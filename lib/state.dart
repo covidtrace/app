@@ -28,6 +28,7 @@ class AppState with ChangeNotifier {
   static ReportModel _report;
   static bool _ready = false;
   static ExposureModel _exposure;
+  static AuthorizationStatus _status;
 
   AppState() {
     initState();
@@ -40,6 +41,7 @@ class AppState with ChangeNotifier {
     _user = await UserModel.find();
     _report = await ReportModel.findLatest();
     _exposure = await getExposure();
+    _status = await checkStatus();
     _ready = true;
     notifyListeners();
   }
@@ -50,6 +52,8 @@ class AppState with ChangeNotifier {
 
   UserModel get user => _user;
 
+  AuthorizationStatus get status => _status;
+
   Future<ExposureModel> getExposure() async {
     var rows = await ExposureModel.findAll(limit: 1, orderBy: 'date DESC');
 
@@ -59,6 +63,12 @@ class AppState with ChangeNotifier {
   void setExposure(ExposureModel exposure) {
     _exposure = exposure;
     notifyListeners();
+  }
+
+  Future<AuthorizationStatus> checkStatus() async {
+    _status = await GactPlugin.authorizationStatus;
+    notifyListeners();
+    return _status;
   }
 
   Future<ExposureModel> checkExposures() async {
