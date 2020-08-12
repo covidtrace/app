@@ -23,6 +23,8 @@
       "button_text": "0xFF00307F"
     },
     "dashboard": {
+      "not_authorized_background": "0xFFFFCF53",
+      "not_authorized_text": "0xFF00307F",
       "non_exposure_background": "0xFF001C69",
       "non_exposure_text": "0xFFFFFFFF",
       "exposure_background": "0xFFFF0000",

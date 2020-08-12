@@ -114,8 +114,10 @@ class MainPageState extends State<MainPage> {
       BackgroundFetch.finish(taskId);
     });
 
-    await BackgroundFetch.scheduleTask(
-        TaskConfig(taskId: enTaskID, delay: 1000 * 60 * 15, periodic: true));
+    await BackgroundFetch.scheduleTask(TaskConfig(
+        taskId: enTaskID,
+        delay: 1000 * 60 * (kReleaseMode ? 120 : 15),
+        periodic: true));
   }
 
   @override

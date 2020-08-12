@@ -1,9 +1,12 @@
 import 'dart:async';
 
+import 'package:app_settings/app_settings.dart';
 import 'package:covidtrace/config.dart';
 import 'package:covidtrace/info_card.dart';
+import 'package:covidtrace/privacy_policy.dart';
 import 'package:covidtrace/storage/exposure.dart';
 import 'package:covidtrace/test_facilities.dart';
+import 'package:gact_plugin/gact_plugin.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:flutter/material.dart';
@@ -30,32 +33,15 @@ class DashboardState extends State with TickerProviderStateMixin {
   }
 
   Future<void> refreshExposures(AppState state) async {
-    await state.checkExposures();
+    await state.checkStatus();
+
+    if (state.status == AuthorizationStatus.Authorized) {
+      await state.checkExposures();
+    }
   }
 
-  Future<void> showExposureDialog() async {
-    return showDialog<void>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Exposure Report'),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                Text(
-                    "The COVID Trace app does not automatically notify us about an exposure alert. When you hit \"Send Report\", we will be able to count in your area the number of people potentially exposed.\n\nCounting your alert helps health officials know how much COVID-19 may be spreading."),
-              ],
-            ),
-          ),
-          actions: <Widget>[
-            FlatButton(
-              child: Text('Ok'),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-          ],
-        );
-      },
-    );
+  Future<void> refreshStatus(AppState state) async {
+    state.checkStatus();
   }
 
   @override
@@ -74,14 +60,43 @@ class DashboardState extends State with TickerProviderStateMixin {
     var heading = (String title) => [
           SizedBox(height: 20),
           Center(child: Text(authority['name'], style: textTheme.caption)),
-          Center(
-              child: Text(
-                  'Updated ${DateFormat.yMMMd().format(DateTime.parse(authority['updated']))}',
-                  style: textTheme.caption)),
           SizedBox(height: 10),
           Center(child: Text(title, style: subhead)),
           SizedBox(height: 10),
         ];
+
+    var privacyPolicy = () {
+      return Card(
+        margin: EdgeInsets.only(bottom: 15),
+        child: InkWell(
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(
+                fullscreenDialog: true, builder: (ctx) => PrivacyPolicy()),
+          ),
+          child: Padding(
+            padding: EdgeInsets.all(15),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    'Privacy Policy',
+                    style: Theme.of(context)
+                        .textTheme
+                        .subtitle1
+                        .merge(TextStyle(fontWeight: FontWeight.bold)),
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 5),
+                  child: Image.asset('assets/shield_icon.png',
+                      color: Theme.of(context).primaryColor, height: 30),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    };
 
     return Consumer<AppState>(builder: (context, state, _) {
       var lastCheck = state.user.lastCheck;
@@ -93,9 +108,69 @@ class DashboardState extends State with TickerProviderStateMixin {
         hours = diff.inHours;
       }
 
-      var bgColor = Color(int.parse(theme['non_exposure_background']));
-      var textColor = Color(int.parse(theme['non_exposure_text']));
+      var bgColor = Color(int.parse(theme['not_authorized_background']));
+      var textColor = Color(int.parse(theme['not_authorized_text']));
       var alertText = TextStyle(color: textColor);
+
+      var status = state.status;
+      if (status != AuthorizationStatus.Authorized) {
+        return Padding(
+            padding: EdgeInsets.only(left: 15, right: 15),
+            child: RefreshIndicator(
+              onRefresh: () => refreshStatus(state),
+              child: ListView(children: [
+                SizedBox(height: 15),
+                InkWell(
+                  onTap: () {
+                    AppSettings.openAppSettings();
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                        color: bgColor,
+                        borderRadius: BorderRadius.circular(10)),
+                    child: Padding(
+                      padding: EdgeInsets.all(15),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                  child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                    Text('Exposure Notification is OFF',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .headline6
+                                            .merge(alertText)),
+                                  ])),
+                              Image.asset('assets/virus_slash_icon.png',
+                                  height: 40, color: textColor),
+                            ],
+                          ),
+                          Divider(height: 20, color: textColor),
+                          Text(
+                              '${config['theme']['title']} cannot alert you to potential COVID-19 exposures. Tap here to turn on Exposure Notifications.',
+                              style: alertText)
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                ...heading('Tips & Resources'),
+                ...faqs["non_exposure"].map((item) => InfoCard(item: item)),
+                SizedBox(height: 10),
+                privacyPolicy(),
+                SizedBox(height: 10),
+              ]),
+            ));
+      }
+
+      bgColor = Color(int.parse(theme['non_exposure_background']));
+      textColor = Color(int.parse(theme['non_exposure_text']));
+      alertText = TextStyle(color: textColor);
 
       var exposure = state.exposure;
       if (exposure == null) {
@@ -148,6 +223,8 @@ class DashboardState extends State with TickerProviderStateMixin {
               ...heading('Tips & Resources'),
               ...faqs["non_exposure"].map((item) => InfoCard(item: item)),
               SizedBox(height: 10),
+              privacyPolicy(),
+              SizedBox(height: 10),
             ]),
           ),
         );
@@ -196,6 +273,7 @@ class DashboardState extends State with TickerProviderStateMixin {
             ),
             ...heading('What To Do Now'),
             Card(
+              margin: EdgeInsets.zero,
               child: InkWell(
                 onTap: () => launch('tel:${authority['phone_number']}'),
                 child: Padding(
@@ -231,6 +309,7 @@ class DashboardState extends State with TickerProviderStateMixin {
             ),
             SizedBox(height: 20),
             Card(
+              margin: EdgeInsets.zero,
               child: InkWell(
                 onTap: () => Navigator.of(context).push(
                   MaterialPageRoute(
@@ -262,6 +341,8 @@ class DashboardState extends State with TickerProviderStateMixin {
             ),
             SizedBox(height: 10),
             ...faqs["exposure"].map((item) => InfoCard(item: item)),
+            SizedBox(height: 10),
+            privacyPolicy(),
             SizedBox(height: 10),
           ]),
         ),
