@@ -124,121 +124,140 @@
     "non_exposure": [
       {
         "icon": "assets/prevention.png",
-        "title": "How To Protect Yourself & Others",
-        "body": "Learn the latest information from the CDC about how to keep yourself and others safe.",
-        "link": "https://www.cdc.gov/coronavirus/2019-ncov/prevent-getting-sick/prevention.html"
+        "title": "faqs.non_exposure_0.title",
+        "body": "faqs.non_exposure_0.body",
+        "link": "https://www.cdc.gov/coronavirus/2019-ncov/prevent-getting-sick/prevention.html",
+        "link_title": "faqs.non_exposure_0.link_title"
       },
       {
         "icon": "assets/mask.png",
-        "title": "How To Wear A Mask",
-        "body": "Masks are recommended by the CDC and required in public areas. Find out how to properly wear a mask and other details related to masks.",
-        "link": "https://www.cdc.gov/coronavirus/2019-ncov/prevent-getting-sick/how-to-wear-cloth-face-coverings.html"
+        "title": "faqs.non_exposure_1.title",
+        "body": "faqs.non_exposure_1.body",
+        "link": "https://www.cdc.gov/coronavirus/2019-ncov/prevent-getting-sick/how-to-wear-cloth-face-coverings.html",
+        "link_title": "faqs.non_exposure_1.link_title"
       },
       {
         "icon": "assets/checklist.png",
-        "title": "Self-assessment",
-        "body": "The brief self-assessment helps you understand your risks and symptoms. Start here unless you’re experiencing severe symptoms.",
-        "link": "https://landing.google.com/screener/covid19"
+        "title": "faqs.non_exposure_2.title",
+        "body": "faqs.non_exposure_2.body",
+        "link": "https://landing.google.com/screener/covid19",
+        "link_title": "faqs.non_exposure_2.link_title"
       },
       {
         "icon": "assets/sick.png",
-        "title": "What To Do If You're Sick",
-        "body": "1. Stay home\n2. Take care of yourself\n3. Stay in touch with your doctor\n4. Avoid public transporation",
-        "link": "https://www.cdc.gov/coronavirus/2019-ncov/if-you-are-sick/steps-when-sick.html"
+        "title": "faqs.non_exposure_3.title",
+        "body": "faqs.non_exposure_3.body",
+        "link": "https://www.cdc.gov/coronavirus/2019-ncov/if-you-are-sick/steps-when-sick.html",
+        "link_title": "faqs.non_exposure_3.link_title"
       },
       {
         "icon": "assets/chart.png",
-        "title": "Nevada Statistics",
-        "body": "See the latest statistics on how COVID-19 is spreading in your community.",
-        "link": "https://news.google.com/covid19/map?hl=en-US&gl=US&ceid=US%3Aen&mid=%2Fm%2F059_c"
+        "title": "faqs.non_exposure_4.title",
+        "body": "faqs.non_exposure_4.body",
+        "link": "https://news.google.com/covid19/map?hl=en-US&gl=US&ceid=US%3Aen&mid=%2Fm%2F059_c",
+        "link_title": "faqs.non_exposure_4.link_title"
       },
       {
         "icon": "assets/nevada.png",
-        "title": "Nevada Health Response",
-        "body": "NV Health Response is the best source of health and resources for Nevada’s response to COVID-19. The latest information from the state can be found there.",
-        "link": "https://nvhealthresponse.nv.gov/"
+        "title": "faqs.non_exposure_5.title",
+        "body": "faqs.non_exposure_5.body",
+        "link": "https://nvhealthresponse.nv.gov/",
+        "link_title": "faqs.non_exposure_4.link_title"
       }
     ],
     "exposure": [
       {
         "icon": "assets/checklist.png",
-        "title": "Self-assessment",
-        "body": "The brief self-assessment helps you understand your risks and symptoms. Start here unless you’re experiencing severe symptoms.",
-        "link": "https://landing.google.com/screener/covid19"
+        "title": "faqs.exposure_0.title",
+        "body": "faqs.exposure_0.body",
+        "link": "https://landing.google.com/screener/covid19",
+        "link_title": "faqs.exposure_0.link_title"
       },
       {
         "icon": "assets/thermometer.png",
-        "title": "Symptoms",
-        "body": "COVID-19 affects different people in different ways. Infected people have had a wide range of symptoms reported – from mild symptoms to severe illness. Symptoms may appear 2-14 days after exposure to the virus.",
-        "link": "https://www.cdc.gov/coronavirus/2019-ncov/symptoms-testing/symptoms.html"
+        "title": "faqs.exposure_1.title",
+        "body": "faqs.exposure_1.body",
+        "link": "https://www.cdc.gov/coronavirus/2019-ncov/symptoms-testing/symptoms.html",
+        "link_title": "faqs.exposure_1.link_title"
       },
       {
         "icon": "assets/sick.png",
-        "title": "What To Do If You're Sick",
-        "body": "1. Stay home\n2. Take care of yourself\n3. Stay in touch with your doctor\n4. Avoid public transporation",
-        "link": "https://www.cdc.gov/coronavirus/2019-ncov/if-you-are-sick/steps-when-sick.html"
+        "title": "faqs.exposure_2.title",
+        "body": "faqs.exposure_2.body",
+        "link": "https://www.cdc.gov/coronavirus/2019-ncov/if-you-are-sick/steps-when-sick.html",
+        "link_title": "faqs.exposure_2.link_title"
       },
       {
         "icon": "assets/prevention.png",
-        "title": "How To Protect Yourself & Others",
-        "body": "Learn the latest information from the CDC about how to keep yourself and others safe.",
-        "link": "https://www.cdc.gov/coronavirus/2019-ncov/prevent-getting-sick/prevention.html"
+        "title": "faqs.exposure_3.title",
+        "body": "faqs.exposure_3.body",
+        "link": "https://www.cdc.gov/coronavirus/2019-ncov/prevent-getting-sick/prevention.html",
+        "link_title": "faqs.exposure_3.link_title"
       },
       {
         "icon": "assets/mask.png",
-        "title": "How To Wear A Mask",
-        "body": "Masks are recommended by the CDC and required in public areas. Find out how to properly wear a mask and other details related to masks.",
-        "link": "https://www.cdc.gov/coronavirus/2019-ncov/prevent-getting-sick/how-to-wear-cloth-face-coverings.html"
+        "title": "faqs.exposure_4.title",
+        "body": "faqs.exposure_4.body",
+        "link": "https://www.cdc.gov/coronavirus/2019-ncov/prevent-getting-sick/how-to-wear-cloth-face-coverings.html",
+        "link_title": "faqs.exposure_4.link_title"
       },
       {
         "icon": "assets/chart.png",
-        "title": "Nevada Statistics",
-        "body": "See the latest statistics on how COVID-19 is spreading in your community.",
-        "link": "https://news.google.com/covid19/map?hl=en-US&gl=US&ceid=US%3Aen&mid=%2Fm%2F059_c"
+        "title": "faqs.exposure_5.title",
+        "body": "faqs.exposure_5.body",
+        "link": "https://news.google.com/covid19/map?hl=en-US&gl=US&ceid=US%3Aen&mid=%2Fm%2F059_c",
+        "link_title": "faqs.exposure_5.link_title"
       },
       {
         "icon": "assets/nevada.png",
-        "title": "Nevada Health Response",
-        "body": "NV Health Response is the best source of health and resources for Nevada’s response to COVID-19. The latest information from the state can be found there.",
-        "link": "https://nvhealthresponse.nv.gov/"
+        "title": "faqs.exposure_6.title",
+        "body": "faqs.exposure_6.body",
+        "link": "https://nvhealthresponse.nv.gov/",
+        "link_title": "faqs.exposure_6.link_title"
       }
     ],
     "reported": [
       {
         "icon": "assets/sick.png",
-        "title": "What To Do If You're Sick",
-        "body": "1. Stay home\n2. Take care of yourself\n3. Stay in touch with your doctor\n4. Avoid public transporation",
-        "link": "https://www.cdc.gov/coronavirus/2019-ncov/if-you-are-sick/steps-when-sick.html"
+        "title": "faqs.reported_0.title",
+        "body": "faqs.reported_0.body",
+        "link": "https://www.cdc.gov/coronavirus/2019-ncov/if-you-are-sick/steps-when-sick.html",
+        "link_title": "faqs.reported_0.link_title"
       },
       {
         "icon": "assets/thermometer.png",
-        "title": "Symptoms",
-        "body": "COVID-19 affects different people in different ways. Infected people have had a wide range of symptoms reported – from mild symptoms to severe illness. Symptoms may appear 2-14 days after exposure to the virus.",
-        "link": "https://landing.google.com/screener/covid19"
+        "title": "faqs.reported_1.title",
+        "body": "faqs.reported_1.body",
+        "link": "https://landing.google.com/screener/covid19",
+        "link_title": "faqs.reported_1.link_title"
       },
       {
         "icon": "assets/prevention.png",
-        "title": "How To Protect Yourself & Others",
-        "body": "Learn the latest information from the CDC about how to keep yourself and others safe.",
-        "link": "https://www.cdc.gov/coronavirus/2019-ncov/prevent-getting-sick/prevention.html"
+        "title": "faqs.reported_2.title",
+        "body": "faqs.reported_2.body",
+        "link": "https://www.cdc.gov/coronavirus/2019-ncov/prevent-getting-sick/prevention.html",
+        "link_title": "faqs.reported_2.link_title"
       },
       {
         "icon": "assets/mask.png",
-        "title": "How To Wear A Mask",
-        "body": "Masks are recommended by the CDC and required in public areas. Find out how to properly wear a mask and other details related to masks.",
-        "link": "https://www.cdc.gov/coronavirus/2019-ncov/prevent-getting-sick/how-to-wear-cloth-face-coverings.html"
+        "title": "faqs.reported_3.title",
+        "body": "faqs.reported_3.body",
+        "link": "https://www.cdc.gov/coronavirus/2019-ncov/prevent-getting-sick/how-to-wear-cloth-face-coverings.html",
+        "link_title": "faqs.reported_3.link_title"
       },
       {
         "icon": "assets/chart.png",
-        "title": "Nevada Statistics",
-        "body": "See the latest statistics on how COVID-19 is spreading in your community.",
-        "link": "https://news.google.com/covid19/map?hl=en-US&gl=US&ceid=US%3Aen&mid=%2Fm%2F059_c"
+        "title": "faqs.reported_4.title",
+        "body": "faqs.reported_4.body",
+        "link": "https://news.google.com/covid19/map?hl=en-US&gl=US&ceid=US%3Aen&mid=%2Fm%2F059_c",
+        "link_title": "faqs.reported_4.link_title"
       },
       {
         "icon": "assets/nevada.png",
-        "title": "Nevada Health Response",
-        "body": "NV Health Response is the best source of health and resources for Nevada’s response to COVID-19. The latest information from the state can be found there.",
-        "link": "https://nvhealthresponse.nv.gov/"
+        "title": "faqs.reported_5.title",
+        "body": "faqs.reported_5.body",
+        "link": "https://nvhealthresponse.nv.gov/",
+        "link_title": "faqs.reported_5.link_title"
       }
     ]
   }

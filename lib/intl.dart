@@ -15,7 +15,7 @@ class Intl {
   Map<String, dynamic> _localizedValues = {};
 
   String get(str) {
-    return _localizedValues[str] ?? str;
+    return _localizedValues[str] ?? '<$str>';
   }
 
   Future<void> load() async {
