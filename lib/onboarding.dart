@@ -108,6 +108,7 @@ class OnboardingState extends State {
     var bodyText = themeData.textTheme.bodyText2
         .merge(TextStyle(fontSize: 16, height: 1.5));
 
+    var deviceHeight = MediaQuery.of(context).size.height;
     var platform = Theme.of(context).platform;
 
     return AnnotatedRegion(
@@ -120,7 +121,7 @@ class OnboardingState extends State {
           color: Color(int.parse(theme['background'])),
           child: SafeArea(
             child: Padding(
-              padding: EdgeInsets.only(top: 30, left: 30, right: 30),
+              padding: EdgeInsets.all(30),
               child: PageView(
                   controller: _pageController,
                   physics: NeverScrollableScrollPhysics(),
@@ -137,6 +138,7 @@ class OnboardingState extends State {
                                     child: Image.asset(
                                       config['intro']['icon'],
                                       fit: BoxFit.contain,
+                                      height: deviceHeight * .45,
                                     ),
                                   ),
                                 ),
