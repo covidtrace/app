@@ -1,6 +1,6 @@
 import 'package:covidtrace/config.dart';
+import 'package:covidtrace/intl.dart';
 import 'package:covidtrace/privacy_policy.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -95,6 +95,7 @@ class OnboardingState extends State {
 
   @override
   Widget build(BuildContext context) {
+    var intl = Intl.of(context);
     var config = Config.get()['onboarding'];
     var theme = Config.get()['theme']['onboarding'];
     var textColor = Color(int.parse(theme['text']));
@@ -146,13 +147,13 @@ class OnboardingState extends State {
                                 Row(children: [
                                   Expanded(
                                       child: Text(
-                                    config['intro']['title'],
+                                    intl.get(config['intro']['title']),
                                     style: themeData.textTheme.headline5,
                                   )),
                                 ]),
                                 SizedBox(height: 10),
                                 Text(
-                                  config['intro']['body'],
+                                  intl.get(config['intro']['body']),
                                   style: bodyText,
                                 ),
                               ])),
@@ -161,7 +162,8 @@ class OnboardingState extends State {
                         right: 0,
                         bottom: 0,
                         child: BlockButton(
-                            onPressed: nextPage, label: config['intro']['cta']),
+                            onPressed: nextPage,
+                            label: intl.get(config['intro']['cta'])),
                       ),
                     ]),
                     Stack(
@@ -175,7 +177,9 @@ class OnboardingState extends State {
                                 children: [
                                   Row(children: [
                                     Expanded(
-                                        child: Text(config['privacy']['title'],
+                                        child: Text(
+                                            intl.get(
+                                                config['privacy']['title']),
                                             style:
                                                 themeData.textTheme.headline5)),
                                     Container(
@@ -188,7 +192,7 @@ class OnboardingState extends State {
                                   ]),
                                   SizedBox(height: 10),
                                   Text(
-                                    config['privacy']['body'],
+                                    intl.get(config['privacy']['body']),
                                     style: bodyText,
                                   ),
                                   SizedBox(height: 10),
@@ -205,7 +209,7 @@ class OnboardingState extends State {
                                         SizedBox(width: 10),
                                         Expanded(
                                           child: Text(
-                                            b['title'],
+                                            intl.get(b['title']),
                                             style: bodyText,
                                           ),
                                         ),
@@ -218,7 +222,8 @@ class OnboardingState extends State {
                                     child: InkWell(
                                       onTap: () => showPrivacyPolicy(),
                                       child: Text(
-                                        config['privacy']['privacy_title'],
+                                        intl.get(
+                                            config['privacy']['privacy_title']),
                                         style: bodyText.merge(TextStyle(
                                             decoration:
                                                 TextDecoration.underline)),
@@ -235,7 +240,7 @@ class OnboardingState extends State {
                           bottom: 0,
                           child: BlockButton(
                               onPressed: nextPage,
-                              label: config['privacy']['cta']),
+                              label: intl.get(config['privacy']['cta'])),
                         ),
                       ],
                     ),
@@ -249,8 +254,9 @@ class OnboardingState extends State {
                                 Row(children: [
                                   Expanded(
                                       child: Text(
-                                          config['exposure_notification']
-                                              ['title'],
+                                          intl.get(
+                                              config['exposure_notification']
+                                                  ['title']),
                                           style:
                                               themeData.textTheme.headline5)),
                                   Container(
@@ -263,7 +269,8 @@ class OnboardingState extends State {
                                 ]),
                                 SizedBox(height: 20),
                                 Text(
-                                  config['exposure_notification']['body'],
+                                  intl.get(
+                                      config['exposure_notification']['body']),
                                   style: bodyText,
                                 ),
                                 SizedBox(height: 20),
@@ -274,8 +281,8 @@ class OnboardingState extends State {
                                         config['exposure_notification']
                                             ['learn_more_link']),
                                     child: Text(
-                                      config['exposure_notification']
-                                          ['learn_more_title'],
+                                      intl.get(config['exposure_notification']
+                                          ['learn_more_title']),
                                       style: bodyText.merge(TextStyle(
                                           decoration:
                                               TextDecoration.underline)),
@@ -300,7 +307,8 @@ class OnboardingState extends State {
                           right: 0,
                           bottom: 0,
                           child: BlockButton(
-                              label: config['exposure_notification']['cta'],
+                              label: intl
+                                  .get(config['exposure_notification']['cta']),
                               onPressed: _exposureRequested ? nextPage : null)),
                     ]),
                     Stack(children: [
@@ -310,12 +318,14 @@ class OnboardingState extends State {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                             Text(
-                              config['notification_permission']['title'],
+                              intl.get(
+                                  config['notification_permission']['title']),
                               style: themeData.textTheme.headline5,
                             ),
                             SizedBox(height: 10),
                             Text(
-                              config['notification_permission']['body'],
+                              intl.get(
+                                  config['notification_permission']['body']),
                               style: bodyText,
                             ),
                             SizedBox(height: 20),
@@ -334,7 +344,9 @@ class OnboardingState extends State {
                                         child: Row(children: [
                                           Expanded(
                                               child: Text(
-                                                  'Enable notifications',
+                                                  intl.get(config[
+                                                          'notification_permission']
+                                                      ['enable_toggle_title']),
                                                   style: themeData
                                                       .textTheme.headline6)),
                                           Switch.adaptive(
@@ -351,7 +363,8 @@ class OnboardingState extends State {
                         bottom: 0,
                         child: BlockButton(
                             onPressed: finish,
-                            label: config['notification_permission']['cta']),
+                            label: intl
+                                .get(config['notification_permission']['cta'])),
                       ),
                     ]),
                   ]),

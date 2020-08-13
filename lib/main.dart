@@ -5,6 +5,7 @@ import 'package:background_fetch/background_fetch.dart';
 import 'package:covidtrace/config.dart';
 import 'package:covidtrace/dashboard.dart';
 import 'package:covidtrace/helper/check_exposures.dart';
+import 'package:covidtrace/intl.dart';
 import 'package:covidtrace/onboarding.dart';
 import 'package:covidtrace/send_report.dart';
 import 'package:covidtrace/state.dart';
@@ -13,6 +14,7 @@ import 'package:covidtrace/storage/report.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:gact_plugin/gact_plugin.dart';
 import 'package:package_info/package_info.dart';
 import 'package:provider/provider.dart';
@@ -65,8 +67,18 @@ class CovidTraceAppState extends State {
       if (state.user != null) {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
+          localizationsDelegates: [
+            const IntlDelegate(),
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+          ],
+          supportedLocales: [
+            const Locale('en', 'US'),
+            const Locale('es', 'US'),
+          ],
           initialRoute: state.user.onboarding == true ? '/onboarding' : '/home',
-          title: theme['title'],
+          onGenerateTitle: (BuildContext context) =>
+              Intl.of(context).get(theme['title']),
           theme: ThemeData(
               primarySwatch: MaterialColor(colorMap[500].value, colorMap)),
           routes: {
@@ -220,7 +232,7 @@ class MainPageState extends State<MainPage> {
                   Image.asset(config['theme']['icon'],
                       fit: BoxFit.contain, height: 40),
                   SizedBox(width: 5),
-                  Text(config['theme']['title']),
+                  Text(Intl.of(context).get(config['theme']['title'])),
                 ]),
                 actions: <Widget>[Container()], // Hides debug end drawer
               ),

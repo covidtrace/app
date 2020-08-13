@@ -11,6 +11,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:covidtrace/intl.dart' as locale;
 import 'package:provider/provider.dart';
 import 'state.dart';
 
@@ -56,10 +57,13 @@ class DashboardState extends State with TickerProviderStateMixin {
     var authority = config["healthAuthority"];
     var theme = config['theme']['dashboard'];
     var faqs = config["faqs"];
+    var intl = locale.Intl.of(context);
 
     var heading = (String title) => [
           SizedBox(height: 20),
-          Center(child: Text(authority['name'], style: textTheme.caption)),
+          Center(
+              child:
+                  Text(intl.get(authority['name']), style: textTheme.caption)),
           SizedBox(height: 10),
           Center(child: Text(title, style: subhead)),
           SizedBox(height: 10),
