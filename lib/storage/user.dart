@@ -7,6 +7,7 @@ class UserModel {
   final int id;
   final String uuid;
   bool onboarding;
+  bool firstRun;
   DateTime lastCheck;
   String lastKeyFile;
   Token token;
@@ -14,6 +15,7 @@ class UserModel {
   UserModel(
       {this.id,
       this.uuid,
+      this.firstRun,
       this.onboarding,
       this.lastCheck,
       this.lastKeyFile,
@@ -29,6 +31,7 @@ class UserModel {
     return UserModel(
       id: rows[0]['id'],
       uuid: rows[0]['uuid'],
+      firstRun: rows[0]['first_run'] == 1,
       onboarding: rows[0]['onboarding'] == 1,
       lastCheck: lastCheck != null ? DateTime.parse(lastCheck) : null,
       lastKeyFile: rows[0]['last_key_file'],
@@ -45,6 +48,7 @@ class UserModel {
     return db.update(
         'user',
         {
+          'first_run': firstRun ? 1 : 0,
           'onboarding': onboarding ? 1 : 0,
           'last_check': lastCheck != null ? lastCheck.toIso8601String() : null,
           'last_key_file': lastKeyFile,

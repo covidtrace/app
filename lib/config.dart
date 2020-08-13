@@ -6,6 +6,8 @@ import 'package:flutter/services.dart';
 class Config {
   static Map<String, dynamic> _local;
 
+  static Map<String, dynamic> _remote;
+
   static Map<String, dynamic> get() => _local;
 
   static bool get loaded => _local != null;
@@ -23,7 +25,12 @@ class Config {
     return _local;
   }
 
-  static Future<dynamic> remote() async {
+  static Future<Map<String, dynamic>> remote() async {
+    // TODO(wes): Store last remote refresh and invalidate every 12 hours
+    if (_remote != null) {
+      return _remote;
+    }
+
     if (!loaded) {
       await load();
     }
@@ -35,10 +42,12 @@ class Config {
       if (configResp.statusCode != 200) {
         throw ("Unable to fetch config file");
       }
-      return jsonDecode(configResp.body);
+      _remote = jsonDecode(configResp.body) as Map<String, dynamic>;
     } else {
       var configResp = await rootBundle.loadString(remoteUrl.toString());
-      return jsonDecode(configResp);
+      _remote = jsonDecode(configResp) as Map<String, dynamic>;
     }
+
+    return _remote;
   }
 }

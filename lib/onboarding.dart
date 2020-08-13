@@ -1,5 +1,6 @@
 import 'package:covidtrace/config.dart';
 import 'package:covidtrace/privacy_policy.dart';
+import 'package:covidtrace/helper/metrics.dart' as metrics;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -83,6 +84,11 @@ class OnboardingState extends State {
     var user = await UserModel.find();
     user.onboarding = false;
     await user.save();
+
+    metrics.onboard(
+      authorized: _requestExposure,
+      notifications: _requestNotification,
+    );
 
     Navigator.of(context).pushReplacementNamed('/home');
   }

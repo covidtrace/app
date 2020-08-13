@@ -1,19 +1,19 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:crypto/crypto.dart';
+import 'package:covidtrace/config.dart';
+import 'package:covidtrace/helper/check_exposures.dart' as bg;
+import 'package:covidtrace/helper/metrics.dart' as metrics;
 import 'package:covidtrace/storage/db.dart';
+import 'package:covidtrace/storage/exposure.dart';
+import 'package:covidtrace/storage/report.dart';
+import 'package:covidtrace/storage/user.dart';
+import 'package:crypto/crypto.dart';
+import 'package:flutter/foundation.dart';
 import 'package:gact_plugin/gact_plugin.dart';
 import 'package:http/http.dart' as http;
 import 'package:package_info/package_info.dart';
 import 'package:sqflite/sqflite.dart';
-
-import 'config.dart';
-import 'helper/check_exposures.dart' as bg;
-import 'package:flutter/foundation.dart';
-import 'storage/exposure.dart';
-import 'storage/report.dart';
-import 'storage/user.dart';
 
 class NotificationState with ChangeNotifier {
   static final instance = NotificationState();
@@ -43,6 +43,13 @@ class AppState with ChangeNotifier {
     _exposure = await getExposure();
     _status = await checkStatus();
     _ready = true;
+
+    if (_user.firstRun) {
+      _user.firstRun = false;
+      await _user.save();
+      metrics.install();
+    }
+
     notifyListeners();
   }
 
@@ -160,6 +167,11 @@ class AppState with ChangeNotifier {
     }
 
     notifyListeners();
+
+    if (success) {
+      metrics.notify();
+    }
+
     return success;
   }
 
