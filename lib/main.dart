@@ -219,6 +219,7 @@ class MainPageState extends State<MainPage> {
 
   @override
   Widget build(BuildContext context) {
+    var intl = Intl.of(context);
     var config = Config.get();
     var theme = Theme.of(context);
     var selectedColor = theme.primaryColor;
@@ -232,7 +233,7 @@ class MainPageState extends State<MainPage> {
                   Image.asset(config['theme']['icon'],
                       fit: BoxFit.contain, height: 40),
                   SizedBox(width: 5),
-                  Text(Intl.of(context).get(config['theme']['title'])),
+                  Text(intl.get(config['theme']['title'])),
                 ]),
                 actions: <Widget>[Container()], // Hides debug end drawer
               ),
@@ -244,25 +245,33 @@ class MainPageState extends State<MainPage> {
                       icon: Padding(
                         padding: EdgeInsets.only(bottom: 5),
                         child: Image.asset(
-                          'assets/people_arrows_icon.png',
+                          config['nav']['dashboard']['icon'],
                           height: 25,
                           color: _navIndex == 0 ? selectedColor : defaultColor,
                         ),
                       ),
-                      title: Text('Exposures')),
+                      title:
+                          Text(intl.get(config['nav']['dashboard']['title']))),
                   BottomNavigationBarItem(
                       icon: Padding(
                         padding: EdgeInsets.only(bottom: 5),
                         child: Image.asset(
-                          'assets/self_report_icon.png',
+                          config['nav']['report']['icon'],
                           height: 25,
                           color: _navIndex == 1 ? selectedColor : defaultColor,
                         ),
                       ),
-                      title: Text('Notify Others')),
+                      title: Text(intl.get(config['nav']['report']['title']))),
                   BottomNavigationBarItem(
-                    icon: Icon(Icons.info_outline, size: 30),
-                    title: Text('About'),
+                    icon: Padding(
+                      padding: EdgeInsets.only(bottom: 5),
+                      child: Image.asset(
+                        config['nav']['about']['icon'],
+                        height: 25,
+                        color: _navIndex == 2 ? selectedColor : defaultColor,
+                      ),
+                    ),
+                    title: Text(intl.get(config['nav']['about']['title'])),
                   ),
                 ],
               ),

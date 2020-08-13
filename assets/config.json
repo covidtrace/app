@@ -52,6 +52,20 @@
       "assets/test_facilities/override.css"
     ]
   },
+  "nav": {
+    "dashboard": {
+      "title": "nav.dashboard.title",
+      "icon": "assets/people_arrows_icon.png"
+    },
+    "report": {
+      "title": "nav.report.title",
+      "icon": "assets/self_report_icon.png"
+    },
+    "about": {
+      "title": "nav.about.title",
+      "icon": "assets/info_icon.png"
+    }
+  },
   "onboarding": {
     "intro": {
       "icon": "assets/app_icon.png",
