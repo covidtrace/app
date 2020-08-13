@@ -23,7 +23,7 @@ class PrivacyPolicyState extends State<PrivacyPolicy> {
 
   void loadPolicy() async {
     String privacyLink =
-        Config.get()['onboarding']['exposure_notification']['privacy_policy'];
+        Config.get()['onboarding']['privacy']['privacy_policy'];
     var data = await rootBundle.load(privacyLink);
     var dir = await getApplicationDocumentsDirectory();
     var file = File('${dir.path}/${privacyLink.split('/')[1]}');
