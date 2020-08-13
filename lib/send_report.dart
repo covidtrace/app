@@ -1,6 +1,7 @@
 import 'package:covidtrace/code_pin.dart';
 import 'package:covidtrace/config.dart';
 import 'package:covidtrace/info_card.dart';
+import 'package:covidtrace/intl.dart' as locale;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -110,10 +111,8 @@ class SendReportState extends State<SendReport> with TickerProviderStateMixin {
 
     return [
       SizedBox(height: 20),
-      Center(child: Text(authority['name'], style: textTheme.caption)),
       Center(
-          child: Text(
-              'Updated ${DateFormat.yMMMd().format(DateTime.parse(authority['updated']))}',
+          child: Text(locale.Intl.of(context).get(authority['name']),
               style: textTheme.caption)),
       SizedBox(height: 10),
       Center(child: Text(title, style: subhead)),
@@ -122,6 +121,7 @@ class SendReportState extends State<SendReport> with TickerProviderStateMixin {
   }
 
   Widget buildReportedView(BuildContext context, AppState state) {
+    var intl = locale.Intl.of(context);
     var config = Config.get();
     var theme = config['theme']['dashboard'];
 
@@ -152,14 +152,18 @@ class SendReportState extends State<SendReport> with TickerProviderStateMixin {
                         child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                          Text('Report Submitted',
+                          Text(intl.get('report.submitted.notice.title'),
                               style: Theme.of(context)
                                   .textTheme
                                   .headline6
                                   .merge(alertText)),
                           SizedBox(height: 2),
                           Text(
-                              'On ${DateFormat.yMMMd().add_jm().format(state.report.timestamp)}',
+                              intl.get('report.submitted.notice.date', args: [
+                                DateFormat.yMMMd()
+                                    .add_jm()
+                                    .format(state.report.timestamp)
+                              ]),
                               style: alertText)
                         ])),
                     Image.asset('assets/clinic_medical_icon.png',
@@ -168,8 +172,7 @@ class SendReportState extends State<SendReport> with TickerProviderStateMixin {
                   SizeTransition(
                       child: Column(children: [
                         Divider(height: 20, color: textColor),
-                        Text(
-                            'Thank you for submitting your anonymized exposure history. Your data will help people at risk respond faster.',
+                        Text(intl.get('report.submitted.notice.body'),
                             style: alertText)
                       ]),
                       axisAlignment: 1.0,
@@ -179,8 +182,8 @@ class SendReportState extends State<SendReport> with TickerProviderStateMixin {
             ),
           ),
         ),
-        ...getHeading('What To Do Next'),
-        ...Config.get()["faqs"]["reported"].map((item) => InfoCard(item: item)),
+        ...getHeading(intl.get('report.submitted.faqs.title')),
+        ...config["faqs"]["reported"].map((item) => InfoCard(item: item)),
         SizedBox(height: 10),
       ]),
     );

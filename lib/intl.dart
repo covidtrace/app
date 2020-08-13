@@ -14,8 +14,21 @@ class Intl {
 
   Map<String, dynamic> _localizedValues = {};
 
-  String get(str) {
-    return _localizedValues[str] ?? '<$str>';
+  String get(str, {List<String> args}) {
+    if (!_localizedValues.containsKey(str)) {
+      return '<$str>';
+    }
+
+    if (args == null) {
+      return _localizedValues[str];
+    }
+
+    String raw = _localizedValues[str];
+    args.asMap().forEach((index, value) {
+      var re = new RegExp(r'\$' + index.toString());
+      raw = raw.replaceAll(re, value);
+    });
+    return raw;
   }
 
   Future<void> load() async {
