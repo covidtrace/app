@@ -78,62 +78,122 @@
   "faqs": {
     "non_exposure": [
       {
-        "icon": "assets/who_logo.jpg",
-        "title": "World Health Organization",
-        "body": "Stay aware of the latest information on the COVID-19 outbreak, available on the WHO website and through your national and local public health authority.",
-        "link": "https://www.who.int/emergencies/diseases/novel-coronavirus-2019"
+        "icon": "assets/prevention.png",
+        "title": "How To Protect Yourself & Others",
+        "body": "Learn the latest information from the CDC about how to keep yourself and others safe.",
+        "link": "https://www.cdc.gov/coronavirus/2019-ncov/prevent-getting-sick/prevention.html"
       },
       {
-        "icon": "assets/do_the_five.gif",
-        "title": "Do The Five",
-        "body": "1. STAY home as much as you can\n2. KEEP a safe distance\n3. WASH hands often\n4. COVER your cough\n5. SICK? Call ahead",
-        "link": "https://www.google.com/covid19/#safety-tips"
+        "icon": "assets/mask.png",
+        "title": "How To Wear A Mask",
+        "body": "Masks are recommended by the CDC and required in public areas. Find out how to properly wear a mask and other details related to masks.",
+        "link": "https://www.cdc.gov/coronavirus/2019-ncov/prevent-getting-sick/how-to-wear-cloth-face-coverings.html"
       },
       {
-        "icon": "assets/stay_home_save_lives.png",
-        "title": "Stay Home, Save Lives",
-        "body": "Let frontline workers do their jobs. COVID-19 is spreading, and you may not know you’re infected until you’ve already infected others.",
-        "link": "https://www.stayhomesavelives.us"
+        "icon": "assets/checklist.png",
+        "title": "Self-assessment",
+        "body": "The brief self-assessment helps you understand your risks and symptoms. Start here unless you’re experiencing severe symptoms.",
+        "link": "https://landing.google.com/screener/covid19"
       },
       {
-        "icon": "assets/crisis_test_line.png",
-        "title": "Crisis Text Line",
-        "body": "Text HOME to 741741 from anywhere in the United States, anytime. Crisis Text Line is here for any crisis.",
-        "link": "https://www.crisistextline.org"
+        "icon": "assets/sick.png",
+        "title": "What To Do If You're Sick",
+        "body": "1. Stay home\n2. Take care of yourself\n3. Stay in touch with your doctor\n4. Avoid public transporation",
+        "link": "https://www.cdc.gov/coronavirus/2019-ncov/if-you-are-sick/steps-when-sick.html"
+      },
+      {
+        "icon": "assets/chart.png",
+        "title": "Nevada Statistics",
+        "body": "See the latest statistics on how COVID-19 is spreading in your community.",
+        "link": "https://news.google.com/covid19/map?hl=en-US&gl=US&ceid=US%3Aen&mid=%2Fm%2F059_c"
+      },
+      {
+        "icon": "assets/nevada.png",
+        "title": "Nevada Health Response",
+        "body": "NV Health Response is the best source of health and resources for Nevada’s response to COVID-19. The latest information from the state can be found there.",
+        "link": "https://nvhealthresponse.nv.gov/"
       }
     ],
     "exposure": [
       {
-        "title": "What should I do if I am not sick?",
-        "body": "You should monitor your health for fever, cough and shortness of breath during the 14 days after the last day you were in close contact with the sick person with COVID-19.",
-        "link": "https://coronavirus.wa.gov/"
+        "icon": "assets/checklist.png",
+        "title": "Self-assessment",
+        "body": "The brief self-assessment helps you understand your risks and symptoms. Start here unless you’re experiencing severe symptoms.",
+        "link": "https://landing.google.com/screener/covid19"
       },
       {
-        "title": "What should I do if I work in critical infrastructure?",
-        "body": "Critical infrastructure workers who had close contact with a COVID-19 case can continue to work as long as they remain well without symptoms and if they take the following measures",
-        "link": "https://coronavirus.wa.gov/"
+        "icon": "assets/thermometer.png",
+        "title": "Symptoms",
+        "body": "COVID-19 affects different people in different ways. Infected people have had a wide range of symptoms reported – from mild symptoms to severe illness. Symptoms may appear 2-14 days after exposure to the virus.",
+        "link": "https://www.cdc.gov/coronavirus/2019-ncov/symptoms-testing/symptoms.html"
       },
       {
-        "title": "What is coronavirus disease 2019 (COVID-19)?",
-        "body": "COVID-19 is a respiratory disease caused by a new virus called SARS-CoV-2. The most common symptoms of the disease are fever, cough, and shortness of breath.",
-        "link": "https://coronavirus.wa.gov/"
+        "icon": "assets/sick.png",
+        "title": "What To Do If You're Sick",
+        "body": "1. Stay home\n2. Take care of yourself\n3. Stay in touch with your doctor\n4. Avoid public transporation",
+        "link": "https://www.cdc.gov/coronavirus/2019-ncov/if-you-are-sick/steps-when-sick.html"
+      },
+      {
+        "icon": "assets/prevention.png",
+        "title": "How To Protect Yourself & Others",
+        "body": "Learn the latest information from the CDC about how to keep yourself and others safe.",
+        "link": "https://www.cdc.gov/coronavirus/2019-ncov/prevent-getting-sick/prevention.html"
+      },
+      {
+        "icon": "assets/mask.png",
+        "title": "How To Wear A Mask",
+        "body": "Masks are recommended by the CDC and required in public areas. Find out how to properly wear a mask and other details related to masks.",
+        "link": "https://www.cdc.gov/coronavirus/2019-ncov/prevent-getting-sick/how-to-wear-cloth-face-coverings.html"
+      },
+      {
+        "icon": "assets/chart.png",
+        "title": "Nevada Statistics",
+        "body": "See the latest statistics on how COVID-19 is spreading in your community.",
+        "link": "https://news.google.com/covid19/map?hl=en-US&gl=US&ceid=US%3Aen&mid=%2Fm%2F059_c"
+      },
+      {
+        "icon": "assets/nevada.png",
+        "title": "Nevada Health Response",
+        "body": "NV Health Response is the best source of health and resources for Nevada’s response to COVID-19. The latest information from the state can be found there.",
+        "link": "https://nvhealthresponse.nv.gov/"
       }
     ],
     "reported": [
       {
-        "title": "Protect others from getting sick",
-        "body": "Stay away from others for at least 7 days from when your symptoms first appeared",
+        "icon": "assets/sick.png",
+        "title": "What To Do If You're Sick",
+        "body": "1. Stay home\n2. Take care of yourself\n3. Stay in touch with your doctor\n4. Avoid public transporation",
         "link": "https://www.cdc.gov/coronavirus/2019-ncov/if-you-are-sick/steps-when-sick.html"
       },
       {
-        "title": "Monitor your symptoms",
-        "body": "If your symptoms get worse, contact your doctor’s office",
-        "link": "https://www.cdc.gov/coronavirus/2019-ncov/if-you-are-sick/steps-when-sick.html"
+        "icon": "assets/thermometer.png",
+        "title": "Symptoms",
+        "body": "COVID-19 affects different people in different ways. Infected people have had a wide range of symptoms reported – from mild symptoms to severe illness. Symptoms may appear 2-14 days after exposure to the virus.",
+        "link": "https://landing.google.com/screener/covid19"
       },
       {
-        "title": "Caring for yourself at home",
-        "body": "10 things you can do to manage your health at home",
-        "link": "https://www.cdc.gov/coronavirus/2019-ncov/if-you-are-sick/caring-for-yourself-at-home.html"
+        "icon": "assets/prevention.png",
+        "title": "How To Protect Yourself & Others",
+        "body": "Learn the latest information from the CDC about how to keep yourself and others safe.",
+        "link": "https://www.cdc.gov/coronavirus/2019-ncov/prevent-getting-sick/prevention.html"
+      },
+      {
+        "icon": "assets/mask.png",
+        "title": "How To Wear A Mask",
+        "body": "Masks are recommended by the CDC and required in public areas. Find out how to properly wear a mask and other details related to masks.",
+        "link": "https://www.cdc.gov/coronavirus/2019-ncov/prevent-getting-sick/how-to-wear-cloth-face-coverings.html"
+      },
+      {
+        "icon": "assets/chart.png",
+        "title": "Nevada Statistics",
+        "body": "See the latest statistics on how COVID-19 is spreading in your community.",
+        "link": "https://news.google.com/covid19/map?hl=en-US&gl=US&ceid=US%3Aen&mid=%2Fm%2F059_c"
+      },
+      {
+        "icon": "assets/nevada.png",
+        "title": "Nevada Health Response",
+        "body": "NV Health Response is the best source of health and resources for Nevada’s response to COVID-19. The latest information from the state can be found there.",
+        "link": "https://nvhealthresponse.nv.gov/"
       }
     ]
   }
