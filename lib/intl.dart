@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -16,7 +17,7 @@ class Intl {
 
   String get(str, {List<String> args}) {
     if (!_localizedValues.containsKey(str)) {
-      return '<$str>';
+      return kReleaseMode ? str : '<$str>';
     }
 
     if (args == null) {

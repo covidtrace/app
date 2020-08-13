@@ -297,7 +297,7 @@ class DashboardState extends State with TickerProviderStateMixin {
                 ]),
               ),
             ),
-            ...heading('What To Do Now'),
+            ...heading(intl.get('status.exposure.faqs.title')),
             Card(
               margin: EdgeInsets.zero,
               child: InkWell(
@@ -311,10 +311,10 @@ class DashboardState extends State with TickerProviderStateMixin {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('County Health Department', style: subhead),
+                            Text(intl.get('status.exposure.contact.title'),
+                                style: subhead),
                             SizedBox(height: 5),
-                            Text(
-                                'Report potential exposure to your county Department of Health.'),
+                            Text(intl.get('status.exposure.contact.body')),
                           ],
                         ),
                       ),
@@ -348,7 +348,7 @@ class DashboardState extends State with TickerProviderStateMixin {
                     children: [
                       Expanded(
                         child: Text(
-                          'Find A Test Facility',
+                          intl.get('status.exposure.testing.title'),
                           style: Theme.of(context)
                               .textTheme
                               .subtitle1
