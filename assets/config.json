@@ -59,12 +59,39 @@
       "body": "COVID Trace alerts you when you may have been exposed to COVID-19. Early alerts and quick action helps stop the spread and saves lives. Your participation is voluntary and anonymous to protect your privacy and health.",
       "cta": "Get Started"
     },
+    "privacy": {
+      "icon": "assets/lock_icon.png",
+      "title": "Stay Private",
+      "body": "COVID Trace has no way of knowing:",
+      "bullets": [
+        { "title": "Your location", "icon": "assets/location_slash_icon.png" },
+        {
+          "title": "Your name or address",
+          "icon": "assets/map_marker_slash_icon.png"
+        },
+        {
+          "title": "Your phone’s contacts",
+          "icon": "assets/phone_slash_icon.png"
+        },
+        {
+          "title": "Your health information",
+          "icon": "assets/user_slash_icon.png"
+        },
+        {
+          "title": "The health information of anyone near you",
+          "icon": "assets/users_slash_icon.png"
+        }
+      ],
+      "privacy_title": "Privacy Policy",
+      "privacy_policy": "assets/privacy_policy.html",
+      "cta": "Continue"
+    },
     "exposure_notification": {
       "icon": "assets/people_arrows_icon.png",
       "title": "Enable Exposure Notifications",
-      "body": "COVID Trace’s early detection works by using Bluetooth to see if you have come in contact with people who reported positive test results. COVID Trace does this all on your phone to maintain your privacy. Limited information is shared when reporting an infection or potential exposure.\n",
-      "privacy_title": "Privacy Policy",
-      "privacy_policy": "assets/privacy_policy.html",
+      "body": "COVID Trace’s early detection works by using Bluetooth to see if you have come in contact with people who reported positive test results. COVID Trace does this all on your phone to maintain your privacy. Limited information is shared when reporting an infection or potential exposure.",
+      "learn_more_title": "Learn more",
+      "learn_more_link": "https://www.dropbox.com/s/08l9p7ciecj7s55/120670_Covid_Trace_App_Explainer_VIdeo_16x9_ENG.mp4?dl=0",
       "cta": "Continue"
     },
     "notification_permission": {

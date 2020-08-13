@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:gact_plugin/gact_plugin.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'storage/user.dart';
 
@@ -105,7 +106,7 @@ class OnboardingState extends State {
             ));
 
     var bodyText = themeData.textTheme.bodyText2
-        .merge(TextStyle(fontSize: 16, height: 1.4));
+        .merge(TextStyle(fontSize: 16, height: 1.5));
 
     var platform = Theme.of(context).platform;
 
@@ -124,129 +125,233 @@ class OnboardingState extends State {
                   controller: _pageController,
                   physics: NeverScrollableScrollPhysics(),
                   children: [
-                    Center(
-                        child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                          Center(
-                            child: Container(
-                              child: Image.asset(
-                                config['intro']['icon'],
-                                height: 220,
-                                fit: BoxFit.contain,
-                              ),
-                            ),
+                    Stack(children: [
+                      SingleChildScrollView(
+                          physics: AlwaysScrollableScrollPhysics(),
+                          child: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Center(
+                                  child: Container(
+                                    child: Image.asset(
+                                      config['intro']['icon'],
+                                      fit: BoxFit.contain,
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(height: 10),
+                                Row(children: [
+                                  Expanded(
+                                      child: Text(
+                                    config['intro']['title'],
+                                    style: themeData.textTheme.headline5,
+                                  )),
+                                ]),
+                                SizedBox(height: 10),
+                                Text(
+                                  config['intro']['body'],
+                                  style: bodyText,
+                                ),
+                              ])),
+                      Positioned(
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        child: BlockButton(
+                            onPressed: nextPage, label: config['intro']['cta']),
+                      ),
+                    ]),
+                    Stack(
+                      children: [
+                        SingleChildScrollView(
+                          physics: AlwaysScrollableScrollPhysics(),
+                          child: Container(
+                            child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(children: [
+                                    Expanded(
+                                        child: Text(config['privacy']['title'],
+                                            style:
+                                                themeData.textTheme.headline5)),
+                                    Container(
+                                      child: Image.asset(
+                                          config['privacy']['icon'],
+                                          color: textColor,
+                                          height: 40,
+                                          fit: BoxFit.contain),
+                                    ),
+                                  ]),
+                                  SizedBox(height: 10),
+                                  Text(
+                                    config['privacy']['body'],
+                                    style: bodyText,
+                                  ),
+                                  SizedBox(height: 10),
+                                  ...config['privacy']['bullets'].map((b) {
+                                    return Padding(
+                                      padding:
+                                          EdgeInsets.only(top: 10, bottom: 10),
+                                      child: Row(children: [
+                                        Image.asset(
+                                          b['icon'],
+                                          color: textColor,
+                                          height: 25,
+                                        ),
+                                        SizedBox(width: 10),
+                                        Expanded(
+                                          child: Text(
+                                            b['title'],
+                                            style: bodyText,
+                                          ),
+                                        ),
+                                      ]),
+                                    );
+                                  }),
+                                  SizedBox(height: 10),
+                                  Material(
+                                    color: Colors.transparent,
+                                    child: InkWell(
+                                      onTap: () => showPrivacyPolicy(),
+                                      child: Text(
+                                        config['privacy']['privacy_title'],
+                                        style: bodyText.merge(TextStyle(
+                                            decoration:
+                                                TextDecoration.underline)),
+                                      ),
+                                    ),
+                                  ),
+                                  SizedBox(height: 30),
+                                ]),
                           ),
-                          SizedBox(height: 50),
-                          Row(children: [
-                            Expanded(
-                                child: Text(
-                              config['intro']['title'],
-                              style: themeData.textTheme.headline5,
-                            )),
-                          ]),
-                          SizedBox(height: 10),
-                          Text(
-                            config['intro']['body'],
-                            style: bodyText,
-                          ),
-                          SizedBox(height: 30),
-                          BlockButton(
+                        ),
+                        Positioned(
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          child: BlockButton(
                               onPressed: nextPage,
-                              label: config['intro']['cta']),
-                        ])),
-                    Center(
-                        child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                          Row(children: [
-                            Expanded(
-                                child: Text(
-                                    config['exposure_notification']['title'],
-                                    style: themeData.textTheme.headline5)),
-                            Container(
-                              child: Image.asset(
-                                  config['exposure_notification']['icon'],
-                                  color: textColor,
-                                  height: 40,
-                                  fit: BoxFit.contain),
-                            ),
-                          ]),
-                          SizedBox(height: 10),
-                          RichText(
-                            text: TextSpan(style: bodyText, children: [
-                              TextSpan(
-                                text: config['exposure_notification']['body'],
-                              ),
-                              TextSpan(
-                                  text: config['exposure_notification']
-                                      ['privacy_title'],
-                                  style: TextStyle(
-                                      decoration: TextDecoration.underline),
-                                  recognizer: TapGestureRecognizer()
-                                    ..onTap = () => showPrivacyPolicy())
-                            ]),
-                          ),
-                          SizedBox(height: 30),
-                          Center(
-                              child: Transform.scale(
-                                  scale: 1.5,
-                                  child: Material(
-                                      color: Colors.transparent,
-                                      child: Switch.adaptive(
-                                        inactiveTrackColor: Colors.black26,
-                                        value: _requestExposure,
-                                        onChanged: requestPermission,
-                                      )))),
-                          SizedBox(height: 30),
-                          BlockButton(
-                              label: config['exposure_notification']['cta'],
-                              onPressed: _exposureRequested ? nextPage : null)
-                        ])),
-                    Center(
-                        child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                          Text(
-                            config['notification_permission']['title'],
-                            style: themeData.textTheme.headline5,
-                          ),
-                          SizedBox(height: 10),
-                          Text(
-                            config['notification_permission']['body'],
-                            style: bodyText,
-                          ),
-                          SizedBox(height: 20),
-                          Image.asset(platform == TargetPlatform.iOS
-                              ? config['notification_permission']['preview_ios']
-                              : config['notification_permission']
-                                  ['preview_android']),
-                          SizedBox(height: 20),
-                          platform == TargetPlatform.iOS
-                              ? Material(
+                              label: config['privacy']['cta']),
+                        ),
+                      ],
+                    ),
+                    Stack(children: [
+                      SingleChildScrollView(
+                          physics: AlwaysScrollableScrollPhysics(),
+                          child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(children: [
+                                  Expanded(
+                                      child: Text(
+                                          config['exposure_notification']
+                                              ['title'],
+                                          style:
+                                              themeData.textTheme.headline5)),
+                                  Container(
+                                    child: Image.asset(
+                                        config['exposure_notification']['icon'],
+                                        color: textColor,
+                                        height: 40,
+                                        fit: BoxFit.contain),
+                                  ),
+                                ]),
+                                SizedBox(height: 20),
+                                Text(
+                                  config['exposure_notification']['body'],
+                                  style: bodyText,
+                                ),
+                                SizedBox(height: 20),
+                                Material(
                                   color: Colors.transparent,
                                   child: InkWell(
-                                      onTap: () => requestNotifications(
-                                          !_requestExposure),
-                                      child: Row(children: [
-                                        Expanded(
-                                            child: Text('Enable notifications',
-                                                style: themeData
-                                                    .textTheme.headline6)),
-                                        Switch.adaptive(
-                                            inactiveTrackColor: Colors.black26,
-                                            value: _requestNotification,
-                                            onChanged: requestNotifications),
-                                      ])))
-                              : Container(),
-                          SizedBox(height: 30),
-                          BlockButton(
-                              onPressed: finish,
-                              label: config['notification_permission']['cta']),
-                        ])),
+                                    onTap: () => launch(
+                                        config['exposure_notification']
+                                            ['learn_more_link']),
+                                    child: Text(
+                                      config['exposure_notification']
+                                          ['learn_more_title'],
+                                      style: bodyText.merge(TextStyle(
+                                          decoration:
+                                              TextDecoration.underline)),
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(height: 50),
+                                Center(
+                                    child: Transform.scale(
+                                        scale: 1.5,
+                                        child: Material(
+                                            color: Colors.transparent,
+                                            child: Switch.adaptive(
+                                              inactiveTrackColor:
+                                                  Colors.black26,
+                                              value: _requestExposure,
+                                              onChanged: requestPermission,
+                                            )))),
+                              ])),
+                      Positioned(
+                          left: 0,
+                          right: 0,
+                          bottom: 0,
+                          child: BlockButton(
+                              label: config['exposure_notification']['cta'],
+                              onPressed: _exposureRequested ? nextPage : null)),
+                    ]),
+                    Stack(children: [
+                      Container(
+                          child: Column(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                            Text(
+                              config['notification_permission']['title'],
+                              style: themeData.textTheme.headline5,
+                            ),
+                            SizedBox(height: 10),
+                            Text(
+                              config['notification_permission']['body'],
+                              style: bodyText,
+                            ),
+                            SizedBox(height: 20),
+                            Image.asset(platform == TargetPlatform.iOS
+                                ? config['notification_permission']
+                                    ['preview_ios']
+                                : config['notification_permission']
+                                    ['preview_android']),
+                            SizedBox(height: 20),
+                            platform == TargetPlatform.iOS
+                                ? Material(
+                                    color: Colors.transparent,
+                                    child: InkWell(
+                                        onTap: () => requestNotifications(
+                                            !_requestExposure),
+                                        child: Row(children: [
+                                          Expanded(
+                                              child: Text(
+                                                  'Enable notifications',
+                                                  style: themeData
+                                                      .textTheme.headline6)),
+                                          Switch.adaptive(
+                                              inactiveTrackColor:
+                                                  Colors.black26,
+                                              value: _requestNotification,
+                                              onChanged: requestNotifications),
+                                        ])))
+                                : Container(),
+                          ])),
+                      Positioned(
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        child: BlockButton(
+                            onPressed: finish,
+                            label: config['notification_permission']['cta']),
+                      ),
+                    ]),
                   ]),
             ),
           ),
