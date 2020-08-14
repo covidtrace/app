@@ -40,6 +40,7 @@
   "status.exposure.contact.title": "County Health Department",
   "status.exposure.contact.body": "Report potential exposure to your county Department of Health.",
   "status.exposure.testing.title": "Find A Test Facility",
+  "status.exposure.check.error": "There was an error checking your status:\n\"$0\"",
   "status.all.privacy.title": "Privacy Policy",
   "report.submit.steps_0.title": "Notify Others",
   "report.submit.steps_0.body": "If you have tested positive for COVID-19, anonymously sharing your diagnosis will help your community contain the spread of the virus.\n\nThis submission is optional.",
@@ -118,5 +119,6 @@
   "faqs.reported_5.link_title": "Learn more",
   "errors.too_many_attempts": "Too many attempts. Please wait and try again later",
   "errors.verify_code_failed": "Unable to verify your code",
-  "errors.verify_type_unconfirmed": "Only a confirmed positive diagnosis is supported"
+  "errors.verify_type_unconfirmed": "Only a confirmed positive diagnosis is supported",
+  "errors.no_connection": "Unable to connect to the server"
 }

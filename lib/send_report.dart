@@ -80,7 +80,7 @@ class SendReportState extends State<SendReport> with TickerProviderStateMixin {
     try {
       await state.sendReport(_verificationCode);
     } catch (err) {
-      error = err;
+      error = err is String ? err : 'errors.no_connection';
     }
 
     setState(() => _loading = false);

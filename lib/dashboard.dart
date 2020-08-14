@@ -36,8 +36,23 @@ class DashboardState extends State with TickerProviderStateMixin {
   Future<void> refreshExposures(AppState state) async {
     await state.checkStatus();
 
-    if (state.status == AuthorizationStatus.Authorized) {
+    if (state.status != AuthorizationStatus.Authorized) {
+      return;
+    }
+
+    var error;
+    try {
       await state.checkExposures();
+    } catch (err) {
+      error = 'errors.no_connection';
+    }
+
+    if (error != null) {
+      var intl = locale.Intl.of(context);
+      Scaffold.of(context).showSnackBar(SnackBar(
+          backgroundColor: Colors.red,
+          content: Text(intl.get('status.exposure.check.error',
+              args: [intl.get(error.trim())]))));
     }
   }
 

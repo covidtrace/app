@@ -40,6 +40,7 @@
   "status.exposure.contact.title": "Departamento de Salud del Condado",
   "status.exposure.contact.body": "Informe la exposición potencial al Departamento de Salud de su condado.",
   "status.exposure.testing.title": "Encuentre un laboratorio de pruebas",
+  "status.exposure.check.error": "Hubo un error al verificar su estado:\n\"$0\"",
   "status.all.privacy.title": "Política de Privacidad",
   "report.submit.steps_0.title": "Notificar a Otros",
   "report.submit.steps_0.body": "Si ha dado positivo por COVID-19, compartir su diagnóstico de forma anónima ayudará a su comunidad a contener la propagación del virus.\n\nEsta presentación es opcional.",
@@ -118,5 +119,6 @@
   "faqs.reported_5.link_title": "Más información",
   "errors.too_many_attempts": "Demasiados intentos. Por favor",
   "errors.verify_code_failed": "No se puede verificar su código.",
-  "errors.verify_type_unconfirmed": "Solo se admite un diagnóstico positivo confirmado."
+  "errors.verify_type_unconfirmed": "Solo se admite un diagnóstico positivo confirmado.",
+  "errors.no_connection": "No es posible conectarse al servidor"
 }
