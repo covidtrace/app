@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:covidtrace/config.dart';
+import 'package:covidtrace/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
@@ -39,7 +40,7 @@ class PrivacyPolicyState extends State<PrivacyPolicy> {
     return Scaffold(
         appBar: AppBar(
           centerTitle: true,
-          title: Text('Privacy Policy'),
+          title: Text(Intl.of(context).get('privacy_policy.title')),
         ),
         body: _file != null
             ? WebView(initialUrl: _file.uri.toString())

@@ -19,6 +19,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
   archive:
   animations: ^1.0.0+5
   app_settings: 3.0.1
@@ -75,6 +77,7 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/
+    - assets/locale/
     - assets/test_facilities/
   #  - images/a_dot_burr.jpeg
   #  - images/a_dot_ham.jpeg

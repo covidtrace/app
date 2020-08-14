@@ -1,7 +1,7 @@
 {
   "remote": "assets/remote.json",
   "theme": {
-    "title": "COVID Trace",
+    "title": "theme.title",
     "icon": "assets/app_icon.png",
     "primarySwatch": {
       "50": "0xfffff2f4",
@@ -34,7 +34,7 @@
     }
   },
   "healthAuthority": {
-    "name": "Division of Public & Behavioral Health",
+    "name": "healthAuthority.name",
     "updated": "2020-05-01",
     "link": "http://dpbh.nv.gov/coronavirus",
     "phone_number": "211",
@@ -52,175 +52,212 @@
       "assets/test_facilities/override.css"
     ]
   },
+  "nav": {
+    "dashboard": {
+      "title": "nav.dashboard.title",
+      "icon": "assets/people_arrows_icon.png"
+    },
+    "report": {
+      "title": "nav.report.title",
+      "icon": "assets/self_report_icon.png"
+    },
+    "about": {
+      "title": "nav.about.title",
+      "icon": "assets/info_icon.png"
+    }
+  },
   "onboarding": {
     "intro": {
       "icon": "assets/app_icon.png",
-      "title": "Protect Nevada",
-      "body": "COVID Trace alerts you when you may have been exposed to COVID-19. Early alerts and quick action helps stop the spread and saves lives. Your participation is voluntary and anonymous to protect your privacy and health.",
-      "cta": "Get Started"
+      "title": "onboarding.intro.title",
+      "body": "onboarding.intro.body",
+      "cta": "onboarding.intro.cta"
     },
     "privacy": {
       "icon": "assets/lock_icon.png",
-      "title": "Stay Private",
-      "body": "COVID Trace has no way of knowing:",
+      "title": "onboarding.privacy.title",
+      "body": "onboarding.privacy.body",
       "bullets": [
-        { "title": "Your location", "icon": "assets/location_slash_icon.png" },
         {
-          "title": "Your name or address",
+          "title": "onboarding.privacy.bullets_0.title",
+          "icon": "assets/location_slash_icon.png"
+        },
+        {
+          "title": "onboarding.privacy.bullets_1.title",
           "icon": "assets/map_marker_slash_icon.png"
         },
         {
-          "title": "Your phone’s contacts",
+          "title": "onboarding.privacy.bullets_2.title",
           "icon": "assets/phone_slash_icon.png"
         },
         {
-          "title": "Your health information",
+          "title": "onboarding.privacy.bullets_3.title",
           "icon": "assets/user_slash_icon.png"
         },
         {
-          "title": "The health information of anyone near you",
+          "title": "onboarding.privacy.bullets_4.title",
           "icon": "assets/users_slash_icon.png"
         }
       ],
-      "privacy_title": "Privacy Policy",
+      "privacy_title": "onboarding.privacy.privacy_title",
       "privacy_policy": "assets/privacy_policy.html",
-      "cta": "Continue"
+      "cta": "onboarding.privacy.cta"
     },
     "exposure_notification": {
       "icon": "assets/people_arrows_icon.png",
-      "title": "Enable Exposure Notifications",
-      "body": "COVID Trace’s early detection works by using Bluetooth to see if you have come in contact with people who reported positive test results. COVID Trace does this all on your phone to maintain your privacy. Limited information is shared when reporting an infection or potential exposure.",
-      "learn_more_title": "Learn more",
+      "title": "onboarding.exposure_notification.title",
+      "body": "onboarding.exposure_notification.body",
+      "learn_more_title": "onboarding.exposure_notification.learn_more_title",
       "learn_more_link": "https://www.dropbox.com/s/08l9p7ciecj7s55/120670_Covid_Trace_App_Explainer_VIdeo_16x9_ENG.mp4?dl=0",
-      "cta": "Continue"
+      "cta": "onboarding.exposure_notification.cta"
     },
     "notification_permission": {
-      "title": "What To Expect",
-      "body": "COVID Trace is now monitoring for exposures. You will get a notification if you were potentially exposed to COVID-19.",
+      "title": "onboarding.notification_permission.title",
+      "body": "onboarding.notification_permission.body",
       "preview_ios": "assets/ios_notification.png",
       "preview_android": "assets/android_notification.png",
-      "cta": "Finish"
+      "enable_toggle_title": "onboarding.notification_permission.enable_toggle_title",
+      "cta": "onboarding.notification_permission.cta"
     }
   },
   "faqs": {
     "non_exposure": [
       {
         "icon": "assets/prevention.png",
-        "title": "How To Protect Yourself & Others",
-        "body": "Learn the latest information from the CDC about how to keep yourself and others safe.",
-        "link": "https://www.cdc.gov/coronavirus/2019-ncov/prevent-getting-sick/prevention.html"
+        "title": "faqs.non_exposure_0.title",
+        "body": "faqs.non_exposure_0.body",
+        "link": "https://www.cdc.gov/coronavirus/2019-ncov/prevent-getting-sick/prevention.html",
+        "link_title": "faqs.non_exposure_0.link_title"
       },
       {
         "icon": "assets/mask.png",
-        "title": "How To Wear A Mask",
-        "body": "Masks are recommended by the CDC and required in public areas. Find out how to properly wear a mask and other details related to masks.",
-        "link": "https://www.cdc.gov/coronavirus/2019-ncov/prevent-getting-sick/how-to-wear-cloth-face-coverings.html"
+        "title": "faqs.non_exposure_1.title",
+        "body": "faqs.non_exposure_1.body",
+        "link": "https://www.cdc.gov/coronavirus/2019-ncov/prevent-getting-sick/how-to-wear-cloth-face-coverings.html",
+        "link_title": "faqs.non_exposure_1.link_title"
       },
       {
         "icon": "assets/checklist.png",
-        "title": "Self-assessment",
-        "body": "The brief self-assessment helps you understand your risks and symptoms. Start here unless you’re experiencing severe symptoms.",
-        "link": "https://landing.google.com/screener/covid19"
+        "title": "faqs.non_exposure_2.title",
+        "body": "faqs.non_exposure_2.body",
+        "link": "https://landing.google.com/screener/covid19",
+        "link_title": "faqs.non_exposure_2.link_title"
       },
       {
         "icon": "assets/sick.png",
-        "title": "What To Do If You're Sick",
-        "body": "1. Stay home\n2. Take care of yourself\n3. Stay in touch with your doctor\n4. Avoid public transporation",
-        "link": "https://www.cdc.gov/coronavirus/2019-ncov/if-you-are-sick/steps-when-sick.html"
+        "title": "faqs.non_exposure_3.title",
+        "body": "faqs.non_exposure_3.body",
+        "link": "https://www.cdc.gov/coronavirus/2019-ncov/if-you-are-sick/steps-when-sick.html",
+        "link_title": "faqs.non_exposure_3.link_title"
       },
       {
         "icon": "assets/chart.png",
-        "title": "Nevada Statistics",
-        "body": "See the latest statistics on how COVID-19 is spreading in your community.",
-        "link": "https://news.google.com/covid19/map?hl=en-US&gl=US&ceid=US%3Aen&mid=%2Fm%2F059_c"
+        "title": "faqs.non_exposure_4.title",
+        "body": "faqs.non_exposure_4.body",
+        "link": "https://news.google.com/covid19/map?hl=en-US&gl=US&ceid=US%3Aen&mid=%2Fm%2F059_c",
+        "link_title": "faqs.non_exposure_4.link_title"
       },
       {
         "icon": "assets/nevada.png",
-        "title": "Nevada Health Response",
-        "body": "NV Health Response is the best source of health and resources for Nevada’s response to COVID-19. The latest information from the state can be found there.",
-        "link": "https://nvhealthresponse.nv.gov/"
+        "title": "faqs.non_exposure_5.title",
+        "body": "faqs.non_exposure_5.body",
+        "link": "https://nvhealthresponse.nv.gov/",
+        "link_title": "faqs.non_exposure_4.link_title"
       }
     ],
     "exposure": [
       {
         "icon": "assets/checklist.png",
-        "title": "Self-assessment",
-        "body": "The brief self-assessment helps you understand your risks and symptoms. Start here unless you’re experiencing severe symptoms.",
-        "link": "https://landing.google.com/screener/covid19"
+        "title": "faqs.exposure_0.title",
+        "body": "faqs.exposure_0.body",
+        "link": "https://landing.google.com/screener/covid19",
+        "link_title": "faqs.exposure_0.link_title"
       },
       {
         "icon": "assets/thermometer.png",
-        "title": "Symptoms",
-        "body": "COVID-19 affects different people in different ways. Infected people have had a wide range of symptoms reported – from mild symptoms to severe illness. Symptoms may appear 2-14 days after exposure to the virus.",
-        "link": "https://www.cdc.gov/coronavirus/2019-ncov/symptoms-testing/symptoms.html"
+        "title": "faqs.exposure_1.title",
+        "body": "faqs.exposure_1.body",
+        "link": "https://www.cdc.gov/coronavirus/2019-ncov/symptoms-testing/symptoms.html",
+        "link_title": "faqs.exposure_1.link_title"
       },
       {
         "icon": "assets/sick.png",
-        "title": "What To Do If You're Sick",
-        "body": "1. Stay home\n2. Take care of yourself\n3. Stay in touch with your doctor\n4. Avoid public transporation",
-        "link": "https://www.cdc.gov/coronavirus/2019-ncov/if-you-are-sick/steps-when-sick.html"
+        "title": "faqs.exposure_2.title",
+        "body": "faqs.exposure_2.body",
+        "link": "https://www.cdc.gov/coronavirus/2019-ncov/if-you-are-sick/steps-when-sick.html",
+        "link_title": "faqs.exposure_2.link_title"
       },
       {
         "icon": "assets/prevention.png",
-        "title": "How To Protect Yourself & Others",
-        "body": "Learn the latest information from the CDC about how to keep yourself and others safe.",
-        "link": "https://www.cdc.gov/coronavirus/2019-ncov/prevent-getting-sick/prevention.html"
+        "title": "faqs.exposure_3.title",
+        "body": "faqs.exposure_3.body",
+        "link": "https://www.cdc.gov/coronavirus/2019-ncov/prevent-getting-sick/prevention.html",
+        "link_title": "faqs.exposure_3.link_title"
       },
       {
         "icon": "assets/mask.png",
-        "title": "How To Wear A Mask",
-        "body": "Masks are recommended by the CDC and required in public areas. Find out how to properly wear a mask and other details related to masks.",
-        "link": "https://www.cdc.gov/coronavirus/2019-ncov/prevent-getting-sick/how-to-wear-cloth-face-coverings.html"
+        "title": "faqs.exposure_4.title",
+        "body": "faqs.exposure_4.body",
+        "link": "https://www.cdc.gov/coronavirus/2019-ncov/prevent-getting-sick/how-to-wear-cloth-face-coverings.html",
+        "link_title": "faqs.exposure_4.link_title"
       },
       {
         "icon": "assets/chart.png",
-        "title": "Nevada Statistics",
-        "body": "See the latest statistics on how COVID-19 is spreading in your community.",
-        "link": "https://news.google.com/covid19/map?hl=en-US&gl=US&ceid=US%3Aen&mid=%2Fm%2F059_c"
+        "title": "faqs.exposure_5.title",
+        "body": "faqs.exposure_5.body",
+        "link": "https://news.google.com/covid19/map?hl=en-US&gl=US&ceid=US%3Aen&mid=%2Fm%2F059_c",
+        "link_title": "faqs.exposure_5.link_title"
       },
       {
         "icon": "assets/nevada.png",
-        "title": "Nevada Health Response",
-        "body": "NV Health Response is the best source of health and resources for Nevada’s response to COVID-19. The latest information from the state can be found there.",
-        "link": "https://nvhealthresponse.nv.gov/"
+        "title": "faqs.exposure_6.title",
+        "body": "faqs.exposure_6.body",
+        "link": "https://nvhealthresponse.nv.gov/",
+        "link_title": "faqs.exposure_6.link_title"
       }
     ],
     "reported": [
       {
         "icon": "assets/sick.png",
-        "title": "What To Do If You're Sick",
-        "body": "1. Stay home\n2. Take care of yourself\n3. Stay in touch with your doctor\n4. Avoid public transporation",
-        "link": "https://www.cdc.gov/coronavirus/2019-ncov/if-you-are-sick/steps-when-sick.html"
+        "title": "faqs.reported_0.title",
+        "body": "faqs.reported_0.body",
+        "link": "https://www.cdc.gov/coronavirus/2019-ncov/if-you-are-sick/steps-when-sick.html",
+        "link_title": "faqs.reported_0.link_title"
       },
       {
         "icon": "assets/thermometer.png",
-        "title": "Symptoms",
-        "body": "COVID-19 affects different people in different ways. Infected people have had a wide range of symptoms reported – from mild symptoms to severe illness. Symptoms may appear 2-14 days after exposure to the virus.",
-        "link": "https://landing.google.com/screener/covid19"
+        "title": "faqs.reported_1.title",
+        "body": "faqs.reported_1.body",
+        "link": "https://landing.google.com/screener/covid19",
+        "link_title": "faqs.reported_1.link_title"
       },
       {
         "icon": "assets/prevention.png",
-        "title": "How To Protect Yourself & Others",
-        "body": "Learn the latest information from the CDC about how to keep yourself and others safe.",
-        "link": "https://www.cdc.gov/coronavirus/2019-ncov/prevent-getting-sick/prevention.html"
+        "title": "faqs.reported_2.title",
+        "body": "faqs.reported_2.body",
+        "link": "https://www.cdc.gov/coronavirus/2019-ncov/prevent-getting-sick/prevention.html",
+        "link_title": "faqs.reported_2.link_title"
       },
       {
         "icon": "assets/mask.png",
-        "title": "How To Wear A Mask",
-        "body": "Masks are recommended by the CDC and required in public areas. Find out how to properly wear a mask and other details related to masks.",
-        "link": "https://www.cdc.gov/coronavirus/2019-ncov/prevent-getting-sick/how-to-wear-cloth-face-coverings.html"
+        "title": "faqs.reported_3.title",
+        "body": "faqs.reported_3.body",
+        "link": "https://www.cdc.gov/coronavirus/2019-ncov/prevent-getting-sick/how-to-wear-cloth-face-coverings.html",
+        "link_title": "faqs.reported_3.link_title"
       },
       {
         "icon": "assets/chart.png",
-        "title": "Nevada Statistics",
-        "body": "See the latest statistics on how COVID-19 is spreading in your community.",
-        "link": "https://news.google.com/covid19/map?hl=en-US&gl=US&ceid=US%3Aen&mid=%2Fm%2F059_c"
+        "title": "faqs.reported_4.title",
+        "body": "faqs.reported_4.body",
+        "link": "https://news.google.com/covid19/map?hl=en-US&gl=US&ceid=US%3Aen&mid=%2Fm%2F059_c",
+        "link_title": "faqs.reported_4.link_title"
       },
       {
         "icon": "assets/nevada.png",
-        "title": "Nevada Health Response",
-        "body": "NV Health Response is the best source of health and resources for Nevada’s response to COVID-19. The latest information from the state can be found there.",
-        "link": "https://nvhealthresponse.nv.gov/"
+        "title": "faqs.reported_5.title",
+        "body": "faqs.reported_5.body",
+        "link": "https://nvhealthresponse.nv.gov/",
+        "link_title": "faqs.reported_5.link_title"
       }
     ]
   }

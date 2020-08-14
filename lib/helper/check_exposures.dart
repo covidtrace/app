@@ -118,12 +118,6 @@ Future<ExposureInfo> checkExposures() async {
   var exposure = exposures.isNotEmpty ? exposures.last : null;
 
   print('Done checking exposures!');
-
-  // iOS automatically shows a system level notification via the EN API.
-  if (exposure != null && Platform.isAndroid) {
-    showExposureNotification(exposure);
-  }
-
   return exposure;
 }
 

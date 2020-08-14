@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:covidtrace/config.dart';
+import 'package:covidtrace/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
@@ -81,7 +82,7 @@ class TestFacilitiesState extends State with TickerProviderStateMixin {
                       children: [
                         Expanded(
                             child: Text(
-                          'Choose A County',
+                          Intl.of(context).get('testing.location_select.title'),
                           style: Theme.of(context)
                               .textTheme
                               .subtitle1
@@ -241,7 +242,7 @@ class TestFacilitiesState extends State with TickerProviderStateMixin {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Find A Test Facility'),
+        title: Text(Intl.of(context).get('testing.title')),
         actions: [
           IconButton(
             onPressed: () {
