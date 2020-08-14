@@ -57,6 +57,7 @@
   "report.submitted.notice.date": "On $0",
   "report.submitted.notice.body": "Thank you for submitting your anonymized exposure history. Your data will help people at risk respond faster.",
   "privacy_policy.title": "Privacy Policy",
+  "privacy_policy.content": "assets/locale/en/privacy_policy.html",
   "testing.title": "Find A Test Facility",
   "testing.location_select.title": "Choose A County",
   "report.submitted.faqs.title": "What To Do Next",

@@ -100,7 +100,6 @@
         }
       ],
       "privacy_title": "onboarding.privacy.privacy_title",
-      "privacy_policy": "assets/privacy_policy.html",
       "cta": "onboarding.privacy.cta"
     },
     "exposure_notification": {

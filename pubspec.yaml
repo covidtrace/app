@@ -78,6 +78,8 @@ flutter:
   assets:
     - assets/
     - assets/locale/
+    - assets/locale/en/
+    - assets/locale/es/
     - assets/test_facilities/
   #  - images/a_dot_burr.jpeg
   #  - images/a_dot_ham.jpeg

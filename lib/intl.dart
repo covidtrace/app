@@ -35,7 +35,7 @@ class Intl {
   Future<void> load() async {
     try {
       String data = await rootBundle
-          .loadString('assets/locale/${locale.languageCode}.json');
+          .loadString('assets/locale/${locale.languageCode}/messages.json');
       _localizedValues = jsonDecode(data);
     } catch (err) {
       print(err);
