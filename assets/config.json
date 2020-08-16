@@ -36,7 +36,7 @@
   "healthAuthority": {
     "name": "healthAuthority.name",
     "updated": "2020-05-01",
-    "link": "http://dpbh.nv.gov/coronavirus",
+    "link": "https://nvhealthresponse.nv.gov/covidtrace",
     "phone_number": "211",
     "icon": "assets/app_icon.png"
   },
@@ -107,7 +107,7 @@
       "title": "onboarding.exposure_notification.title",
       "body": "onboarding.exposure_notification.body",
       "learn_more_title": "onboarding.exposure_notification.learn_more_title",
-      "learn_more_link": "https://www.dropbox.com/s/08l9p7ciecj7s55/120670_Covid_Trace_App_Explainer_VIdeo_16x9_ENG.mp4?dl=0",
+      "learn_more_link": "onboarding.exposure_notification.learn_more_link",
       "cta": "onboarding.exposure_notification.cta"
     },
     "notification_permission": {

@@ -16,6 +16,7 @@
   "onboarding.exposure_notification.title": "Habilitar Notificaciones de Exposición",
   "onboarding.exposure_notification.body": "La detección temprana de acsos por COVID Trace funciona mediante el uso de Bluetooth para ver si ha entrado en contacto con personas que informaron resultados positivos en las pruebas. COVID Trace hace todo esto en su teléfono para mantener su privacidad. Se comparte información limitada al informar una infección o una posible exposición.",
   "onboarding.exposure_notification.learn_more_title": "Más información",
+  "onboarding.exposure_notification.learn_more_link": "https://nvcovidtrace.com/video/intro/es",
   "onboarding.exposure_notification.cta": "Continuar",
   "onboarding.notification_permission.title": "Qué Esperar",
   "onboarding.notification_permission.body": "COVID Trace ahora está monitoreando las exposiciones. Recibirá una notificación si estuvo potencialmente expuesto al COVID-19.",

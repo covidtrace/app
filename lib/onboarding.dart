@@ -284,9 +284,9 @@ class OnboardingState extends State {
                                   Material(
                                     color: Colors.transparent,
                                     child: InkWell(
-                                      onTap: () => launch(
+                                      onTap: () => launch(intl.get(
                                           config['exposure_notification']
-                                              ['learn_more_link']),
+                                              ['learn_more_link'])),
                                       child: Text(
                                         intl.get(config['exposure_notification']
                                             ['learn_more_title']),
