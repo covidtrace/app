@@ -132,7 +132,7 @@ class OnboardingState extends State {
                     controller: _pageController,
                     physics: NeverScrollableScrollPhysics(),
                     children: [
-                      Stack(children: [
+                      Stack(overflow: Overflow.visible, children: [
                         SingleChildScrollView(
                             physics: AlwaysScrollableScrollPhysics(),
                             child: Column(
@@ -172,6 +172,7 @@ class OnboardingState extends State {
                         ),
                       ]),
                       Stack(
+                        overflow: Overflow.visible,
                         children: [
                           SingleChildScrollView(
                             physics: AlwaysScrollableScrollPhysics(),
@@ -249,7 +250,7 @@ class OnboardingState extends State {
                           ),
                         ],
                       ),
-                      Stack(children: [
+                      Stack(overflow: Overflow.visible, children: [
                         SingleChildScrollView(
                             physics: AlwaysScrollableScrollPhysics(),
                             child: Column(
@@ -304,6 +305,9 @@ class OnboardingState extends State {
                                               child: Switch.adaptive(
                                                 inactiveTrackColor:
                                                     Colors.black26,
+                                                activeColor: Color(int.parse(
+                                                    theme[
+                                                        'button_background'])),
                                                 value: _requestExposure,
                                                 onChanged: requestPermission,
                                               )))),
@@ -318,7 +322,7 @@ class OnboardingState extends State {
                                 onPressed:
                                     _exposureRequested ? nextPage : null)),
                       ]),
-                      Stack(children: [
+                      Stack(overflow: Overflow.visible, children: [
                         Container(
                             child: Column(
                                 mainAxisAlignment: MainAxisAlignment.start,
@@ -360,6 +364,9 @@ class OnboardingState extends State {
                                             Switch.adaptive(
                                                 inactiveTrackColor:
                                                     Colors.black26,
+                                                activeColor: Color(int.parse(
+                                                    theme[
+                                                        'button_background'])),
                                                 value: _requestNotification,
                                                 onChanged:
                                                     requestNotifications),

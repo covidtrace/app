@@ -200,12 +200,6 @@ class MainPageState extends State<MainPage> {
     );
   }
 
-  resetVerified(AppState state) async {
-    var user = state.user;
-    user.token = null;
-    await state.saveUser(user);
-  }
-
   onBottomNavTap(int index) async {
     if (index == 2) {
       launch(Config.get()['healthAuthority']['link']);
@@ -303,11 +297,6 @@ class MainPageState extends State<MainPage> {
                         leading: Icon(Icons.delete_forever),
                         title: Text('Reset Report'),
                         onTap: () => closeDrawer(state, resetReport),
-                      ),
-                      ListTile(
-                        leading: Icon(Icons.verified_user),
-                        title: Text('Reset Verified'),
-                        onTap: () => closeDrawer(state, resetVerified),
                       ),
                       ListTile(
                         leading: Icon(Icons.power_settings_new),

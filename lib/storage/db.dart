@@ -18,7 +18,7 @@ CREATE TABLE user (
   refresh_token TEXT
 )
   ''',
-  "INSERT INTO user (uuid, onboarding) VALUES ('$uuid', 1)",
+  "INSERT INTO user (uuid, onboarding, last_check) VALUES ('$uuid', 1, '${DateTime.now().toIso8601String()}')",
   '''
 CREATE TABLE report (
   id INTEGER PRIMARY KEY,
