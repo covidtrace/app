@@ -22,6 +22,13 @@ class Config {
     var source = await rootBundle.loadString('assets/config.json');
     _local = jsonDecode(source);
 
+    try {
+      remote();
+    } catch (err) {
+      print('Unable to load remote config');
+      print(err);
+    }
+
     return _local;
   }
 
@@ -46,6 +53,18 @@ class Config {
     } else {
       var configResp = await rootBundle.loadString(remoteUrl.toString());
       _remote = jsonDecode(configResp) as Map<String, dynamic>;
+    }
+
+    // Merge overrides
+    if (_remote.containsKey('override')) {
+      var override = _remote['override'] as Map<String, dynamic>;
+      override.forEach((key, value) {
+        if (value is Map) {
+          (_local[key] as Map).addAll(value);
+        } else {
+          _local[key] = value;
+        }
+      });
     }
 
     return _remote;

@@ -36,8 +36,7 @@
   "healthAuthority": {
     "name": "healthAuthority.name",
     "updated": "2020-05-01",
-    "link": "https://nvhealthresponse.nv.gov/covidtrace",
-    "phone_number": "211",
+    "link": "http://dpbh.nv.gov/coronavirus",
     "icon": "assets/app_icon.png"
   },
   "test_facilities": {

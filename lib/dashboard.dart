@@ -315,48 +315,49 @@ class DashboardState extends State with TickerProviderStateMixin {
               ),
             ),
             ...heading(intl.get('status.exposure.faqs.title')),
-            Card(
-              margin: EdgeInsets.zero,
-              child: InkWell(
-                onTap: () async {
-                  metrics.contact();
-                  if (Platform.isAndroid) {
-                    // Give time for request to finish before launch dialer
-                    await Future.delayed(Duration(milliseconds: 300));
-                  }
-                  launch('tel:${authority['phone_number']}');
-                },
-                child: Padding(
-                  padding: EdgeInsets.all(15),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(intl.get('status.exposure.contact.title'),
-                                style: subhead),
-                            SizedBox(height: 5),
-                            Text(intl.get('status.exposure.contact.body')),
-                          ],
+            if (authority['phone_number'] != null)
+              Card(
+                margin: EdgeInsets.zero,
+                child: InkWell(
+                  onTap: () async {
+                    metrics.contact();
+                    if (Platform.isAndroid) {
+                      // Give time for request to finish before launch dialer
+                      await Future.delayed(Duration(milliseconds: 300));
+                    }
+                    launch('tel:${authority['phone_number']}');
+                  },
+                  child: Padding(
+                    padding: EdgeInsets.all(15),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(intl.get('status.exposure.contact.title'),
+                                  style: subhead),
+                              SizedBox(height: 5),
+                              Text(intl.get('status.exposure.contact.body')),
+                            ],
+                          ),
                         ),
-                      ),
-                      Material(
-                        shape: CircleBorder(),
-                        clipBehavior: Clip.antiAlias,
-                        color: Theme.of(context).primaryColor,
-                        child: Padding(
-                          padding: EdgeInsets.all(10),
-                          child:
-                              Icon(Icons.phone, color: Colors.white, size: 25),
+                        Material(
+                          shape: CircleBorder(),
+                          clipBehavior: Clip.antiAlias,
+                          color: Theme.of(context).primaryColor,
+                          child: Padding(
+                            padding: EdgeInsets.all(10),
+                            child: Icon(Icons.phone,
+                                color: Colors.white, size: 25),
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
             SizedBox(height: 20),
             Card(
               margin: EdgeInsets.zero,

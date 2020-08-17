@@ -15,5 +15,11 @@
   },
   "verifyUrl": "https://apiserver-5v7v5qboea-uc.a.run.app",
   "verifyApiKey": "Gp/7ClkagyiAdpCRIuyivHUwy9BnoSHW21BYbarXtI6gqKxDDKwFmcXpwf06ynF5n828yAAkVaat+oBNC2kKQg",
-  "metricsPublishUrl": "https://nvcovidtrace.com/metric"
+  "metricsPublishUrl": "https://nvcovidtrace.com/metric",
+  "override": {
+    "healthAuthority": {
+      "link": "https://nvhealthresponse.nv.gov/covidtrace",
+      "phone_number": "211"
+    }
+  }
 }
