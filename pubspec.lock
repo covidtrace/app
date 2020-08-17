@@ -218,7 +218,7 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: "7627b63e7bd40d992c502799d24bcd6ed6d0ab66"
+      resolved-ref: d177126fd2060ed77c240dde7a3ea5c288e8ddb2
       url: "git@github.com:covidtrace/contact_trace_plugin.git"
     source: git
     version: "0.0.2"

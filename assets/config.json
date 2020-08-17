@@ -1,5 +1,5 @@
 {
-  "remote": "assets/remote.json",
+  "remote": "https://static.nvcovidtrace.com/remote.json",
   "theme": {
     "title": "theme.title",
     "icon": "assets/app_icon.png",
