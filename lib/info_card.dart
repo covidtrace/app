@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:covidtrace/intl.dart';
 
 class InfoCard extends StatelessWidget {
   final Map<String, dynamic> item;
@@ -14,15 +15,16 @@ class InfoCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    var intl = Intl.of(context);
     var subhead = Theme.of(context)
         .textTheme
         .subtitle1
         .merge(TextStyle(fontWeight: FontWeight.bold));
 
     var mainContent = [
-      Text(item['title'], style: subhead),
+      Text(intl.get(item['title']), style: subhead),
       SizedBox(height: 5),
-      Text(item['body']),
+      Text(intl.get(item['body'])),
     ];
 
     return Card(
@@ -56,7 +58,7 @@ class InfoCard extends StatelessWidget {
                     Divider(height: 20),
                     InkWell(
                       onTap: () => launch(item['link']),
-                      child: Text('Learn more',
+                      child: Text(intl.get(item['link_title']),
                           style: TextStyle(color: Colors.blue)),
                     ),
                   ]

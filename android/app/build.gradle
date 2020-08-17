@@ -46,7 +46,7 @@ android {
 
     defaultConfig {
         applicationId "gov.nv.dhhs.en"
-        minSdkVersion 21
+        minSdkVersion 24
         targetSdkVersion 28
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName

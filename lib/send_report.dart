@@ -1,6 +1,7 @@
 import 'package:covidtrace/code_pin.dart';
 import 'package:covidtrace/config.dart';
 import 'package:covidtrace/info_card.dart';
+import 'package:covidtrace/intl.dart' as locale;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -59,15 +60,17 @@ class SendReportState extends State<SendReport> with TickerProviderStateMixin {
   }
 
   void onSubmit(context, AppState state) async {
+    var intl = locale.Intl.of(context);
     var err = await sendReport(state);
+
     if (err != null) {
       Scaffold.of(context).showSnackBar(SnackBar(
           backgroundColor: Colors.red,
           content: Text(
-              'There was an error submitting your report:\n"${err.trim()}"')));
+              intl.get('report.submit.error', args: [intl.get(err.trim())]))));
     } else {
       Scaffold.of(context).showSnackBar(
-          SnackBar(content: Text('Your report was successfully submitted')));
+          SnackBar(content: Text(intl.get('report.submit.success'))));
     }
   }
 
@@ -77,7 +80,7 @@ class SendReportState extends State<SendReport> with TickerProviderStateMixin {
     try {
       await state.sendReport(_verificationCode);
     } catch (err) {
-      error = err;
+      error = err is String ? err : 'errors.no_connection';
     }
 
     setState(() => _loading = false);
@@ -110,10 +113,8 @@ class SendReportState extends State<SendReport> with TickerProviderStateMixin {
 
     return [
       SizedBox(height: 20),
-      Center(child: Text(authority['name'], style: textTheme.caption)),
       Center(
-          child: Text(
-              'Updated ${DateFormat.yMMMd().format(DateTime.parse(authority['updated']))}',
+          child: Text(locale.Intl.of(context).get(authority['name']),
               style: textTheme.caption)),
       SizedBox(height: 10),
       Center(child: Text(title, style: subhead)),
@@ -122,6 +123,7 @@ class SendReportState extends State<SendReport> with TickerProviderStateMixin {
   }
 
   Widget buildReportedView(BuildContext context, AppState state) {
+    var intl = locale.Intl.of(context);
     var config = Config.get();
     var theme = config['theme']['dashboard'];
 
@@ -152,14 +154,18 @@ class SendReportState extends State<SendReport> with TickerProviderStateMixin {
                         child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                          Text('Report Submitted',
+                          Text(intl.get('report.submitted.notice.title'),
                               style: Theme.of(context)
                                   .textTheme
                                   .headline6
                                   .merge(alertText)),
                           SizedBox(height: 2),
                           Text(
-                              'On ${DateFormat.yMMMd().add_jm().format(state.report.timestamp)}',
+                              intl.get('report.submitted.notice.date', args: [
+                                DateFormat.yMMMd()
+                                    .add_jm()
+                                    .format(state.report.timestamp)
+                              ]),
                               style: alertText)
                         ])),
                     Image.asset('assets/clinic_medical_icon.png',
@@ -168,8 +174,7 @@ class SendReportState extends State<SendReport> with TickerProviderStateMixin {
                   SizeTransition(
                       child: Column(children: [
                         Divider(height: 20, color: textColor),
-                        Text(
-                            'Thank you for submitting your anonymized exposure history. Your data will help people at risk respond faster.',
+                        Text(intl.get('report.submitted.notice.body'),
                             style: alertText)
                       ]),
                       axisAlignment: 1.0,
@@ -179,8 +184,8 @@ class SendReportState extends State<SendReport> with TickerProviderStateMixin {
             ),
           ),
         ),
-        ...getHeading('What To Do Next'),
-        ...Config.get()["faqs"]["reported"].map((item) => InfoCard(item: item)),
+        ...getHeading(intl.get('report.submitted.faqs.title')),
+        ...config["faqs"]["reported"].map((item) => InfoCard(item: item)),
         SizedBox(height: 10),
       ]),
     );
@@ -188,6 +193,7 @@ class SendReportState extends State<SendReport> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    var intl = locale.Intl.of(context);
     var enableContinue = true;
     var textTheme = Theme.of(context).textTheme;
     var stepTextTheme = textTheme.subtitle1;
@@ -228,7 +234,8 @@ class SendReportState extends State<SendReport> with TickerProviderStateMixin {
                                         onPressed: enableContinue
                                             ? onStepContinue
                                             : null,
-                                        child: Text('Continue')),
+                                        child: Text(intl.get(
+                                            'report.submit.steps_$_step.cta'))),
                                   ])
                             : SizedBox.shrink();
                       },
@@ -238,10 +245,9 @@ class SendReportState extends State<SendReport> with TickerProviderStateMixin {
                           state: _step > 0
                               ? StepState.complete
                               : StepState.indexed,
-                          title:
-                              Text('Notify Others', style: textTheme.headline6),
-                          content: Text(
-                              'If you have tested postive for COVID-19, anonymously sharing your diagnosis will help your community contain the spread of the virus.\n\nThis submission is optional.',
+                          title: Text(intl.get('report.submit.steps_0.title'),
+                              style: textTheme.headline6),
+                          content: Text(intl.get('report.submit.steps_0.body'),
                               style: stepTextTheme),
                         ),
                         Step(
@@ -249,25 +255,23 @@ class SendReportState extends State<SendReport> with TickerProviderStateMixin {
                             state: _step > 1
                                 ? StepState.complete
                                 : StepState.indexed,
-                            title: Text('What Will Be Shared',
+                            title: Text(intl.get('report.submit.steps_1.title'),
                                 style: textTheme.headline6),
                             content: Column(
                                 mainAxisAlignment: MainAxisAlignment.start,
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                      'The random IDs generated by your phone and anonymously exchanged with others you have interacted with over the last 14 days will be shared.\n\nThis app neither collects nor shares any user identifiable information.',
+                                  Text(intl.get('report.submit.steps_1.body'),
                                       style: stepTextTheme),
                                 ])),
                         Step(
                             isActive: _step == 2,
-                            title: Text('Verify Diagnosis',
+                            title: Text(intl.get('report.submit.steps_2.title'),
                                 style: textTheme.headline6),
                             content: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                      'Enter the verification code provided by your health official to submit your report.',
+                                  Text(intl.get('report.submit.steps_2.body'),
                                       style: stepTextTheme),
                                   CodePin(size: 8, pinState: _pinState),
                                   SizedBox(height: 10),
@@ -291,7 +295,8 @@ class SendReportState extends State<SendReport> with TickerProviderStateMixin {
                                                         valueColor:
                                                             AlwaysStoppedAnimation(
                                                                 Colors.white)))
-                                                : Text("Submit"),
+                                                : Text(intl.get(
+                                                    'report.submit.steps_2.cta')),
                                             onPressed: codeComplete
                                                 ? () => onSubmit(context, state)
                                                 : null),

@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:covidtrace/config.dart';
+import 'package:covidtrace/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
@@ -14,19 +14,11 @@ class PrivacyPolicy extends StatefulWidget {
 class PrivacyPolicyState extends State<PrivacyPolicy> {
   File _file;
 
-  @override
-  void initState() {
-    super.initState();
-
-    loadPolicy();
-  }
-
   void loadPolicy() async {
-    String privacyLink =
-        Config.get()['onboarding']['exposure_notification']['privacy_policy'];
+    String privacyLink = Intl.of(context).get('privacy_policy.content');
     var data = await rootBundle.load(privacyLink);
     var dir = await getApplicationDocumentsDirectory();
-    var file = File('${dir.path}/${privacyLink.split('/')[1]}');
+    var file = File('${dir.path}/${privacyLink.split('/').last}');
 
     await file.writeAsBytes(data.buffer.asUint8List());
     setState(() {
@@ -36,10 +28,14 @@ class PrivacyPolicyState extends State<PrivacyPolicy> {
 
   @override
   Widget build(BuildContext context) {
+    if (_file == null) {
+      loadPolicy();
+    }
+
     return Scaffold(
         appBar: AppBar(
           centerTitle: true,
-          title: Text('Privacy Policy'),
+          title: Text(Intl.of(context).get('privacy_policy.title')),
         ),
         body: _file != null
             ? WebView(initialUrl: _file.uri.toString())

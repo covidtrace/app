@@ -192,9 +192,9 @@ class AppState with ChangeNotifier {
 
     var statusCode = postResp.statusCode;
     if (statusCode == 429) {
-      throw ('Too many attempts. Please wait and try again later');
+      throw ('errors.too_many_attempts');
     } else if (statusCode == 500) {
-      throw ('Unable to verify your code');
+      throw ('errors.verify_code_failed');
     } else if (statusCode != 200) {
       throw (postResp.body);
     }
@@ -204,7 +204,7 @@ class AppState with ChangeNotifier {
     var testType = body['testtype'];
 
     if (testType != 'confirmed') {
-      throw ('Only a confirmed positive diagnosis is supported');
+      throw ('errors.verify_type_unconfirmed');
     }
 
     // Calculate and submit HMAC

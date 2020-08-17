@@ -13,6 +13,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:covidtrace/intl.dart' as locale;
 import 'package:provider/provider.dart';
 import 'state.dart';
 
@@ -37,8 +38,23 @@ class DashboardState extends State with TickerProviderStateMixin {
   Future<void> refreshExposures(AppState state) async {
     await state.checkStatus();
 
-    if (state.status == AuthorizationStatus.Authorized) {
+    if (state.status != AuthorizationStatus.Authorized) {
+      return;
+    }
+
+    var error;
+    try {
       await state.checkExposures();
+    } catch (err) {
+      error = 'errors.no_connection';
+    }
+
+    if (error != null) {
+      var intl = locale.Intl.of(context);
+      Scaffold.of(context).showSnackBar(SnackBar(
+          backgroundColor: Colors.red,
+          content: Text(intl.get('status.exposure.check.error',
+              args: [intl.get(error.trim())]))));
     }
   }
 
@@ -58,10 +74,13 @@ class DashboardState extends State with TickerProviderStateMixin {
     var authority = config["healthAuthority"];
     var theme = config['theme']['dashboard'];
     var faqs = config["faqs"];
+    var intl = locale.Intl.of(context);
 
     var heading = (String title) => [
           SizedBox(height: 20),
-          Center(child: Text(authority['name'], style: textTheme.caption)),
+          Center(
+              child:
+                  Text(intl.get(authority['name']), style: textTheme.caption)),
           SizedBox(height: 10),
           Center(child: Text(title, style: subhead)),
           SizedBox(height: 10),
@@ -81,7 +100,7 @@ class DashboardState extends State with TickerProviderStateMixin {
               children: [
                 Expanded(
                   child: Text(
-                    'Privacy Policy',
+                    intl.get('status.all.privacy.title'),
                     style: Theme.of(context)
                         .textTheme
                         .subtitle1
@@ -101,6 +120,7 @@ class DashboardState extends State with TickerProviderStateMixin {
     };
 
     return Consumer<AppState>(builder: (context, state, _) {
+      var intl = locale.Intl.of(context);
       var lastCheck = state.user.lastCheck;
       int days = 0;
       int hours = 0;
@@ -142,7 +162,9 @@ class DashboardState extends State with TickerProviderStateMixin {
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
-                                    Text('Exposure Notification is OFF',
+                                    Text(
+                                        intl.get(
+                                            'status.exposure_disabled.notice.title'),
                                         style: Theme.of(context)
                                             .textTheme
                                             .headline6
@@ -153,15 +175,14 @@ class DashboardState extends State with TickerProviderStateMixin {
                             ],
                           ),
                           Divider(height: 20, color: textColor),
-                          Text(
-                              '${config['theme']['title']} cannot alert you to potential COVID-19 exposures. Tap here to turn on Exposure Notifications.',
+                          Text(intl.get('status.exposure_disabled.notice.body'),
                               style: alertText)
                         ],
                       ),
                     ),
                   ),
                 ),
-                ...heading('Tips & Resources'),
+                ...heading(intl.get('status.non_exposure.faqs.title')),
                 ...faqs["non_exposure"].map((item) => InfoCard(item: item)),
                 SizedBox(height: 10),
                 privacyPolicy(),
@@ -196,15 +217,25 @@ class DashboardState extends State with TickerProviderStateMixin {
                               child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                Text('No Exposures Found',
+                                Text(
+                                    intl.get(
+                                        'status.non_exposure.notice.title'),
                                     style: Theme.of(context)
                                         .textTheme
                                         .headline6
                                         .merge(alertText)),
                                 Text(
                                     days >= 1
-                                        ? 'In the last ${days > 1 ? '$days days' : 'day'}'
-                                        : 'In the last ${hours > 1 ? '$hours hours' : 'hour'}',
+                                        ? intl.get(
+                                            'status.non_exposure.notice.since_${days > 1 ? 'days' : 'day'}',
+                                            args: [
+                                                days.toString()
+                                              ])
+                                        : intl.get(
+                                            'status.non_exposure.notice.since_${hours > 1 ? 'hours' : 'hour'}',
+                                            args: [
+                                                hours.toString()
+                                              ]),
                                     style: Theme.of(context)
                                         .textTheme
                                         .subtitle1
@@ -216,13 +247,18 @@ class DashboardState extends State with TickerProviderStateMixin {
                       ),
                       Divider(height: 20, color: textColor),
                       Text(
-                          'Last checked: ${DateFormat.jm().format(lastCheck ?? DateTime.now()).toLowerCase()}',
+                          intl.get('status.non_exposure.notice.last_check',
+                              args: [
+                                DateFormat.jm()
+                                    .format(lastCheck ?? DateTime.now())
+                                    .toLowerCase()
+                              ]),
                           style: alertText)
                     ],
                   ),
                 ),
               ),
-              ...heading('Tips & Resources'),
+              ...heading(intl.get('status.non_exposure.faqs.title')),
               ...faqs["non_exposure"].map((item) => InfoCard(item: item)),
               SizedBox(height: 10),
               privacyPolicy(),
@@ -253,14 +289,18 @@ class DashboardState extends State with TickerProviderStateMixin {
                         child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                          Text('Potential Exposure',
+                          Text(intl.get('status.exposure.notice.title'),
                               style: Theme.of(context)
                                   .textTheme
                                   .headline6
                                   .merge(alertText)),
                           SizedBox(height: 2),
                           Text(
-                              'On ${DateFormat.EEEE().add_MMMd().format(exposure.date)}',
+                              intl.get('status.exposure.notice.date', args: [
+                                DateFormat.EEEE()
+                                    .add_MMMd()
+                                    .format(exposure.date)
+                              ]),
                               style: alertText)
                         ])),
                     Image.asset('assets/shield_virus_icon.png',
@@ -268,12 +308,13 @@ class DashboardState extends State with TickerProviderStateMixin {
                   ]),
                   Divider(height: 20, color: textColor),
                   Text(
-                      "You were in close proximity to someone for ${exposure.duration.inMinutes} minutes who tested positive for COVID-19.",
+                      intl.get('status.exposure.notice.body',
+                          args: [exposure.duration.inMinutes.toString()]),
                       style: alertText)
                 ]),
               ),
             ),
-            ...heading('What To Do Now'),
+            ...heading(intl.get('status.exposure.faqs.title')),
             Card(
               margin: EdgeInsets.zero,
               child: InkWell(
@@ -294,10 +335,10 @@ class DashboardState extends State with TickerProviderStateMixin {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('County Health Department', style: subhead),
+                            Text(intl.get('status.exposure.contact.title'),
+                                style: subhead),
                             SizedBox(height: 5),
-                            Text(
-                                'Report potential exposure to your county Department of Health.'),
+                            Text(intl.get('status.exposure.contact.body')),
                           ],
                         ),
                       ),
@@ -331,7 +372,7 @@ class DashboardState extends State with TickerProviderStateMixin {
                     children: [
                       Expanded(
                         child: Text(
-                          'Find A Test Facility',
+                          intl.get('status.exposure.testing.title'),
                           style: Theme.of(context)
                               .textTheme
                               .subtitle1

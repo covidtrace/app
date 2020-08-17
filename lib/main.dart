@@ -5,6 +5,7 @@ import 'package:background_fetch/background_fetch.dart';
 import 'package:covidtrace/config.dart';
 import 'package:covidtrace/dashboard.dart';
 import 'package:covidtrace/helper/check_exposures.dart';
+import 'package:covidtrace/intl.dart';
 import 'package:covidtrace/onboarding.dart';
 import 'package:covidtrace/send_report.dart';
 import 'package:covidtrace/state.dart';
@@ -13,6 +14,7 @@ import 'package:covidtrace/storage/report.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:gact_plugin/gact_plugin.dart';
 import 'package:package_info/package_info.dart';
 import 'package:provider/provider.dart';
@@ -65,8 +67,18 @@ class CovidTraceAppState extends State {
       if (state.user != null) {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
+          localizationsDelegates: [
+            const IntlDelegate(),
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+          ],
+          supportedLocales: [
+            const Locale('en', 'US'),
+            const Locale('es', 'US'),
+          ],
           initialRoute: state.user.onboarding == true ? '/onboarding' : '/home',
-          title: theme['title'],
+          onGenerateTitle: (BuildContext context) =>
+              Intl.of(context).get(theme['title']),
           theme: ThemeData(
               primarySwatch: MaterialColor(colorMap[500].value, colorMap)),
           routes: {
@@ -189,12 +201,6 @@ class MainPageState extends State<MainPage> {
     );
   }
 
-  resetVerified(AppState state) async {
-    var user = state.user;
-    user.token = null;
-    await state.saveUser(user);
-  }
-
   onBottomNavTap(int index) async {
     if (index == 2) {
       launch(Config.get()['healthAuthority']['link']);
@@ -208,6 +214,7 @@ class MainPageState extends State<MainPage> {
 
   @override
   Widget build(BuildContext context) {
+    var intl = Intl.of(context);
     var config = Config.get();
     var theme = Theme.of(context);
     var selectedColor = theme.primaryColor;
@@ -221,7 +228,7 @@ class MainPageState extends State<MainPage> {
                   Image.asset(config['theme']['icon'],
                       fit: BoxFit.contain, height: 40),
                   SizedBox(width: 5),
-                  Text(config['theme']['title']),
+                  Text(intl.get(config['theme']['title'])),
                 ]),
                 actions: <Widget>[Container()], // Hides debug end drawer
               ),
@@ -233,25 +240,33 @@ class MainPageState extends State<MainPage> {
                       icon: Padding(
                         padding: EdgeInsets.only(bottom: 5),
                         child: Image.asset(
-                          'assets/people_arrows_icon.png',
+                          config['nav']['dashboard']['icon'],
                           height: 25,
                           color: _navIndex == 0 ? selectedColor : defaultColor,
                         ),
                       ),
-                      title: Text('Exposures')),
+                      title:
+                          Text(intl.get(config['nav']['dashboard']['title']))),
                   BottomNavigationBarItem(
                       icon: Padding(
                         padding: EdgeInsets.only(bottom: 5),
                         child: Image.asset(
-                          'assets/self_report_icon.png',
+                          config['nav']['report']['icon'],
                           height: 25,
                           color: _navIndex == 1 ? selectedColor : defaultColor,
                         ),
                       ),
-                      title: Text('Notify Others')),
+                      title: Text(intl.get(config['nav']['report']['title']))),
                   BottomNavigationBarItem(
-                    icon: Icon(Icons.info_outline, size: 30),
-                    title: Text('About'),
+                    icon: Padding(
+                      padding: EdgeInsets.only(bottom: 5),
+                      child: Image.asset(
+                        config['nav']['about']['icon'],
+                        height: 25,
+                        color: _navIndex == 2 ? selectedColor : defaultColor,
+                      ),
+                    ),
+                    title: Text(intl.get(config['nav']['about']['title'])),
                   ),
                 ],
               ),
@@ -283,11 +298,6 @@ class MainPageState extends State<MainPage> {
                         leading: Icon(Icons.delete_forever),
                         title: Text('Reset Report'),
                         onTap: () => closeDrawer(state, resetReport),
-                      ),
-                      ListTile(
-                        leading: Icon(Icons.verified_user),
-                        title: Text('Reset Verified'),
-                        onTap: () => closeDrawer(state, resetVerified),
                       ),
                       ListTile(
                         leading: Icon(Icons.power_settings_new),

@@ -1,7 +1,7 @@
 {
   "remote": "assets/remote.json",
   "theme": {
-    "title": "COVID Trace",
+    "title": "theme.title",
     "icon": "assets/app_icon.png",
     "primarySwatch": {
       "50": "0xfffff2f4",
@@ -34,9 +34,9 @@
     }
   },
   "healthAuthority": {
-    "name": "Division of Public & Behavioral Health",
+    "name": "healthAuthority.name",
     "updated": "2020-05-01",
-    "link": "http://dpbh.nv.gov/coronavirus",
+    "link": "https://nvhealthresponse.nv.gov/covidtrace",
     "phone_number": "211",
     "icon": "assets/app_icon.png"
   },
@@ -52,88 +52,211 @@
       "assets/test_facilities/override.css"
     ]
   },
+  "nav": {
+    "dashboard": {
+      "title": "nav.dashboard.title",
+      "icon": "assets/people_arrows_icon.png"
+    },
+    "report": {
+      "title": "nav.report.title",
+      "icon": "assets/self_report_icon.png"
+    },
+    "about": {
+      "title": "nav.about.title",
+      "icon": "assets/info_icon.png"
+    }
+  },
   "onboarding": {
     "intro": {
       "icon": "assets/app_icon.png",
-      "title": "Protect Nevada",
-      "body": "COVID Trace alerts you when you may have been exposed to COVID-19. Early alerts and quick action helps stop the spread and saves lives. Your participation is voluntary and anonymous to protect your privacy and health.",
-      "cta": "Get Started"
+      "title": "onboarding.intro.title",
+      "body": "onboarding.intro.body",
+      "cta": "onboarding.intro.cta"
+    },
+    "privacy": {
+      "icon": "assets/lock_icon.png",
+      "title": "onboarding.privacy.title",
+      "body": "onboarding.privacy.body",
+      "bullets": [
+        {
+          "title": "onboarding.privacy.bullets_0.title",
+          "icon": "assets/location_slash_icon.png"
+        },
+        {
+          "title": "onboarding.privacy.bullets_1.title",
+          "icon": "assets/map_marker_slash_icon.png"
+        },
+        {
+          "title": "onboarding.privacy.bullets_2.title",
+          "icon": "assets/phone_slash_icon.png"
+        },
+        {
+          "title": "onboarding.privacy.bullets_3.title",
+          "icon": "assets/user_slash_icon.png"
+        },
+        {
+          "title": "onboarding.privacy.bullets_4.title",
+          "icon": "assets/users_slash_icon.png"
+        }
+      ],
+      "privacy_title": "onboarding.privacy.privacy_title",
+      "cta": "onboarding.privacy.cta"
     },
     "exposure_notification": {
       "icon": "assets/people_arrows_icon.png",
-      "title": "Enable Exposure Notifications",
-      "body": "COVID Trace’s early detection works by using Bluetooth to see if you have come in contact with people who reported positive test results. COVID Trace does this all on your phone to maintain your privacy. Limited information is shared when reporting an infection or potential exposure.\n",
-      "privacy_title": "Privacy Policy",
-      "privacy_policy": "assets/privacy_policy.html",
-      "cta": "Continue"
+      "title": "onboarding.exposure_notification.title",
+      "body": "onboarding.exposure_notification.body",
+      "learn_more_title": "onboarding.exposure_notification.learn_more_title",
+      "learn_more_link": "onboarding.exposure_notification.learn_more_link",
+      "cta": "onboarding.exposure_notification.cta"
     },
     "notification_permission": {
-      "title": "What To Expect",
-      "body": "COVID Trace is now monitoring for exposures. You will get a notification if you were potentially exposed to COVID-19.",
+      "title": "onboarding.notification_permission.title",
+      "body": "onboarding.notification_permission.body",
       "preview_ios": "assets/ios_notification.png",
       "preview_android": "assets/android_notification.png",
-      "cta": "Finish"
+      "enable_toggle_title": "onboarding.notification_permission.enable_toggle_title",
+      "cta": "onboarding.notification_permission.cta"
     }
   },
   "faqs": {
     "non_exposure": [
       {
-        "icon": "assets/who_logo.jpg",
-        "title": "World Health Organization",
-        "body": "Stay aware of the latest information on the COVID-19 outbreak, available on the WHO website and through your national and local public health authority.",
-        "link": "https://www.who.int/emergencies/diseases/novel-coronavirus-2019"
+        "icon": "assets/prevention.png",
+        "title": "faqs.non_exposure_0.title",
+        "body": "faqs.non_exposure_0.body",
+        "link": "https://www.cdc.gov/coronavirus/2019-ncov/prevent-getting-sick/prevention.html",
+        "link_title": "faqs.non_exposure_0.link_title"
       },
       {
-        "icon": "assets/do_the_five.gif",
-        "title": "Do The Five",
-        "body": "1. STAY home as much as you can\n2. KEEP a safe distance\n3. WASH hands often\n4. COVER your cough\n5. SICK? Call ahead",
-        "link": "https://www.google.com/covid19/#safety-tips"
+        "icon": "assets/mask.png",
+        "title": "faqs.non_exposure_1.title",
+        "body": "faqs.non_exposure_1.body",
+        "link": "https://www.cdc.gov/coronavirus/2019-ncov/prevent-getting-sick/how-to-wear-cloth-face-coverings.html",
+        "link_title": "faqs.non_exposure_1.link_title"
       },
       {
-        "icon": "assets/stay_home_save_lives.png",
-        "title": "Stay Home, Save Lives",
-        "body": "Let frontline workers do their jobs. COVID-19 is spreading, and you may not know you’re infected until you’ve already infected others.",
-        "link": "https://www.stayhomesavelives.us"
+        "icon": "assets/checklist.png",
+        "title": "faqs.non_exposure_2.title",
+        "body": "faqs.non_exposure_2.body",
+        "link": "https://landing.google.com/screener/covid19",
+        "link_title": "faqs.non_exposure_2.link_title"
       },
       {
-        "icon": "assets/crisis_test_line.png",
-        "title": "Crisis Text Line",
-        "body": "Text HOME to 741741 from anywhere in the United States, anytime. Crisis Text Line is here for any crisis.",
-        "link": "https://www.crisistextline.org"
+        "icon": "assets/sick.png",
+        "title": "faqs.non_exposure_3.title",
+        "body": "faqs.non_exposure_3.body",
+        "link": "https://www.cdc.gov/coronavirus/2019-ncov/if-you-are-sick/steps-when-sick.html",
+        "link_title": "faqs.non_exposure_3.link_title"
+      },
+      {
+        "icon": "assets/chart.png",
+        "title": "faqs.non_exposure_4.title",
+        "body": "faqs.non_exposure_4.body",
+        "link": "https://news.google.com/covid19/map?hl=en-US&gl=US&ceid=US%3Aen&mid=%2Fm%2F059_c",
+        "link_title": "faqs.non_exposure_4.link_title"
+      },
+      {
+        "icon": "assets/nevada.png",
+        "title": "faqs.non_exposure_5.title",
+        "body": "faqs.non_exposure_5.body",
+        "link": "https://nvhealthresponse.nv.gov/",
+        "link_title": "faqs.non_exposure_4.link_title"
       }
     ],
     "exposure": [
       {
-        "title": "What should I do if I am not sick?",
-        "body": "You should monitor your health for fever, cough and shortness of breath during the 14 days after the last day you were in close contact with the sick person with COVID-19.",
-        "link": "https://coronavirus.wa.gov/"
+        "icon": "assets/checklist.png",
+        "title": "faqs.exposure_0.title",
+        "body": "faqs.exposure_0.body",
+        "link": "https://landing.google.com/screener/covid19",
+        "link_title": "faqs.exposure_0.link_title"
       },
       {
-        "title": "What should I do if I work in critical infrastructure?",
-        "body": "Critical infrastructure workers who had close contact with a COVID-19 case can continue to work as long as they remain well without symptoms and if they take the following measures",
-        "link": "https://coronavirus.wa.gov/"
+        "icon": "assets/thermometer.png",
+        "title": "faqs.exposure_1.title",
+        "body": "faqs.exposure_1.body",
+        "link": "https://www.cdc.gov/coronavirus/2019-ncov/symptoms-testing/symptoms.html",
+        "link_title": "faqs.exposure_1.link_title"
       },
       {
-        "title": "What is coronavirus disease 2019 (COVID-19)?",
-        "body": "COVID-19 is a respiratory disease caused by a new virus called SARS-CoV-2. The most common symptoms of the disease are fever, cough, and shortness of breath.",
-        "link": "https://coronavirus.wa.gov/"
+        "icon": "assets/sick.png",
+        "title": "faqs.exposure_2.title",
+        "body": "faqs.exposure_2.body",
+        "link": "https://www.cdc.gov/coronavirus/2019-ncov/if-you-are-sick/steps-when-sick.html",
+        "link_title": "faqs.exposure_2.link_title"
+      },
+      {
+        "icon": "assets/prevention.png",
+        "title": "faqs.exposure_3.title",
+        "body": "faqs.exposure_3.body",
+        "link": "https://www.cdc.gov/coronavirus/2019-ncov/prevent-getting-sick/prevention.html",
+        "link_title": "faqs.exposure_3.link_title"
+      },
+      {
+        "icon": "assets/mask.png",
+        "title": "faqs.exposure_4.title",
+        "body": "faqs.exposure_4.body",
+        "link": "https://www.cdc.gov/coronavirus/2019-ncov/prevent-getting-sick/how-to-wear-cloth-face-coverings.html",
+        "link_title": "faqs.exposure_4.link_title"
+      },
+      {
+        "icon": "assets/chart.png",
+        "title": "faqs.exposure_5.title",
+        "body": "faqs.exposure_5.body",
+        "link": "https://news.google.com/covid19/map?hl=en-US&gl=US&ceid=US%3Aen&mid=%2Fm%2F059_c",
+        "link_title": "faqs.exposure_5.link_title"
+      },
+      {
+        "icon": "assets/nevada.png",
+        "title": "faqs.exposure_6.title",
+        "body": "faqs.exposure_6.body",
+        "link": "https://nvhealthresponse.nv.gov/",
+        "link_title": "faqs.exposure_6.link_title"
       }
     ],
     "reported": [
       {
-        "title": "Protect others from getting sick",
-        "body": "Stay away from others for at least 7 days from when your symptoms first appeared",
-        "link": "https://www.cdc.gov/coronavirus/2019-ncov/if-you-are-sick/steps-when-sick.html"
+        "icon": "assets/sick.png",
+        "title": "faqs.reported_0.title",
+        "body": "faqs.reported_0.body",
+        "link": "https://www.cdc.gov/coronavirus/2019-ncov/if-you-are-sick/steps-when-sick.html",
+        "link_title": "faqs.reported_0.link_title"
       },
       {
-        "title": "Monitor your symptoms",
-        "body": "If your symptoms get worse, contact your doctor’s office",
-        "link": "https://www.cdc.gov/coronavirus/2019-ncov/if-you-are-sick/steps-when-sick.html"
+        "icon": "assets/thermometer.png",
+        "title": "faqs.reported_1.title",
+        "body": "faqs.reported_1.body",
+        "link": "https://landing.google.com/screener/covid19",
+        "link_title": "faqs.reported_1.link_title"
       },
       {
-        "title": "Caring for yourself at home",
-        "body": "10 things you can do to manage your health at home",
-        "link": "https://www.cdc.gov/coronavirus/2019-ncov/if-you-are-sick/caring-for-yourself-at-home.html"
+        "icon": "assets/prevention.png",
+        "title": "faqs.reported_2.title",
+        "body": "faqs.reported_2.body",
+        "link": "https://www.cdc.gov/coronavirus/2019-ncov/prevent-getting-sick/prevention.html",
+        "link_title": "faqs.reported_2.link_title"
+      },
+      {
+        "icon": "assets/mask.png",
+        "title": "faqs.reported_3.title",
+        "body": "faqs.reported_3.body",
+        "link": "https://www.cdc.gov/coronavirus/2019-ncov/prevent-getting-sick/how-to-wear-cloth-face-coverings.html",
+        "link_title": "faqs.reported_3.link_title"
+      },
+      {
+        "icon": "assets/chart.png",
+        "title": "faqs.reported_4.title",
+        "body": "faqs.reported_4.body",
+        "link": "https://news.google.com/covid19/map?hl=en-US&gl=US&ceid=US%3Aen&mid=%2Fm%2F059_c",
+        "link_title": "faqs.reported_4.link_title"
+      },
+      {
+        "icon": "assets/nevada.png",
+        "title": "faqs.reported_5.title",
+        "body": "faqs.reported_5.body",
+        "link": "https://nvhealthresponse.nv.gov/",
+        "link_title": "faqs.reported_5.link_title"
       }
     ]
   }
