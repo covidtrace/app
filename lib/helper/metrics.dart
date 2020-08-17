@@ -8,7 +8,14 @@ import 'package:http/http.dart' as http;
 import 'package:uuid/uuid.dart';
 
 Future<http.Response> report(Map<String, dynamic> postData) async {
-  var config = await Config.remote();
+  Map<String, dynamic> config;
+  try {
+    config = await Config.remote();
+  } catch (err) {
+    print('Unable to fetch remote config');
+    return null;
+  }
+
   // Silently ignore unconfigured metric reporting
   if (!config.containsKey('metricsPublishUrl')) {
     print('Metric reporting is not configured');
