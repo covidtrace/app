@@ -28,11 +28,19 @@ class DashboardState extends State with TickerProviderStateMixin {
   void initState() {
     super.initState();
     loadOldest();
+    loadConfig();
   }
 
   void loadOldest() async {
     var exposures = await ExposureModel.findAll(limit: 1, orderBy: 'date');
     setState(() => _oldest = exposures.isNotEmpty ? exposures.first : null);
+  }
+
+  void loadConfig() async {
+    await Config.remote();
+    setState(() {
+      // Force rebuild to pick up remote overrides
+    });
   }
 
   Future<void> refreshExposures(AppState state) async {
