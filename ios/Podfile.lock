@@ -8,6 +8,8 @@ PODS:
   - Flutter (1.0.0)
   - flutter_local_notifications (0.0.1):
     - Flutter
+  - flutter_safetynet_attestation (0.0.1):
+    - Flutter
   - FMDB (2.7.5):
     - FMDB/standard (= 2.7.5)
   - FMDB/standard (2.7.5)
@@ -45,6 +47,7 @@ DEPENDENCIES:
   - e2e (from `.symlinks/plugins/e2e/ios`)
   - Flutter (from `Flutter`)
   - flutter_local_notifications (from `.symlinks/plugins/flutter_local_notifications/ios`)
+  - flutter_safetynet_attestation (from `.symlinks/plugins/flutter_safetynet_attestation/ios`)
   - gact_plugin (from `.symlinks/plugins/gact_plugin/ios`)
   - package_info (from `.symlinks/plugins/package_info/ios`)
   - path_provider (from `.symlinks/plugins/path_provider/ios`)
@@ -74,6 +77,8 @@ EXTERNAL SOURCES:
     :path: Flutter
   flutter_local_notifications:
     :path: ".symlinks/plugins/flutter_local_notifications/ios"
+  flutter_safetynet_attestation:
+    :path: ".symlinks/plugins/flutter_safetynet_attestation/ios"
   gact_plugin:
     :path: ".symlinks/plugins/gact_plugin/ios"
   package_info:
@@ -107,6 +112,7 @@ SPEC CHECKSUMS:
   e2e: 967b9b1fc533b7636a3b7a719f840c27f301fe1f
   Flutter: 0e3d915762c693b495b44d77113d4970485de6ec
   flutter_local_notifications: 9e4738ce2471c5af910d961a6b7eadcf57c50186
+  flutter_safetynet_attestation: 1243281bc146a5944b7439d028b68c9cc6dd0bef
   FMDB: 2ce00b547f966261cd18927a3ddb07cb6f3db82a
   gact_plugin: becdcee3a5843c987db0d1104952b25561e81d95
   package_info: 873975fc26034f0b863a300ad47e7f1ac6c7ec62
