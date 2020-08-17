@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:archive/archive_io.dart';
 import 'package:covidtrace/config.dart';
+import 'package:covidtrace/helper/metrics.dart' as metrics;
 import 'package:covidtrace/storage/exposure.dart';
 import 'package:covidtrace/storage/user.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -20,7 +21,7 @@ Future<ExposureInfo> checkExposures() async {
   ]);
 
   var user = results[0] as UserModel;
-  var config = results[1];
+  var config = results[1] as Map<String, dynamic>;
   var dir = results[2] as Directory;
 
   String publishedBucket = config['exposureKeysPublishedBucket'];
@@ -118,6 +119,11 @@ Future<ExposureInfo> checkExposures() async {
   var exposure = exposures.isNotEmpty ? exposures.last : null;
 
   print('Done checking exposures!');
+
+  if (exposure != null) {
+    metrics.exposure();
+  }
+
   return exposure;
 }
 

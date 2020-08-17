@@ -187,6 +187,7 @@ class MainPageState extends State<MainPage> {
 
   resetOnboarding(AppState state) async {
     var user = state.user;
+    user.firstRun = true;
     user.onboarding = true;
     await state.saveUser(user);
     Navigator.of(context).pushReplacementNamed('/onboarding');

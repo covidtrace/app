@@ -184,6 +184,13 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
+  flutter_safetynet_attestation:
+    dependency: "direct main"
+    description:
+      name: flutter_safetynet_attestation
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "0.1.0"
   flutter_sticky_header:
     dependency: "direct main"
     description:
@@ -211,7 +218,7 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: d177126fd2060ed77c240dde7a3ea5c288e8ddb2
+      resolved-ref: "7627b63e7bd40d992c502799d24bcd6ed6d0ab66"
       url: "git@github.com:covidtrace/contact_trace_plugin.git"
     source: git
     version: "0.0.2"

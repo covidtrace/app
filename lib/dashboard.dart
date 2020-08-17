@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:app_settings/app_settings.dart';
 import 'package:covidtrace/config.dart';
 import 'package:covidtrace/info_card.dart';
+import 'package:covidtrace/helper/metrics.dart' as metrics;
 import 'package:covidtrace/privacy_policy.dart';
 import 'package:covidtrace/storage/exposure.dart';
 import 'package:covidtrace/test_facilities.dart';
@@ -316,7 +318,14 @@ class DashboardState extends State with TickerProviderStateMixin {
             Card(
               margin: EdgeInsets.zero,
               child: InkWell(
-                onTap: () => launch('tel:${authority['phone_number']}'),
+                onTap: () async {
+                  metrics.contact();
+                  if (Platform.isAndroid) {
+                    // Give time for request to finish before launch dialer
+                    await Future.delayed(Duration(milliseconds: 300));
+                  }
+                  launch('tel:${authority['phone_number']}');
+                },
                 child: Padding(
                   padding: EdgeInsets.all(15),
                   child: Row(
