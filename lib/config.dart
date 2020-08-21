@@ -1,12 +1,15 @@
 import 'dart:convert';
+import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:path_provider/path_provider.dart';
 
 class Config {
-  static Map<String, dynamic> _local;
+  static var remoteCacheDuration = Duration(hours: 24);
 
-  static Map<String, dynamic> _remote;
+  static Map<String, dynamic> _local;
 
   static Map<String, dynamic> get() => _local;
 
@@ -33,9 +36,20 @@ class Config {
   }
 
   static Future<Map<String, dynamic>> remote() async {
-    // TODO(wes): Store last remote refresh and invalidate every 12 hours
-    if (_remote != null) {
-      return _remote;
+    var config;
+    var dir = await getApplicationSupportDirectory();
+
+    var file = File('${dir.path}/remote_config.json');
+    if (await file.exists()) {
+      var modified = await file.lastModified();
+
+      if (DateTime.now().difference(modified).compareTo(
+              kReleaseMode ? remoteCacheDuration : Duration(seconds: 10)) <
+          0) {
+        print('returning cached config');
+        print(modified);
+        return jsonDecode(await file.readAsString());
+      }
     }
 
     if (!loaded) {
@@ -49,15 +63,25 @@ class Config {
       if (configResp.statusCode != 200) {
         throw ("Unable to fetch config file");
       }
-      _remote = jsonDecode(configResp.body) as Map<String, dynamic>;
+      config = jsonDecode(configResp.body) as Map<String, dynamic>;
     } else {
       var configResp = await rootBundle.loadString(remoteUrl.toString());
-      _remote = jsonDecode(configResp) as Map<String, dynamic>;
+      config = jsonDecode(configResp) as Map<String, dynamic>;
+    }
+
+    // Save config to disk
+    try {
+      await file.create(recursive: true);
+      file.writeAsString(jsonEncode(config));
+      print('Saved remote config to disk');
+    } catch (err) {
+      print('Error saving remote config to disk');
+      print(err);
     }
 
     // Merge overrides
-    if (_remote.containsKey('override')) {
-      var override = _remote['override'] as Map<String, dynamic>;
+    if (config.containsKey('override')) {
+      var override = config['override'] as Map<String, dynamic>;
       override.forEach((key, value) {
         if (value is Map) {
           (_local[key] as Map).addAll(value);
@@ -67,6 +91,6 @@ class Config {
       });
     }
 
-    return _remote;
+    return config;
   }
 }

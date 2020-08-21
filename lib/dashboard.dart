@@ -70,6 +70,16 @@ class DashboardState extends State with TickerProviderStateMixin {
     state.checkStatus();
   }
 
+  void enableExposureNotifications(AppState state) async {
+    try {
+      await GactPlugin.enableExposureNotification();
+      refreshStatus(state);
+    } catch (err) {
+      print(err);
+      AppSettings.openAppSettings();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     var textTheme = Theme.of(context).textTheme;
@@ -151,9 +161,7 @@ class DashboardState extends State with TickerProviderStateMixin {
               child: ListView(children: [
                 SizedBox(height: 15),
                 InkWell(
-                  onTap: () {
-                    AppSettings.openAppSettings();
-                  },
+                  onTap: () => enableExposureNotifications(state),
                   child: Container(
                     decoration: BoxDecoration(
                         color: bgColor,

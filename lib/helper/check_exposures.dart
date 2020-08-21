@@ -11,54 +11,54 @@ import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 
-Future<ExposureInfo> checkExposures() async {
-  print('Checking exposures...');
-
-  var results = await Future.wait([
-    UserModel.find(),
-    Config.remote(),
-    getApplicationSupportDirectory(),
-  ]);
-
-  var user = results[0] as UserModel;
-  var config = results[1] as Map<String, dynamic>;
-  var dir = results[2] as Directory;
-
-  String publishedBucket = config['exposureKeysPublishedBucket'];
-  String indexFileName = config['exposureKeysPublishedIndexFile'];
-
-  var indexFile = await http
-      .get('https://$publishedBucket.storage.googleapis.com/$indexFileName');
+Future<List<Uri>> processKeyIndexFile(
+  String url,
+  Directory dir,
+) async {
+  var indexFile = await http.get(url);
   if (indexFile.statusCode != 200) {
     return null;
   }
 
+  var user = await UserModel.find();
+  var lastKeyFile = user.lastKeyFile ?? '';
   // Filter objects for any that are lexically equal to or greater than
   // the last downloaded batch. If we have never checked before, we
   // should fetch everything in the index.
-  var lastKeyFile = user.lastKeyFile ?? '';
   var exportFiles = indexFile.body
       .split('\n')
       .where((name) => name.compareTo(lastKeyFile) > 0);
 
   if (exportFiles.isEmpty) {
-    user.lastCheck = DateTime.now();
-    await user.save();
     print('No new keys to check!');
-    return null;
+    return [];
   }
 
+  user.lastKeyFile = exportFiles.last;
+  await user.save();
+
+  var origin = Uri.parse(url).origin;
+  var keyFiles = await downloadExposureKeyFiles(
+      await Future.wait(exportFiles.map((fileName) async {
+        return '$origin/$fileName';
+      })),
+      dir);
+
+  return keyFiles;
+}
+
+Future<List<Uri>> downloadExposureKeyFiles(
+    Iterable<String> exportFiles, Directory dir) async {
   var downloads = await Future.wait(exportFiles.map((object) async {
     print('Downloading $object');
     // Download each exported zip file
-    var response = await http
-        .get('https://$publishedBucket.storage.googleapis.com/$object');
+    var response = await http.get(object);
     if (response.statusCode != 200) {
       print(response.body);
       return null;
     }
 
-    var keyFile = File('${dir.path}/$publishedBucket/$object');
+    var keyFile = File('${dir.path}/exposures${Uri.parse(object).path}');
     if (!await keyFile.exists()) {
       await keyFile.create(recursive: true);
     }
@@ -66,7 +66,7 @@ Future<ExposureInfo> checkExposures() async {
   }));
 
   // Decompress and verify downloads
-  List<Uri> keyFiles = await Future.wait(downloads.map((file) async {
+  List<Uri> keyFiles = await Future.wait(downloads.map((File file) async {
     if (Platform.isAndroid) {
       return file.uri;
     }
@@ -88,8 +88,12 @@ Future<ExposureInfo> checkExposures() async {
     return binFile.uri;
   }));
 
-  await GactPlugin.setExposureConfiguration(
-      config['exposureNotificationConfiguration']);
+  return keyFiles;
+}
+
+Future<List<ExposureInfo>> detectExposures(
+    List<Uri> keyFiles, Map<String, dynamic> exposureConfig) async {
+  await GactPlugin.setExposureConfiguration(exposureConfig);
 
   await GactPlugin.setUserExplanation(
       'You were in close proximity to someone who tested positive for COVID-19.');
@@ -108,10 +112,38 @@ Future<ExposureInfo> checkExposures() async {
     }));
   } catch (err) {
     print(err);
-    return null;
+    return [];
   }
 
-  user.lastKeyFile = exportFiles.last;
+  return exposures;
+}
+
+Future<ExposureInfo> checkExposures() async {
+  print('Checking exposures...');
+
+  var results = await Future.wait([
+    Config.remote(),
+    getApplicationSupportDirectory(),
+  ]);
+
+  var config = results[0] as Map<String, dynamic>;
+  var dir = results[1] as Directory;
+
+  String publishedBucket = config['exposureKeysPublishedBucket'];
+  String indexFileName = config['exposureKeysPublishedIndexFile'];
+
+  var keyFiles = await processKeyIndexFile(
+          'https://$publishedBucket.storage.googleapis.com/$indexFileName',
+          dir) ??
+      [];
+
+  List<ExposureInfo> exposures = [];
+  if (keyFiles.isNotEmpty) {
+    exposures = await detectExposures(
+        keyFiles, config['exposureNotificationConfiguration']);
+  }
+
+  var user = await UserModel.find();
   user.lastCheck = DateTime.now();
   await user.save();
 

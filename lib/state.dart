@@ -12,6 +12,7 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:gact_plugin/gact_plugin.dart';
 import 'package:http/http.dart' as http;
+import 'package:http/http.dart';
 import 'package:package_info/package_info.dart';
 import 'package:sqflite/sqflite.dart';
 
@@ -148,7 +149,9 @@ class AppState with ChangeNotifier {
     if (postResp.statusCode == 200) {
       return keys.toList();
     } else {
-      throw (postResp.body);
+      print('Error exporting TEKs: ${postResp.statusCode}');
+      print(postResp.body);
+      throw (getErrorMessage(postResp));
     }
   }
 
@@ -191,12 +194,21 @@ class AppState with ChangeNotifier {
     print(postResp.body);
 
     var statusCode = postResp.statusCode;
+    print('Verification code result');
+    print(postResp.statusCode);
+    print(postResp.body);
+
     if (statusCode == 429) {
       throw ('errors.too_many_attempts');
-    } else if (statusCode == 500) {
-      throw ('errors.verify_code_failed');
-    } else if (statusCode != 200) {
-      throw (postResp.body);
+    }
+
+    if (statusCode != 200) {
+      var code = getErrorCode(postResp);
+      if (code == 'token_invalid') {
+        throw ('errors.verify_code_failed');
+      } else {
+        throw (getErrorMessage(postResp));
+      }
     }
 
     var body = jsonDecode(postResp.body);
@@ -238,6 +250,24 @@ class AppState with ChangeNotifier {
     var certificate = body['certificate'];
 
     return certificate;
+  }
+
+  String getErrorCode(Response resp) {
+    try {
+      var body = jsonDecode(resp.body);
+      return body['errorCode'];
+    } catch (err) {
+      return null;
+    }
+  }
+
+  String getErrorMessage(Response resp) {
+    try {
+      var body = jsonDecode(resp.body);
+      return body['error'] ?? resp.body;
+    } catch (err) {
+      return resp.body;
+    }
   }
 
   Future<void> clearReport() async {

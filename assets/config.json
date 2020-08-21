@@ -37,6 +37,7 @@
     "name": "healthAuthority.name",
     "updated": "2020-05-01",
     "link": "http://dpbh.nv.gov/coronavirus",
+    "phone_number": "833-625-0591",
     "icon": "assets/app_icon.png"
   },
   "test_facilities": {
