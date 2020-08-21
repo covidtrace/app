@@ -128,6 +128,7 @@ class AppState with ChangeNotifier {
     var postData = {
       "regions": ['US'],
       "appPackageName": (await PackageInfo.fromPlatform()).packageName,
+      "revisionToken": user.revisionToken,
       "temporaryExposureKeys": keys
           .map((k) => {
                 "key": k.keyData,
@@ -147,6 +148,13 @@ class AppState with ChangeNotifier {
     );
 
     if (postResp.statusCode == 200) {
+      // Store revisionToken to allow resubmission of TEKS
+      var data = jsonDecode(postResp.body) as Map<String, dynamic>;
+      if (data.containsKey('revisionToken')) {
+        user.revisionToken = data['revisionToken'];
+        await saveUser(user);
+      }
+
       return keys.toList();
     } else {
       print('Error exporting TEKs: ${postResp.statusCode}');

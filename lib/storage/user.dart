@@ -11,6 +11,7 @@ class UserModel {
   DateTime lastCheck;
   String lastKeyFile;
   Token token;
+  String revisionToken;
 
   UserModel(
       {this.id,
@@ -19,7 +20,8 @@ class UserModel {
       this.onboarding,
       this.lastCheck,
       this.lastKeyFile,
-      this.token});
+      this.token,
+      this.revisionToken});
 
   static Future<UserModel> find() async {
     final Database db = await Storage.db;
@@ -35,6 +37,7 @@ class UserModel {
       onboarding: rows[0]['onboarding'] == 1,
       lastCheck: lastCheck != null ? DateTime.parse(lastCheck) : null,
       lastKeyFile: rows[0]['last_key_file'],
+      revisionToken: rows[0]['revision_token'],
       token: Token(
           token: rows[0]['verify_token'],
           refreshToken: rows[0]['refresh_token']),
@@ -54,6 +57,7 @@ class UserModel {
           'last_key_file': lastKeyFile,
           'verify_token': token != null ? token.token : null,
           'refresh_token': token != null ? token.refreshToken : null,
+          'revision_token': lastKeyFile,
         },
         where: 'id = ?',
         whereArgs: [id]);

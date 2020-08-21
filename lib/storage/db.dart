@@ -51,6 +51,11 @@ Map<int, List<String>> migrationScripts = {
     '''
     ALTER TABLE USER add COLUMN first_run INTEGER DEFAULT 1;
     '''
+  ],
+  4: [
+    '''
+    ALTER TABLE USER add COLUMN revision_token TEXT;
+    '''
   ]
 };
 
@@ -66,7 +71,7 @@ Future<String> _dataBasePath(String path) async {
 }
 
 Future<Database> _initDatabase() async {
-  return await openDatabase(await _dataBasePath('covidtrace.db'), version: 3,
+  return await openDatabase(await _dataBasePath('covidtrace.db'), version: 4,
       onCreate: (db, version) async {
     initialScript.forEach((script) async => await db.execute(script));
     if (version > 1) {
