@@ -84,10 +84,7 @@ class SendReportState extends State<SendReport> with TickerProviderStateMixin {
     }
 
     setState(() => _loading = false);
-
-    if (error != null) {
-      _pinState.reset();
-    }
+    _pinState.reset();
 
     return error;
   }

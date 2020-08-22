@@ -140,6 +140,8 @@ class AppState with ChangeNotifier {
       "verificationPayload": cert,
       "hmackey": base64.encode(utf8.encode(_user.uuid)),
     };
+    print('Sending TEKs');
+    print(postData);
 
     var postResp = await http.post(
       Uri.parse(config['exposurePublishUrl']),

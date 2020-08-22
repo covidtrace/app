@@ -38,7 +38,7 @@
   "status.exposure.notice.body": "You were in close proximity to someone for $0 minutes who tested positive for COVID-19.",
   "status.exposure.notice.date": "On $0",
   "status.exposure.faqs.title": "Tips & Resources",
-  "status.exposure.contact.title": "County Health Department",
+  "status.exposure.contact.title": "Department of Health",
   "status.exposure.contact.body": "Report potential exposure to your county Department of Health.",
   "status.exposure.testing.title": "Find A Test Facility",
   "status.exposure.check.error": "There was an error checking your status:\n\"$0\"",
